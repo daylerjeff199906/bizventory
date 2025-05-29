@@ -25,6 +25,7 @@ import {
   SidebarHeader,
   SidebarRail
 } from '@/components/ui/sidebar'
+import { APP_URLS } from '@/config/app-urls'
 
 const navMain = [
   // {
@@ -94,7 +95,7 @@ const navMain = [
     icon: Contact2,
     items: [
       { title: 'Clientes', url: '/clients' },
-      { title: 'Proveedores', url: '/suppliers' },
+      { title: 'Proveedores', url: APP_URLS.SUPPLIERS.LIST },
       { title: 'Relaciones', url: '/relationships' }
     ]
   }
