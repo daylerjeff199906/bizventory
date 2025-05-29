@@ -6,3 +6,5 @@ export default async function Page() {
 
   return <SuppliersList suppliersList={suppliers || []} />
 }
+
+export const dynamic = 'force-dynamic' // Forzar revalidación en cada solicitud

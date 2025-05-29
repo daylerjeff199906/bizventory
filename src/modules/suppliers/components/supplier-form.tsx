@@ -1,6 +1,7 @@
+//suplier-form.tsx
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2, Save, X } from 'lucide-react'
@@ -60,27 +61,19 @@ export default function SupplierForm({
 
   const form = useForm<CreateSupplierData>({
     resolver: zodResolver(supplierSchema),
-    defaultValues: supplier
-      ? {
-          name: supplier.name,
-          contact: supplier.contact,
-          email: supplier.email,
-          phone: supplier.phone,
-          address: supplier.address,
-          currency: supplier.currency,
-          status: supplier.status,
-          notes: supplier.notes || '',
-          company_type: supplier.company_type,
-          document_type: supplier.document_type,
-          document_number: supplier.document_number
-        }
-      : {
-          currency: 'EUR',
-          status: 'activo',
-          company_type: 'S.L.',
-          document_type: 'CIF',
-          notes: ''
-        }
+    defaultValues: {
+      address: supplier?.address,
+      company_type: supplier?.company_type,
+      contact: supplier?.contact || '',
+      currency: supplier?.currency || 'EUR',
+      document_number: supplier?.document_number || '',
+      document_type: supplier?.document_type || 'CIF',
+      email: supplier?.email || '',
+      name: supplier?.name,
+      notes: supplier?.notes || '',
+      phone: supplier?.phone || '',
+      status: supplier?.status || 'activo'
+    }
   })
 
   const onSubmit = async (data: CreateSupplierData) => {
@@ -116,6 +109,7 @@ export default function SupplierForm({
 
       onSuccess?.(result)
       onOpenChange(false)
+      window.location.reload() // Recargar la página para reflejar los cambios
       form.reset()
     } catch (error) {
       console.error('Error al guardar el proveedor:', error)
@@ -141,56 +135,89 @@ export default function SupplierForm({
     onOpenChange(newOpen)
   }
 
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 w-full">
-        <Dialog open={open} onOpenChange={handleOpenChange}>
-          <DialogContent className="w-full max-w-6xl">
-            <DialogHeader>
-              <DialogTitle>
-                {isEditing ? 'Editar Proveedor' : 'Nuevo Proveedor'}
-              </DialogTitle>
-            </DialogHeader>
+  // Añade este efecto para actualizar los valores cuando el supplier cambie
+  useEffect(() => {
+    if (supplier) {
+      form.reset({
+        address: supplier.address,
+        company_type: supplier.company_type,
+        contact: supplier.contact || '',
+        currency: supplier.currency || 'EUR',
+        document_number: supplier.document_number || '',
+        document_type: supplier.document_type || 'CIF',
+        email: supplier.email || '',
+        name: supplier.name,
+        notes: supplier.notes || '',
+        phone: supplier.phone || '',
+        status: supplier.status || 'activo'
+      })
+    } else {
+      form.reset({
+        address: '',
+        company_type: '',
+        contact: '',
+        currency: 'EUR',
+        document_number: '',
+        document_type: 'CIF',
+        email: '',
+        name: '',
+        notes: '',
+        phone: '',
+        status: 'activo'
+      })
+    }
+  }, [supplier, form])
 
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="min-w-[400px] md:min-w-[600px] lg:min-w-[800px]">
+        <DialogHeader>
+          <DialogTitle>
+            {isEditing ? 'Editar Proveedor' : 'Nuevo Proveedor'}
+          </DialogTitle>
+        </DialogHeader>
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-6 w-full"
+          >
             <div className="space-y-6 py-4 max-h-[70vh] overflow-y-auto w-full">
               {/* Información básica */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nombre de la empresa</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Ej: Distribuidora Central S.A."
-                          {...field}
-                          value={field.value || ''}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nombre de la empresa</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Ej: Distribuidora Central S.A."
+                        {...field}
+                        value={field.value || ''}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  control={form.control}
-                  name="contact"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Persona de contacto</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Ej: María González"
-                          {...field}
-                          value={field.value || ''}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="contact"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Persona de contacto</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Ej: María González"
+                        {...field}
+                        value={field.value || ''}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               {/* Información de contacto */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -422,9 +449,9 @@ export default function SupplierForm({
                 </Button>
               </div>
             </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </form>
-    </Form>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
   )
 }

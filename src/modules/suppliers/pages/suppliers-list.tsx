@@ -1,4 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
+//suppliers-list.tsx
 'use client'
 
 import { useState, useMemo } from 'react'
@@ -140,138 +141,140 @@ export default function SuppliersList(props: IProps) {
   }
 
   return (
-    <div className="flex flex-col space-y-6 p-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Proveedores</h1>
-          <p className="text-muted-foreground">
-            Gestiona y administra todos tus proveedores
-          </p>
-        </div>
-        <Button onClick={handleNewSupplier}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nuevo Proveedor
-        </Button>
-      </div>
-
-      {/* Search */}
-      <div className="flex items-center space-x-2">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar proveedores..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-8"
-          />
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="border rounded-lg">
-        {filteredAndSortedSuppliers && filteredAndSortedSuppliers.length > 0 ? (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>
-                  <Button
-                    variant="ghost"
-                    onClick={() => handleSort('name')}
-                    className="h-auto p-0 font-semibold"
-                  >
-                    Nombre
-                    {getSortIcon('name')}
-                  </Button>
-                </TableHead>
-                <TableHead>Contacto</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Teléfono</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead>
-                  <Button
-                    variant="ghost"
-                    onClick={() => handleSort('created_at')}
-                    className="h-auto p-0 font-semibold"
-                  >
-                    Creado
-                    {getSortIcon('created_at')}
-                  </Button>
-                </TableHead>
-                <TableHead>
-                  <Button
-                    variant="ghost"
-                    onClick={() => handleSort('updated_at')}
-                    className="h-auto p-0 font-semibold"
-                  >
-                    Actualizado
-                    {getSortIcon('updated_at')}
-                  </Button>
-                </TableHead>
-                <TableHead>Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredAndSortedSuppliers.map((supplier) => (
-                <TableRow key={supplier.id}>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{supplier.name}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {supplier.company_type}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{supplier.contact}</TableCell>
-                  <TableCell>{supplier.email}</TableCell>
-                  <TableCell>{supplier.phone}</TableCell>
-                  <TableCell>{getStatusBadge(supplier.status)}</TableCell>
-                  <TableCell>{formatDate(supplier.created_at)}</TableCell>
-                  <TableCell>{formatDate(supplier.updated_at)}</TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEditSupplier(supplier)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        // onClick={() => handleDeleteSupplier(supplier.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-12">
-            <h2 className="text-lg font-semibold mb-2">No hay resultados</h2>
-            <p className="text-muted-foreground text-sm">
-              No se encontraron proveedores que coincidan con tu búsqueda o
-              filtros.
+    <>
+      <div className="flex flex-col space-y-6 p-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Proveedores</h1>
+            <p className="text-muted-foreground">
+              Gestiona y administra todos tus proveedores
             </p>
           </div>
-        )}
-      </div>
+          <Button onClick={handleNewSupplier}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nuevo Proveedor
+          </Button>
+        </div>
 
-      {/* Results count */}
-      <div className="text-sm text-muted-foreground">
-        Mostrando {filteredAndSortedSuppliers?.length} de {suppliers?.length}{' '}
-        proveedores
-      </div>
+        {/* Search */}
+        <div className="flex items-center space-x-2">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar proveedores..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-8"
+            />
+          </div>
+        </div>
 
+        {/* Table */}
+        <div className="border rounded-lg">
+          {filteredAndSortedSuppliers &&
+          filteredAndSortedSuppliers.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleSort('name')}
+                      className="h-auto p-0 font-semibold"
+                    >
+                      Nombre
+                      {getSortIcon('name')}
+                    </Button>
+                  </TableHead>
+                  <TableHead>Contacto</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Teléfono</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead>
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleSort('created_at')}
+                      className="h-auto p-0 font-semibold"
+                    >
+                      Creado
+                      {getSortIcon('created_at')}
+                    </Button>
+                  </TableHead>
+                  <TableHead>
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleSort('updated_at')}
+                      className="h-auto p-0 font-semibold"
+                    >
+                      Actualizado
+                      {getSortIcon('updated_at')}
+                    </Button>
+                  </TableHead>
+                  <TableHead>Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredAndSortedSuppliers.map((supplier) => (
+                  <TableRow key={supplier.id}>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">{supplier.name}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {supplier.company_type}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>{supplier.contact}</TableCell>
+                    <TableCell>{supplier.email}</TableCell>
+                    <TableCell>{supplier.phone}</TableCell>
+                    <TableCell>{getStatusBadge(supplier.status)}</TableCell>
+                    <TableCell>{formatDate(supplier.created_at)}</TableCell>
+                    <TableCell>{formatDate(supplier.updated_at)}</TableCell>
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditSupplier(supplier)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          // onClick={() => handleDeleteSupplier(supplier.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12">
+              <h2 className="text-lg font-semibold mb-2">No hay resultados</h2>
+              <p className="text-muted-foreground text-sm">
+                No se encontraron proveedores que coincidan con tu búsqueda o
+                filtros.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Results count */}
+        <div className="text-sm text-muted-foreground">
+          Mostrando {filteredAndSortedSuppliers?.length} de {suppliers?.length}{' '}
+          proveedores
+        </div>
+      </div>
       <SupplierForm
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         supplier={editingSupplier}
       />
-    </div>
+    </>
   )
 }

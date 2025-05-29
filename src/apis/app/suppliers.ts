@@ -5,6 +5,8 @@ import { createClient } from '@/utils/supabase/server'
 // import { cookies } from 'next/headers'
 import { CreateSupplierData, UpdateSupplierData } from '@/modules/suppliers'
 import { Supplier } from '@/types'
+import { revalidatePath } from 'next/cache'
+import { APP_URLS } from '@/config/app-urls'
 // import { Database } from '@/types/supabase'
 
 // Tipo Supplier según tu esquema en Supabase
@@ -75,6 +77,7 @@ export async function createSupplier({
     .single()
 
   if (error || !data) throw error || new Error('Creation failed')
+  revalidatePath(APP_URLS.SUPPLIERS.LIST)
   return data
 }
 
@@ -100,6 +103,7 @@ export async function updateSupplier({
     .single()
 
   if (error || !data) throw error || new Error('Update failed')
+  revalidatePath(APP_URLS.SUPPLIERS.LIST)
   return data
 }
 

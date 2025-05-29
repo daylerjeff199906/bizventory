@@ -43,9 +43,8 @@ const navMain = [
     url: '#',
     icon: PackageCheck,
     items: [
-      { title: 'Catálogo de Productos', url: '/products' },
+      { title: 'Lista de productos', url: APP_URLS.PRODUCTS.LIST },
       { title: 'Categorías', url: '/products/categories' },
-      { title: 'Códigos de Barras / QR', url: '/products/codes' },
       { title: 'Stock Mínimo', url: '/products/min-stock' }
     ]
   },

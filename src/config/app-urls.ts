@@ -1,6 +1,13 @@
 const URL_PREFIX = '/dashboard'
 
 export const APP_URLS = {
+  PRODUCTS: {
+    LIST: `${URL_PREFIX}/products`,
+    CREATE: `${URL_PREFIX}/products/create`,
+    MULTIMEDIA: (id: string) => `${URL_PREFIX}/products/${id}/media`,
+    EDIT: (id: string) => `${URL_PREFIX}/products/${id}/edit`,
+    VIEW: (id: string) => `${URL_PREFIX}/products/${id}`
+  },
   SUPPLIERS: {
     LIST: `${URL_PREFIX}/suppliers`,
     CREATE: `${URL_PREFIX}/suppliers/create`,
