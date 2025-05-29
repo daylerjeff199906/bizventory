@@ -1,3 +1,5 @@
+import { SuppliersList } from '@/modules/suppliers'
+
 export default function Page() {
-  return <div></div>
+  return <SuppliersList />
 }
