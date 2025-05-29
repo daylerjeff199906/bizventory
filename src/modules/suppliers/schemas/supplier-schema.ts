@@ -21,7 +21,7 @@ export const supplierSchema = z.object({
 export const createSupplierSchema = supplierSchema
 
 export const updateSupplierSchema = supplierSchema.extend({
-  id: z.string(),
+//   id: z.string(),
   updated_at: z.string()
 })
 

@@ -38,6 +38,8 @@ import {
 } from '../schemas'
 import { Supplier } from '@/types'
 import { createSupplier, updateSupplier } from '@/apis/app'
+import { toast } from 'react-toastify'
+import { ToastCustom } from '@/components/app/toast-custom'
 
 interface SupplierFormProps {
   open: boolean
@@ -90,24 +92,37 @@ export default function SupplierForm({
           ...data,
           updated_at: new Date().toISOString()
         }
-        // result = await supplierApi.update(supplier.id, updateData)
-        // toast({
-        //   title: 'Proveedor actualizado',
-        //   description:
-        //     'Los datos del proveedor se han actualizado correctamente.'
-        // })
+
+        result = await updateSupplier({
+          id: supplier.id,
+          updated: updateData
+        })
+        toast(
+          <ToastCustom
+            title="Proveedor actualizado"
+            message={`Los datos del proveedor ${result.name} se han actualizado correctamente.`}
+          />
+        )
       } else {
-        // result = await supplierApi.create(data)
-        // toast({
-        //   title: 'Proveedor creado',
-        //   description: 'El nuevo proveedor se ha creado correctamente.'
-        // })
+        result = await createSupplier({ newSupplier: data })
+        toast(
+          <ToastCustom
+            title="Proveedor creado"
+            message={`El proveedor ${result.name} se ha creado correctamente.`}
+          />
+        )
       }
 
-      //   onSuccess?.(result)
+      onSuccess?.(result)
       onOpenChange(false)
       form.reset()
     } catch (error) {
+      console.error('Error al guardar el proveedor:', error)
+      toast.error(
+        `Error al ${
+          isEditing ? 'actualizar' : 'crear'
+        } el proveedor. Por favor, inténtalo de nuevo.`
+      )
     } finally {
       setIsLoading(false)
     }

@@ -1,5 +1,8 @@
 import { SuppliersList } from '@/modules/suppliers'
+import { getSuppliers } from '@/apis/app'
 
-export default function Page() {
-  return <SuppliersList />
+export default async function Page() {
+  const suppliers = await getSuppliers()
+
+  return <SuppliersList suppliersList={suppliers || []} />
 }

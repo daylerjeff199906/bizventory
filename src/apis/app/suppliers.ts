@@ -1,5 +1,6 @@
 // suppliers.ts
 // Servicio de funciones CRUD para la tabla 'suppliers' usando Supabase en Server Components
+'use server'
 import { createClient } from '@/utils/supabase/server'
 // import { cookies } from 'next/headers'
 import { CreateSupplierData, UpdateSupplierData } from '@/modules/suppliers'
@@ -61,9 +62,11 @@ export async function getSupplierById(id: string): Promise<Supplier> {
  * @param newSupplier - datos para creación
  * @returns Promise<Supplier>
  */
-export async function createSupplier(
+export async function createSupplier({
+  newSupplier
+}: {
   newSupplier: CreateSupplierData
-): Promise<Supplier> {
+}): Promise<Supplier> {
   const supabase = await getSupabase()
   const { data, error } = await supabase
     .from('suppliers')
@@ -81,10 +84,13 @@ export async function createSupplier(
  * @param updated - campos a actualizar
  * @returns Promise<Supplier>
  */
-export async function updateSupplier(
-  id: string,
+export async function updateSupplier({
+  id,
+  updated
+}: {
+  id: string
   updated: UpdateSupplierData
-): Promise<Supplier> {
+}): Promise<Supplier> {
   const supabase = await getSupabase()
   const { data, error } = await supabase
     .from('suppliers')

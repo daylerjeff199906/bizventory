@@ -2,7 +2,15 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Search, Plus, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
+import {
+  Search,
+  Plus,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Edit,
+  Trash2
+} from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,100 +23,26 @@ import {
   TableRow
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
+import { Supplier } from '@/types'
+import { SupplierForm } from '../components'
 
 // Tipado para los proveedores
-export interface Supplier {
-  id: string
-  name: string
-  contact: string
-  email: string
-  phone: string
-  address: string
-  currency: string
-  status: 'activo' | 'inactivo' | 'pendiente'
-  notes: string
-  created_at: string
-  updated_at: string
-  company_type: string
-  document_type: string
-  document_number: string
-}
 
 type SortField = 'id' | 'name' | 'created_at' | 'updated_at'
 type SortDirection = 'asc' | 'desc'
 
-export default function SuppliersList() {
-  // Datos de ejemplo
-  const suppliers: Supplier[] = [
-    {
-      id: 'SUP001',
-      name: 'Distribuidora Central S.A.',
-      contact: 'María González',
-      email: 'maria@distribuidora.com',
-      phone: '+34 912 345 678',
-      address: 'Calle Mayor 123, Madrid',
-      currency: 'EUR',
-      status: 'activo',
-      notes: 'Proveedor principal de materiales',
-      created_at: '2024-01-15T10:30:00Z',
-      updated_at: '2024-03-20T14:45:00Z',
-      company_type: 'S.A.',
-      document_type: 'CIF',
-      document_number: 'A12345678'
-    },
-    {
-      id: 'SUP002',
-      name: 'Suministros del Norte',
-      contact: 'Carlos Rodríguez',
-      email: 'carlos@suministros.com',
-      phone: '+34 985 123 456',
-      address: 'Avenida Industrial 45, Oviedo',
-      currency: 'EUR',
-      status: 'activo',
-      notes: 'Especializado en herramientas',
-      created_at: '2024-02-10T09:15:00Z',
-      updated_at: '2024-03-18T11:20:00Z',
-      company_type: 'S.L.',
-      document_type: 'CIF',
-      document_number: 'B87654321'
-    },
-    {
-      id: 'SUP003',
-      name: 'Tecnología Avanzada',
-      contact: 'Ana Martín',
-      email: 'ana@tecavanzada.com',
-      phone: '+34 934 567 890',
-      address: 'Polígono Industrial 12, Barcelona',
-      currency: 'EUR',
-      status: 'pendiente',
-      notes: 'En proceso de verificación',
-      created_at: '2024-03-01T16:00:00Z',
-      updated_at: '2024-03-15T10:30:00Z',
-      company_type: 'S.L.',
-      document_type: 'CIF',
-      document_number: 'B11223344'
-    },
-    {
-      id: 'SUP004',
-      name: 'Logística Express',
-      contact: 'Pedro Sánchez',
-      email: 'pedro@logistica.com',
-      phone: '+34 954 321 098',
-      address: 'Calle Comercio 78, Sevilla',
-      currency: 'EUR',
-      status: 'inactivo',
-      notes: 'Suspendido temporalmente',
-      created_at: '2023-12-05T08:45:00Z',
-      updated_at: '2024-01-10T13:15:00Z',
-      company_type: 'S.A.',
-      document_type: 'CIF',
-      document_number: 'A99887766'
-    }
-  ]
+interface IProps {
+  suppliersList?: Supplier[]
+}
+
+export default function SuppliersList(props: IProps) {
+  const { suppliersList: suppliers } = props
 
   const [searchTerm, setSearchTerm] = useState('')
   const [sortField, setSortField] = useState<SortField>('name')
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [editingSupplier, setEditingSupplier] = useState<Supplier | undefined>()
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -131,7 +65,7 @@ export default function SuppliersList() {
   }
 
   const filteredAndSortedSuppliers = useMemo(() => {
-    const filtered = suppliers.filter(
+    const filtered = suppliers?.filter(
       (supplier) =>
         supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         supplier.contact.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -139,7 +73,7 @@ export default function SuppliersList() {
         supplier.id.toLowerCase().includes(searchTerm.toLowerCase())
     )
 
-    return filtered.sort((a, b) => {
+    return filtered?.sort((a, b) => {
       let aValue: string | number
       let bValue: string | number
 
@@ -195,6 +129,16 @@ export default function SuppliersList() {
     })
   }
 
+  const handleNewSupplier = () => {
+    setEditingSupplier(undefined)
+    setDialogOpen(true)
+  }
+
+  const handleEditSupplier = (supplier: Supplier) => {
+    setEditingSupplier(supplier)
+    setDialogOpen(true)
+  }
+
   return (
     <div className="flex flex-col space-y-6 p-6">
       {/* Header */}
@@ -205,7 +149,7 @@ export default function SuppliersList() {
             Gestiona y administra todos tus proveedores
           </p>
         </div>
-        <Button>
+        <Button onClick={handleNewSupplier}>
           <Plus className="h-4 w-4 mr-2" />
           Nuevo Proveedor
         </Button>
@@ -273,10 +217,11 @@ export default function SuppliersList() {
                   {getSortIcon('updated_at')}
                 </Button>
               </TableHead>
+              <TableHead>Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredAndSortedSuppliers.map((supplier) => (
+            {filteredAndSortedSuppliers?.map((supplier) => (
               <TableRow key={supplier.id}>
                 <TableCell className="font-medium">{supplier.id}</TableCell>
                 <TableCell>
@@ -293,6 +238,24 @@ export default function SuppliersList() {
                 <TableCell>{getStatusBadge(supplier.status)}</TableCell>
                 <TableCell>{formatDate(supplier.created_at)}</TableCell>
                 <TableCell>{formatDate(supplier.updated_at)}</TableCell>
+                <TableCell>
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEditSupplier(supplier)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      // onClick={() => handleDeleteSupplier(supplier.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -301,9 +264,15 @@ export default function SuppliersList() {
 
       {/* Results count */}
       <div className="text-sm text-muted-foreground">
-        Mostrando {filteredAndSortedSuppliers.length} de {suppliers.length}{' '}
+        Mostrando {filteredAndSortedSuppliers?.length} de {suppliers?.length}{' '}
         proveedores
       </div>
+
+      <SupplierForm
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        supplier={editingSupplier}
+      />
     </div>
   )
 }
