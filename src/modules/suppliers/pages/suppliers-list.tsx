@@ -177,16 +177,6 @@ export default function SuppliersList(props: IProps) {
                 <TableHead>
                   <Button
                     variant="ghost"
-                    onClick={() => handleSort('id')}
-                    className="h-auto p-0 font-semibold"
-                  >
-                    ID
-                    {getSortIcon('id')}
-                  </Button>
-                </TableHead>
-                <TableHead>
-                  <Button
-                    variant="ghost"
                     onClick={() => handleSort('name')}
                     className="h-auto p-0 font-semibold"
                   >
@@ -224,7 +214,6 @@ export default function SuppliersList(props: IProps) {
             <TableBody>
               {filteredAndSortedSuppliers.map((supplier) => (
                 <TableRow key={supplier.id}>
-                  <TableCell className="font-medium">{supplier.id}</TableCell>
                   <TableCell>
                     <div>
                       <div className="font-medium">{supplier.name}</div>
