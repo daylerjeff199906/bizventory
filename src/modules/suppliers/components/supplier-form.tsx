@@ -37,8 +37,7 @@ import {
   type UpdateSupplierData
 } from '../schemas'
 import { Supplier } from '@/types'
-// import { supplierApi } from '../lib/supplier-api'
-// import type { Supplier } from '../suppliers-list'
+import { createSupplier, updateSupplier } from '@/apis/app'
 
 interface SupplierFormProps {
   open: boolean
