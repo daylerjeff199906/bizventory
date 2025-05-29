@@ -18,6 +18,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
@@ -141,17 +142,17 @@ export default function SupplierForm({
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
-            {isEditing ? 'Editar Proveedor' : 'Nuevo Proveedor'}
-          </DialogTitle>
-        </DialogHeader>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 w-full">
+        <Dialog open={open} onOpenChange={handleOpenChange}>
+          <DialogContent className="w-full max-w-6xl">
+            <DialogHeader>
+              <DialogTitle>
+                {isEditing ? 'Editar Proveedor' : 'Nuevo Proveedor'}
+              </DialogTitle>
+            </DialogHeader>
 
-        <div className="space-y-6 py-4">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="space-y-6 py-4 max-h-[70vh] overflow-y-auto w-full">
               {/* Información básica */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
@@ -164,6 +165,7 @@ export default function SupplierForm({
                         <Input
                           placeholder="Ej: Distribuidora Central S.A."
                           {...field}
+                          value={field.value || ''}
                         />
                       </FormControl>
                       <FormMessage />
@@ -178,7 +180,11 @@ export default function SupplierForm({
                     <FormItem>
                       <FormLabel>Persona de contacto</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ej: María González" {...field} />
+                        <Input
+                          placeholder="Ej: María González"
+                          {...field}
+                          value={field.value || ''}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -199,6 +205,7 @@ export default function SupplierForm({
                           type="email"
                           placeholder="contacto@empresa.com"
                           {...field}
+                          value={field.value || ''}
                         />
                       </FormControl>
                       <FormMessage />
@@ -213,7 +220,11 @@ export default function SupplierForm({
                     <FormItem>
                       <FormLabel>Teléfono</FormLabel>
                       <FormControl>
-                        <Input placeholder="+34 912 345 678" {...field} />
+                        <Input
+                          placeholder="+34 912 345 678"
+                          {...field}
+                          value={field.value || ''}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -237,7 +248,7 @@ export default function SupplierForm({
               />
 
               {/* Información empresarial */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="company_type"
@@ -249,7 +260,7 @@ export default function SupplierForm({
                         defaultValue={field.value}
                       >
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="w-full">
                             <SelectValue placeholder="Seleccionar" />
                           </SelectTrigger>
                         </FormControl>
@@ -279,7 +290,7 @@ export default function SupplierForm({
                         defaultValue={field.value}
                       >
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="w-full">
                             <SelectValue placeholder="Seleccionar" />
                           </SelectTrigger>
                         </FormControl>
@@ -378,6 +389,7 @@ export default function SupplierForm({
                         placeholder="Información adicional sobre el proveedor..."
                         rows={3}
                         {...field}
+                        value={field.value || ''}
                       />
                     </FormControl>
                     <FormDescription>
@@ -388,14 +400,19 @@ export default function SupplierForm({
                   </FormItem>
                 )}
               />
-
+            </div>
+            <DialogFooter>
               {/* Botones */}
               <div className="flex justify-end space-x-2 pt-4">
                 <Button type="button" variant="outline" onClick={handleCancel}>
                   <X className="h-4 w-4 mr-2" />
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={isLoading}>
+                <Button
+                  type="submit"
+                  onClick={form.handleSubmit(onSubmit)}
+                  disabled={isLoading}
+                >
                   {isLoading ? (
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   ) : (
@@ -404,10 +421,10 @@ export default function SupplierForm({
                   {isEditing ? 'Actualizar' : 'Crear'} Proveedor
                 </Button>
               </div>
-            </form>
-          </Form>
-        </div>
-      </DialogContent>
-    </Dialog>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </form>
+    </Form>
   )
 }

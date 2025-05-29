@@ -170,96 +170,106 @@ export default function SuppliersList(props: IProps) {
 
       {/* Table */}
       <div className="border rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>
-                <Button
-                  variant="ghost"
-                  onClick={() => handleSort('id')}
-                  className="h-auto p-0 font-semibold"
-                >
-                  ID
-                  {getSortIcon('id')}
-                </Button>
-              </TableHead>
-              <TableHead>
-                <Button
-                  variant="ghost"
-                  onClick={() => handleSort('name')}
-                  className="h-auto p-0 font-semibold"
-                >
-                  Nombre
-                  {getSortIcon('name')}
-                </Button>
-              </TableHead>
-              <TableHead>Contacto</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Teléfono</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead>
-                <Button
-                  variant="ghost"
-                  onClick={() => handleSort('created_at')}
-                  className="h-auto p-0 font-semibold"
-                >
-                  Creado
-                  {getSortIcon('created_at')}
-                </Button>
-              </TableHead>
-              <TableHead>
-                <Button
-                  variant="ghost"
-                  onClick={() => handleSort('updated_at')}
-                  className="h-auto p-0 font-semibold"
-                >
-                  Actualizado
-                  {getSortIcon('updated_at')}
-                </Button>
-              </TableHead>
-              <TableHead>Acciones</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredAndSortedSuppliers?.map((supplier) => (
-              <TableRow key={supplier.id}>
-                <TableCell className="font-medium">{supplier.id}</TableCell>
-                <TableCell>
-                  <div>
-                    <div className="font-medium">{supplier.name}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {supplier.company_type}
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell>{supplier.contact}</TableCell>
-                <TableCell>{supplier.email}</TableCell>
-                <TableCell>{supplier.phone}</TableCell>
-                <TableCell>{getStatusBadge(supplier.status)}</TableCell>
-                <TableCell>{formatDate(supplier.created_at)}</TableCell>
-                <TableCell>{formatDate(supplier.updated_at)}</TableCell>
-                <TableCell>
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEditSupplier(supplier)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      // onClick={() => handleDeleteSupplier(supplier.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
+        {filteredAndSortedSuppliers && filteredAndSortedSuppliers.length > 0 ? (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>
+                  <Button
+                    variant="ghost"
+                    onClick={() => handleSort('id')}
+                    className="h-auto p-0 font-semibold"
+                  >
+                    ID
+                    {getSortIcon('id')}
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button
+                    variant="ghost"
+                    onClick={() => handleSort('name')}
+                    className="h-auto p-0 font-semibold"
+                  >
+                    Nombre
+                    {getSortIcon('name')}
+                  </Button>
+                </TableHead>
+                <TableHead>Contacto</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Teléfono</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead>
+                  <Button
+                    variant="ghost"
+                    onClick={() => handleSort('created_at')}
+                    className="h-auto p-0 font-semibold"
+                  >
+                    Creado
+                    {getSortIcon('created_at')}
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button
+                    variant="ghost"
+                    onClick={() => handleSort('updated_at')}
+                    className="h-auto p-0 font-semibold"
+                  >
+                    Actualizado
+                    {getSortIcon('updated_at')}
+                  </Button>
+                </TableHead>
+                <TableHead>Acciones</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {filteredAndSortedSuppliers.map((supplier) => (
+                <TableRow key={supplier.id}>
+                  <TableCell className="font-medium">{supplier.id}</TableCell>
+                  <TableCell>
+                    <div>
+                      <div className="font-medium">{supplier.name}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {supplier.company_type}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>{supplier.contact}</TableCell>
+                  <TableCell>{supplier.email}</TableCell>
+                  <TableCell>{supplier.phone}</TableCell>
+                  <TableCell>{getStatusBadge(supplier.status)}</TableCell>
+                  <TableCell>{formatDate(supplier.created_at)}</TableCell>
+                  <TableCell>{formatDate(supplier.updated_at)}</TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEditSupplier(supplier)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        // onClick={() => handleDeleteSupplier(supplier.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-12">
+            <h2 className="text-lg font-semibold mb-2">No hay resultados</h2>
+            <p className="text-muted-foreground text-sm">
+              No se encontraron proveedores que coincidan con tu búsqueda o
+              filtros.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Results count */}
