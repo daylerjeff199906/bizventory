@@ -531,16 +531,20 @@ export const NewPurchasePage = () => {
                       S/ {form.watch('subtotal').toFixed(2)}
                     </span>
                   </div>
-                  {form.watch('discount') > 0 && (
+                  {(form.watch('discount') ?? 0) > 0 && (
                     <div className="flex justify-between text-red-600">
                       <span>Descuento:</span>
-                      <span>-S/ {form.watch('discount').toFixed(2)}</span>
+                      <span>
+                        -S/ {(form.watch('discount') ?? 0).toFixed(2)}
+                      </span>
                     </div>
                   )}
-                  {form.watch('tax_amount') > 0 && (
+                  {(form.watch('tax_amount') ?? 0) > 0 && (
                     <div className="flex justify-between">
-                      <span>IGV ({form.watch('tax_rate')}%):</span>
-                      <span>S/ {form.watch('tax_amount').toFixed(2)}</span>
+                      <span>IGV ({form.watch('tax_rate') ?? 0}%):</span>
+                      <span>
+                        S/ {(form.watch('tax_amount') ?? 0).toFixed(2)}
+                      </span>
                     </div>
                   )}
                   <div className="border-t pt-3">
