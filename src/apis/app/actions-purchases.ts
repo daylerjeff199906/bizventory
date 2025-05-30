@@ -127,11 +127,11 @@ export async function createPurchaseWithItems({
       date: validatedPurchase.date,
       supplier_id: validatedPurchase.supplier_id,
       guide_number: validatedPurchase.guide_number,
-      subtotal: 0, // Se calculará con los items
+      subtotal: validatedPurchase.subtotal,
       discount: validatedPurchase.discount,
       tax_rate: validatedPurchase.tax_rate,
-      tax_amount: 0, // Se calculará con los items
-      total_amount: 0 // Se calculará con los items
+      tax_amount: validatedPurchase.tax_amount,
+      total_amount: validatedPurchase.total_amount
     })
     .select()
     .single()
@@ -174,6 +174,30 @@ export async function createPurchaseWithItems({
       }
     }
 
+    //actualiza el stock de los productos
+    const { data: stockUpdateData, error: stockUpdateError } =
+      await supabase.rpc('update_product_stock_after_purchase', {
+        p_purchase_id: purchase.id
+      })
+    console.log('Stock update error:', stockUpdateError)
+
+    if (stockUpdateError) {
+      // Si falla la actualización del stock, eliminar la compra y los items creados
+      await supabase.from('purchases').delete().eq('id', purchase.id)
+      await supabase
+        .from('purchase_items')
+        .delete()
+        .eq('purchase_id', purchase.id)
+      return {
+        status: 'error',
+        error: stockUpdateError.message || 'Failed to update product stock',
+        message: 'Failed to update product stock'
+      }
+    }
+
+    console.log('Stock update result:', stockUpdateData)
+
+    // 7. Revalidar las rutas para que Next.js actualice los datos en caché
     revalidatePath(APP_URLS.PURCHASES.LIST)
     revalidatePath(`${APP_URLS.PURCHASES.EDIT}/${purchase.id}`)
 

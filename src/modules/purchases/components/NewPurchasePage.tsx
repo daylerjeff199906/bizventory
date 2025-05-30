@@ -174,9 +174,7 @@ export const NewPurchasePage = () => {
           ...data,
           date: new Date(data.date).toISOString(),
           code: data.code || generatePurchaseCode(),
-          subtotal: form.getValues('subtotal'),
-          discount: form.getValues('discount') || 0,
-          total_amount: form.getValues('total_amount') || 0
+          subtotal: form.getValues('subtotal')
         }
       })
 
