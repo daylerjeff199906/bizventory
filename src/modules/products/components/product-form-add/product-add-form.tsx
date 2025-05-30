@@ -27,10 +27,11 @@ import { productSchema, type CreateProductData } from '@/modules/products'
 import { generateProductCode } from './generate-code'
 import { APP_URLS } from '@/config/app-urls'
 import { createProduct } from '@/apis/app'
+import { ToastCustom } from '@/components/app/toast-custom'
+import { toast } from 'react-toastify'
 
 export const NewProductForm = () => {
   const [isLoading, setIsLoading] = useState(false)
-  //   const [uploadedImages, setUploadedImages] = useState<string[]>([])
 
   const [tagInput, setTagInput] = useState('')
   const router = useRouter()
@@ -97,12 +98,33 @@ export const NewProductForm = () => {
       const productData = {
         ...data
       }
-      await createProduct({ newProduct: productData })
-      //   await productApi.create(productData)
 
-      router.push(APP_URLS.PRODUCTS.LIST)
+      const response = await createProduct({ newProduct: productData })
+      if (!response) {
+        toast.error(
+          <ToastCustom
+            title="Error al crear producto"
+            message="No se pudo crear el producto. Por favor, inténtalo de nuevo."
+          />
+        )
+        return
+      } else {
+        toast.success(
+          <ToastCustom
+            title="Producto creado"
+            message="El producto se ha creado correctamente."
+          />
+        )
+        router.push(APP_URLS.PRODUCTS.LIST)
+      }
     } catch (error) {
       console.error('Error al crear el producto:', error)
+      toast.error(
+        <ToastCustom
+          title="Error al crear producto"
+          message="Ocurrió un error al intentar crear el producto. Por favor, inténtalo de nuevo."
+        />
+      )
     } finally {
       setIsLoading(false)
     }

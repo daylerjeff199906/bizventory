@@ -102,7 +102,7 @@ export async function createProduct({
   newProduct
 }: {
   newProduct: CreateProductData
-}): Promise<Product> {
+}): Promise<Product | null> {
   const supabase = await getSupabase()
   const { data, error } = await supabase
     .from('products')
@@ -110,7 +110,9 @@ export async function createProduct({
     .select()
     .single()
 
-  if (error || !data) throw error || new Error('Creation failed')
+  if (error || !data) {
+    return null
+  }
   revalidatePath(APP_URLS.PRODUCTS.LIST)
   return data
 }
