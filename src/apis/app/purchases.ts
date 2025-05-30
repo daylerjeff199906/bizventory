@@ -1,7 +1,7 @@
 // purchases.ts
 'use server'
 import { createClient } from '@/utils/supabase/server'
-import { Purchase, PurchaseItem, Supplier } from '@/types'
+import { Purchase, PurchaseItem, PurchaseList, ResApi, Supplier } from '@/types'
 import { revalidatePath } from 'next/cache'
 import { APP_URLS } from '@/config/app-urls'
 import { z } from 'zod'
@@ -22,7 +22,7 @@ async function getSupabase() {
  */
 export async function getPurchases(
   filters?: Partial<Purchase>
-): Promise<Purchase[]> {
+): Promise<ResApi<PurchaseList>> {
   const supabase = await getSupabase()
   let query = supabase.from('purchases').select('*, supplier:suppliers(*)')
 
@@ -42,7 +42,13 @@ export async function getPurchases(
 
   const { data, error } = await query.order('date', { ascending: false })
   if (error) throw error
-  return data || []
+  return {
+    data: data || [],
+    page: 1,
+    page_size: data ? data.length : 0,
+    total: data ? data.length : 0,
+    total_pages: 1
+  }
 }
 
 /**
