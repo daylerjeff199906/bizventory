@@ -22,6 +22,7 @@ import {
   ArrowDown
 } from 'lucide-react'
 import { PurchaseList } from '@/types'
+import { APP_URLS } from '@/config/app-urls'
 
 type SortField = 'code' | 'date' | 'subtotal' | 'created_at' | 'updated_at'
 type SortDirection = 'asc' | 'desc'
@@ -176,7 +177,7 @@ export const PurchasesList = ({
                     </p>
                   </div>
                   <Button asChild>
-                    <Link href="/purchases/new">
+                    <Link href={APP_URLS.PURCHASES.CREATE}>
                       <Plus className="h-4 w-4 mr-2" />
                       Nueva Compra
                     </Link>
@@ -291,7 +292,7 @@ export const PurchasesList = ({
                     size="sm"
                     className="h-8 w-8 p-0"
                   >
-                    <Link href={`/purchases/${purchase.id}`}>
+                    <Link href={APP_URLS.PURCHASES.VIEW(purchase.id)}>
                       <Eye className="h-4 w-4" />
                     </Link>
                   </Button>

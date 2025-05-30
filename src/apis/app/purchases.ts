@@ -20,18 +20,36 @@ async function getSupabase() {
  * @param filters - campos y valores a filtrar
  * @returns Promise<Purchase[]>
  */
-export async function getPurchases(
+export async function getPurchases({
+  filters,
+  sortBy = 'date',
+  sortDirection = 'asc'
+}: {
   filters?: Partial<Purchase>
-): Promise<ResApi<PurchaseList>> {
+  sortBy: string
+  sortDirection: 'asc' | 'desc'
+}): Promise<ResApi<PurchaseList>> {
   const supabase = await getSupabase()
+
+  // Columnas válidas para ordenar
+  const validSortColumns = [
+    'date',
+    'created_at',
+    'updated_at',
+    'code',
+    'total_amount'
+  ]
+  if (sortBy && !validSortColumns.includes(sortBy)) {
+    throw new Error(`No se puede ordenar por la columna ${sortBy}`)
+  }
+  const sortColumn = validSortColumns.includes(sortBy) ? sortBy : 'date'
+
   let query = supabase.from('purchases').select('*, supplier:suppliers(*)')
 
   if (filters) {
     Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        if (key === 'supplier_id') {
-          query = query.eq(key, value)
-        } else if (typeof value === 'string') {
+      if (value !== undefined && value !== null && value !== '') {
+        if (typeof value === 'string') {
           query = query.ilike(key, `%${value}%`)
         } else if (typeof value === 'number') {
           query = query.eq(key, value)
@@ -40,7 +58,9 @@ export async function getPurchases(
     })
   }
 
-  const { data, error } = await query.order('date', { ascending: false })
+  query = query.order(sortColumn, { ascending: sortDirection === 'asc' })
+
+  const { data, error } = await query
   if (error) throw error
   return {
     data: data || [],
