@@ -1,3 +1,9 @@
+import { PurchasesList } from '@/modules/purchases'
+
 export default function Page() {
-  return <div></div>
+  return (
+    <>
+      <PurchasesList purchasesData={[]} />
+    </>
+  )
 }
