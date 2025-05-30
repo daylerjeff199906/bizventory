@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -46,7 +47,7 @@ export const ProductSelectorModal = ({
     if (open) {
       fetchProducts({ query: searchTerm, code: searchCode })
     }
-  }, [open, searchTerm, searchCode, fetchProducts])
+  }, [open, searchTerm, searchCode])
 
   const handleSelectProduct = (product: Product) => {
     onSelectProduct(product)

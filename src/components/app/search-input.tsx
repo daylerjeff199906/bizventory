@@ -43,7 +43,7 @@ export const SearchInput = (props: SearchInputProps) => {
   }
 
   return (
-    <section className="relative max-w-sm w-full">
+    <section className="relative w-full">
       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" />
       <Input
         type="text"
