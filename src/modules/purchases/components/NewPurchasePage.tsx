@@ -43,6 +43,9 @@ import {
 import { generatePurchaseCode } from './generate-code'
 import { Product } from '@/types'
 import { ProductSelectorModal } from './product-selector-modal'
+import { toast } from 'react-toastify'
+import { ToastCustom } from '@/components/app/toast-custom'
+import { APP_URLS } from '@/config/app-urls'
 
 export const NewPurchasePage = () => {
   const [isLoading, setIsLoading] = useState(false)
@@ -110,12 +113,12 @@ export const NewPurchasePage = () => {
     )
 
     if (existingItem) {
-      //   toast({
-      //     title: 'Producto ya agregado',
-      //     description:
-      //       'Este producto ya está en la lista. Puedes modificar la cantidad.',
-      //     variant: 'destructive'
-      //   })
+      toast.error(
+        <ToastCustom
+          title="Producto ya agregado"
+          message="Este producto ya está en la lista de compra."
+        />
+      )
       return
     }
 
@@ -173,16 +176,16 @@ export const NewPurchasePage = () => {
       //     description: 'La compra se ha registrado correctamente.'
       //   })
 
-      router.push('/purchases')
+      router.push(APP_URLS.PURCHASES.LIST)
     } catch (error) {
-      //   toast({
-      //     title: 'Error',
-      //     description:
-      //       error instanceof Error
-      //         ? error.message
-      //         : 'Ha ocurrido un error inesperado',
-      //     variant: 'destructive'
-      //   })
+      const errorMessage =
+        error instanceof Error ? error.message : 'Error al registrar la compra'
+      toast.error(
+        <ToastCustom
+          title="Error al registrar la compra"
+          message={errorMessage}
+        />
+      )
     } finally {
       setIsLoading(false)
     }
@@ -247,9 +250,7 @@ export const NewPurchasePage = () => {
                         <Input
                           type="date"
                           //   value={field.value.toISOString().split('T')[0]}
-                          onChange={(e) =>
-                            field.onChange(new Date(e.target.value))
-                          }
+                          onChange={(e) => field.onChange(e.target.value)}
                         />
                       </FormControl>
                       <FormMessage />
@@ -271,7 +272,7 @@ export const NewPurchasePage = () => {
                         value={field.value}
                       >
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="w-full">
                             <SelectValue
                               placeholder="Seleccionar proveedor"
                               className="w-full"

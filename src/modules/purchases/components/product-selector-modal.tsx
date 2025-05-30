@@ -56,7 +56,7 @@ export const ProductSelectorModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-h-[80vh] overflow-hidden flex flex-col w-sm md:w-[600px] lg:w-[800px] min-w-[400px] md:min-w-[600px] lg:min-w-[800px]">
         <DialogHeader>
           <DialogTitle>Seleccionar Producto</DialogTitle>
         </DialogHeader>

@@ -11,10 +11,9 @@ export const PurchaseItemSchema = z.object({
 export const PurchaseSchema = z.object({
   id: z.string().uuid().optional(),
   code: z.string().optional(),
-  date: z.string().datetime({
-    offset: true,
-    message: 'Fecha inválida'
-  }),
+  date: z
+    .string()
+    .refine((value) => !isNaN(Date.parse(value)), 'Fecha inválida'),
   supplier_id: z.string().uuid('Debe seleccionar un proveedor'),
   guide_number: z.string().optional(),
   subtotal: z.number().min(0).max(99999999.99),
