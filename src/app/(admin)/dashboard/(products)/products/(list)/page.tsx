@@ -1,18 +1,32 @@
-import { ProductsList } from '@/modules/products'
 import React from 'react'
+import { ProductsList } from '@/modules/products'
+import { getProducts } from '@/apis/app'
+import { SearchParams } from '@/types'
 
-export default function page() {
+interface Props {
+  searchParams: SearchParams
+}
+
+export default async function Page(props: Props) {
+  const searchParams = await props.searchParams
+  const sortBy = searchParams.sortBy
+
+  let sortField: string | undefined
+  let sortOrder: 'asc' | 'desc' | undefined
+
+  if (sortBy) {
+    const [field, order] = sortBy.toString()?.split('.')
+    sortField = field
+    sortOrder = order === 'desc' ? 'desc' : 'asc'
+  }
+
+  const products = await getProducts({
+    sortBy: sortField,
+    sortDirection: sortOrder
+  })
   return (
     <>
-      <ProductsList
-        dataProducts={{
-          data: [],
-          page: 1,
-          page_size: 10,
-          total: 0,
-          total_pages: 0
-        }}
-      />
+      <ProductsList dataProducts={products} />
     </>
   )
 }

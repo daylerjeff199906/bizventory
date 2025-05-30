@@ -30,23 +30,48 @@ async function getSupabase() {
  * @param filters - campos y valores a filtrar
  * @returns Promise<ResApi<Product>>
  */
-export async function getProducts(
-  page: number = 1,
-  pageSize: number = 10,
-  filters?: Partial<Product>
-): Promise<ResApi<Product>> {
+export async function getProducts({
+  page = 1,
+  pageSize = 10,
+  filters,
+  sortBy = 'created_at', // Valor por defecto
+  sortDirection = 'desc' // 'asc' | 'desc'
+}: {
+  page?: number
+  pageSize?: number
+  filters?: Record<string, string | number | string[] | undefined>
+  sortBy?: string
+  sortDirection?: 'asc' | 'desc'
+}): Promise<ResApi<Product>> {
   const supabase = await getSupabase()
   const from = (page - 1) * pageSize
   const to = from + pageSize - 1
+
+  // Columnas válidas para ordenar
+  const validSortColumns = ['created_at', 'updated_at', 'name', 'code', 'brand']
+
+  // Antes de hacer la consulta
+  if (sortBy && !validSortColumns.includes(sortBy)) {
+    throw new Error(`No se puede ordenar por la columna ${sortBy}`)
+  }
+
+  // Validar que la columna de ordenación exista
+  const sortColumn = validSortColumns.includes(sortBy) ? sortBy : 'created_at'
 
   let query = supabase
     .from('products')
     .select('*', { count: 'exact' })
     .range(from, to)
+    .order(sortColumn, { ascending: sortDirection === 'asc' })
 
   if (filters) {
     Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
+      if (
+        value !== undefined &&
+        value !== null &&
+        value !== '' &&
+        !(Array.isArray(value) && value.length === 0)
+      ) {
         if (Array.isArray(value)) {
           query = query.in(key, value)
         } else if (typeof value === 'string') {
@@ -57,6 +82,14 @@ export async function getProducts(
       }
     })
   }
+
+  console.log('getProducts', {
+    page,
+    pageSize,
+    filters,
+    from,
+    to
+  })
 
   const { data, error, count } = await query.order('created_at', {
     ascending: false
@@ -110,7 +143,7 @@ export async function createProduct({
     .select()
     .single()
 
-    console.log('createProduct', { data, error })
+  console.log('createProduct', { data, error })
 
   if (error || !data) {
     return null
