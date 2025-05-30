@@ -22,6 +22,16 @@ import {
   FormLabel,
   FormMessage
 } from '@/components/ui/form'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@/components/ui/alert-dialog'
 
 import { productSchema, type CreateProductData } from '@/modules/products'
 import { generateProductCode } from './generate-code'
@@ -32,8 +42,8 @@ import { toast } from 'react-toastify'
 
 export const NewProductForm = () => {
   const [isLoading, setIsLoading] = useState(false)
-
   const [tagInput, setTagInput] = useState('')
+  const [showConfirmation, setShowConfirmation] = useState(false)
   const router = useRouter()
 
   const form = useForm<CreateProductData>({
@@ -52,23 +62,6 @@ export const NewProductForm = () => {
     const newCode = generateProductCode()
     form.setValue('code', newCode)
   }
-
-  //   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-  //     const files = event.target.files
-  //     if (files) {
-  //       const newImages = Array.from(files).map((file) =>
-  //         URL.createObjectURL(file)
-  //       )
-  //       setUploadedImages((prev) => [...prev, ...newImages])
-  //       form.setValue('images', [...uploadedImages, ...newImages])
-  //     }
-  //   }
-
-  //   const removeImage = (index: number) => {
-  //     const newImages = uploadedImages.filter((_, i) => i !== index)
-  //     setUploadedImages(newImages)
-  //     form.setValue('images', newImages)
-  //   }
 
   const addTag = () => {
     if (tagInput.trim() && !form.getValues('tags')?.includes(tagInput.trim())) {
@@ -92,11 +85,18 @@ export const NewProductForm = () => {
     }
   }
 
-  const onSubmit = async (data: CreateProductData) => {
+  const handleSubmit = () => {
+    // Mostrar diálogo de confirmación en lugar de enviar directamente
+    setShowConfirmation(true)
+  }
+
+  const confirmCreate = async () => {
     setIsLoading(true)
+    setShowConfirmation(false)
+
     try {
       const productData = {
-        ...data
+        ...form.getValues()
       }
 
       const response = await createProduct({ newProduct: productData })
@@ -135,7 +135,7 @@ export const NewProductForm = () => {
       <div className="w-full max-w-4xl mx-auto p-6">
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(onSubmit)}
+            onSubmit={form.handleSubmit(handleSubmit)}
             className="w-full space-y-12"
           >
             {/* Información básica */}
@@ -348,6 +348,30 @@ export const NewProductForm = () => {
           </form>
         </Form>
       </div>
+      {/* Diálogo de confirmación */}
+      <AlertDialog open={showConfirmation} onOpenChange={setShowConfirmation}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              ¿Confirmar creación de producto?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Estás a punto de crear un nuevo producto. ¿Deseas continuar?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isLoading}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmCreate} disabled={isLoading}>
+              {isLoading ? (
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
+              Confirmar creación
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

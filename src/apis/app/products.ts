@@ -110,6 +110,8 @@ export async function createProduct({
     .select()
     .single()
 
+    console.log('createProduct', { data, error })
+
   if (error || !data) {
     return null
   }
