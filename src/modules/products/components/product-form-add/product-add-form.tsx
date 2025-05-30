@@ -25,6 +25,7 @@ import {
 
 import { productSchema, type CreateProductData } from '@/modules/products'
 import { generateProductCode } from './generate-code'
+import { APP_URLS } from '@/config/app-urls'
 
 export const NewProductForm = () => {
   const [isLoading, setIsLoading] = useState(false)
@@ -321,7 +322,7 @@ export const NewProductForm = () => {
 
             {/* Botones de acción */}
             <div className="flex justify-end gap-4 pt-8 border-t border-gray-200">
-              <Link href="/products">
+              <Link href={APP_URLS.PRODUCTS.LIST}>
                 <Button type="button" variant="outline" size="lg">
                   Cancelar
                 </Button>
