@@ -196,7 +196,7 @@ export const ProductsList = ({
             dataProducts?.data?.map((product) => (
               <TableRow key={product.id} className="hover:bg-gray-50">
                 <TableCell className="font-medium border-r border-gray-100">
-                  <Badge variant="outline" className="font-mono">
+                  <Badge variant="outline" className="font-mono rounded-full">
                     {product.code}
                   </Badge>
                 </TableCell>
