@@ -23,16 +23,25 @@ async function getSupabase() {
 export async function getPurchases({
   filters,
   sortBy = 'date',
-  sortDirection = 'asc'
+  sortDirection = 'asc',
+  page,
+  pageSize
 }: {
+  page?: number
+  pageSize?: number
   filters?: Partial<Purchase>
   sortBy: string
   sortDirection: 'asc' | 'desc'
 }): Promise<ResApi<PurchaseList>> {
   const supabase = await getSupabase()
+  const currentPage = page ?? 1
+  const currentPageSize = pageSize ?? 10
+  const from = (currentPage - 1) * currentPageSize
+  const to = from + currentPageSize - 1
 
   // Columnas válidas para ordenar
   const validSortColumns = [
+    'id',
     'date',
     'created_at',
     'updated_at',
@@ -42,16 +51,27 @@ export async function getPurchases({
   if (sortBy && !validSortColumns.includes(sortBy)) {
     throw new Error(`No se puede ordenar por la columna ${sortBy}`)
   }
-  const sortColumn = validSortColumns.includes(sortBy) ? sortBy : 'date'
+  const sortColumn = validSortColumns.includes(sortBy) ? sortBy : 'created_at'
 
-  let query = supabase.from('purchases').select('*, supplier:suppliers(*)')
+  let query = supabase
+    .from('purchases')
+    .select('*, supplier:suppliers(*)')
+    .range(from, to)
+    .order(sortColumn, { ascending: sortDirection === 'asc' })
 
   if (filters) {
     Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
-        if (typeof value === 'string') {
+      if (
+        value !== undefined &&
+        value !== null &&
+        value !== '' &&
+        !(Array.isArray(value) && value.length === 0)
+      ) {
+        if (Array.isArray(value)) {
+          query = query.in(key, value)
+        } else if (typeof value === 'string') {
           query = query.ilike(key, `%${value}%`)
-        } else if (typeof value === 'number') {
+        } else {
           query = query.eq(key, value)
         }
       }

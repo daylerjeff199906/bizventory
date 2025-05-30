@@ -47,12 +47,23 @@ import { toast } from 'react-toastify'
 import { ToastCustom } from '@/components/app/toast-custom'
 import { APP_URLS } from '@/config/app-urls'
 import { createPurchaseWithItems } from '@/apis/app'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@/components/ui/alert-dialog'
 
 export const NewPurchasePage = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [purchaseItems, setPurchaseItems] = useState<PurchaseItem[]>([])
   const [productModalOpen, setProductModalOpen] = useState(false)
   const [searchSupplier, setSearchSupplier] = useState<string>('')
+  const [confirmOpen, setConfirmOpen] = useState(false)
   const router = useRouter()
 
   const { suppliers } = useSuppliers()
@@ -155,7 +166,7 @@ export const NewPurchasePage = () => {
     setPurchaseItems(updatedItems)
   }
 
-  const onSubmit = async (data: CreatePurchaseData) => {
+  const handleSubmitForm = () => {
     if (purchaseItems.length === 0) {
       toast.error(
         <ToastCustom
@@ -165,8 +176,14 @@ export const NewPurchasePage = () => {
       )
       return
     }
+    setConfirmOpen(true)
+  }
 
+  const confirmPurchase = async () => {
+    const data = form.getValues()
     setIsLoading(true)
+    setConfirmOpen(false)
+
     try {
       const response = await createPurchaseWithItems({
         itemsData: purchaseItems,
@@ -219,7 +236,7 @@ export const NewPurchasePage = () => {
       <div className="w-full max-w-6xl mx-auto p-6">
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(onSubmit)}
+            onSubmit={form.handleSubmit(handleSubmitForm)}
             className="w-full space-y-12"
           >
             {/* Información básica */}
@@ -595,6 +612,25 @@ export const NewPurchasePage = () => {
           onSelectProduct={handleAddProduct}
           selectedProductIds={selectedProductIds}
         />
+
+        {/* Dialogo de confirmación */}
+        <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirmar compra</AlertDialogTitle>
+              <AlertDialogDescription>
+                ¿Estás seguro que deseas registrar esta compra por un total de
+                S/ {form.watch('total_amount').toFixed(2)}?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmPurchase}>
+                Confirmar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   )

@@ -83,14 +83,6 @@ export async function getProducts({
     })
   }
 
-  console.log('getProducts', {
-    page,
-    pageSize,
-    filters,
-    from,
-    to
-  })
-
   const { data, error, count } = await query.order('created_at', {
     ascending: false
   })

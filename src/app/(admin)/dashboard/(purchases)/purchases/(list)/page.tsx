@@ -10,8 +10,8 @@ export default async function Page(props: Props) {
   const searchParams = await props.searchParams
   const sortBy = searchParams.sortBy
 
-  let sortField: string = 'id'
-  let sortOrder: 'asc' | 'desc' = 'asc'
+  let sortField: string | undefined
+  let sortOrder: 'asc' | 'desc' | undefined
 
   if (sortBy) {
     const [field, order] = sortBy.toString()?.split('.')
@@ -20,8 +20,8 @@ export default async function Page(props: Props) {
   }
 
   const purchases = await getPurchases({
-    sortBy: sortField,
-    sortDirection: sortOrder
+    sortBy: sortField ?? 'id',
+    sortDirection: sortOrder ?? 'asc'
   })
 
   return (
