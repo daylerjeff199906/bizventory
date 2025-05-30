@@ -46,6 +46,7 @@ import { ProductSelectorModal } from './product-selector-modal'
 import { toast } from 'react-toastify'
 import { ToastCustom } from '@/components/app/toast-custom'
 import { APP_URLS } from '@/config/app-urls'
+import { createPurchaseWithItems } from '@/apis/app'
 
 export const NewPurchasePage = () => {
   const [isLoading, setIsLoading] = useState(false)
@@ -156,27 +157,46 @@ export const NewPurchasePage = () => {
 
   const onSubmit = async (data: CreatePurchaseData) => {
     if (purchaseItems.length === 0) {
-      //   toast({
-      //     title: 'Error',
-      //     description: 'Debe agregar al menos un producto',
-      //     variant: 'destructive'
-      //   })
+      toast.error(
+        <ToastCustom
+          title="No hay productos"
+          message="Debe agregar al menos un producto a la compra."
+        />
+      )
       return
     }
 
     setIsLoading(true)
     try {
-      //   await purchaseApi.create({
-      //     ...data,
-      //     items: purchaseItems
-      //   })
+      const response = await createPurchaseWithItems({
+        itemsData: purchaseItems,
+        purchaseData: {
+          ...data,
+          date: new Date(data.date).toISOString(),
+          code: data.code || generatePurchaseCode()
+        }
+      })
 
-      //   toast({
-      //     title: 'Compra creada',
-      //     description: 'La compra se ha registrado correctamente.'
-      //   })
-
-      router.push(APP_URLS.PURCHASES.LIST)
+      if (response.status === 'error') {
+        toast.error(
+          <ToastCustom
+            title="Error al registrar la compra"
+            message={
+              response.error || 'Ocurrió un error al procesar la compra.'
+            }
+          />
+        )
+      } else {
+        toast.success(
+          <ToastCustom
+            title="Compra registrada"
+            message="La compra se ha registrado exitosamente."
+          />
+        )
+        if (response.data) {
+          router.push(APP_URLS.PURCHASES.VIEW(response.data.id))
+        }
+      }
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Error al registrar la compra'
