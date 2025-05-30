@@ -26,6 +26,7 @@ import {
 import { productSchema, type CreateProductData } from '@/modules/products'
 import { generateProductCode } from './generate-code'
 import { APP_URLS } from '@/config/app-urls'
+import { createProduct } from '@/apis/app'
 
 export const NewProductForm = () => {
   const [isLoading, setIsLoading] = useState(false)
@@ -96,11 +97,10 @@ export const NewProductForm = () => {
       const productData = {
         ...data
       }
-      console.log('Datos del producto a crear:', productData)
-
+      await createProduct({ newProduct: productData })
       //   await productApi.create(productData)
 
-      router.push('/products')
+      router.push(APP_URLS.PRODUCTS.LIST)
     } catch (error) {
       console.error('Error al crear el producto:', error)
     } finally {

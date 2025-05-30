@@ -2,15 +2,10 @@
 // Servicio de funciones CRUD para la tabla 'suppliers' usando Supabase en Server Components
 'use server'
 import { createClient } from '@/utils/supabase/server'
-// import { cookies } from 'next/headers'
 import { CreateSupplierData, UpdateSupplierData } from '@/modules/suppliers'
 import { Supplier } from '@/types'
 import { revalidatePath } from 'next/cache'
 import { APP_URLS } from '@/config/app-urls'
-// import { Database } from '@/types/supabase'
-
-// Tipo Supplier según tu esquema en Supabase
-// type Supplier = Database['public']['Tables']['suppliers']['Row']
 
 /**
  * Instancia de Supabase en contexto de servidor
