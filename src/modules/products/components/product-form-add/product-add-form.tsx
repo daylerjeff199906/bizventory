@@ -6,7 +6,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Save, X, RefreshCw, Plus } from 'lucide-react'
+import { Save, X, RefreshCw, Plus } from 'lucide-react'
 import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
@@ -111,24 +111,6 @@ export const NewProductForm = () => {
   return (
     <div className="min-h-screen bg-white">
       <div className="w-full max-w-4xl mx-auto p-6">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Link href="/products">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver a productos
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Registrar nuevo producto
-            </h1>
-            <p className="text-gray-600 mt-1">
-              Completa la información básica del producto
-            </p>
-          </div>
-        </div>
-
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
