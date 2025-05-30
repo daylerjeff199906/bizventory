@@ -63,7 +63,7 @@ const navMain = [
     url: '#',
     icon: FileDown,
     items: [
-      { title: 'Nueva Compra', url: '/purchases/new' },
+      { title: 'Nueva Compra', url: APP_URLS.PURCHASES.CREATE },
       { title: 'Lista de Compras', url: '/purchases' },
       { title: 'Comprobantes (PDF)', url: '/purchases/receipts' }
     ]
