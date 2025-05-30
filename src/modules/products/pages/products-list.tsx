@@ -31,6 +31,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { ResApi, Product } from '@/types'
 import { APP_URLS } from '@/config/app-urls'
+import { cn } from '@/lib/utils'
 
 type SortField = 'name' | 'updated_at' | 'created_at' | 'price' | 'code'
 type SortDirection = 'asc' | 'desc'
@@ -126,6 +127,12 @@ export const ProductsList = ({
             </TableHead>
             <TableHead className="border-r border-gray-200">
               <div className="font-medium text-gray-700">Unidad</div>
+            </TableHead>
+            <TableHead className="border-r border-gray-200">
+              <div className="font-medium text-gray-700">Marca</div>
+            </TableHead>
+            <TableHead className="border-r border-gray-200">
+              <div className="font-medium text-gray-700">Estado</div>
             </TableHead>
             <TableHead className="border-r border-gray-200">
               <Button
@@ -236,6 +243,22 @@ export const ProductsList = ({
                     {product.unit || 'unidad'}
                   </div>
                 </TableCell>
+                <TableCell className="border-r border-gray-100">
+                  <div className="text-xs text-gray-500">
+                    {product.brand || 'Sin marca'}
+                  </div>
+                </TableCell>
+                <TableCell className="border-r border-gray-100">
+                  <Badge
+                    className={cn('text-xs rounded-full', {
+                      'bg-lime-100 text-lime-800': product.is_active,
+                      'bg-red-100 text-red-800': !product.is_active
+                    })}
+                  >
+                    {product.is_active ? 'Activo' : 'Inactivo'}
+                  </Badge>
+                </TableCell>
+
                 <TableCell className="border-r border-gray-100">
                   <div className="text-sm">
                     <div>{formatDate(product.created_at)}</div>
