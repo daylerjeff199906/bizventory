@@ -1,0 +1,249 @@
+// purchases.ts
+'use server'
+import { createClient } from '@/utils/supabase/server'
+import { Purchase, PurchaseItem, Supplier } from '@/types'
+import { revalidatePath } from 'next/cache'
+import { APP_URLS } from '@/config/app-urls'
+import { z } from 'zod'
+import { PurchaseSchema } from '@/modules/purchases'
+
+/**
+ * Instancia de Supabase en contexto de servidor
+ */
+async function getSupabase() {
+  const supabase = createClient()
+  return supabase
+}
+
+/**
+ * Lista compras con filtros opcionales
+ * @param filters - campos y valores a filtrar
+ * @returns Promise<Purchase[]>
+ */
+export async function getPurchases(
+  filters?: Partial<Purchase>
+): Promise<Purchase[]> {
+  const supabase = await getSupabase()
+  let query = supabase.from('purchases').select('*, supplier:suppliers(*)')
+
+  if (filters) {
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        if (key === 'supplier_id') {
+          query = query.eq(key, value)
+        } else if (typeof value === 'string') {
+          query = query.ilike(key, `%${value}%`)
+        } else if (typeof value === 'number') {
+          query = query.eq(key, value)
+        }
+      }
+    })
+  }
+
+  const { data, error } = await query.order('date', { ascending: false })
+  if (error) throw error
+  return data || []
+}
+
+/**
+ * Obtiene una compra por su ID con items y proveedor
+ * @param id - UUID de la compra
+ * @returns Promise<Purchase & { items: PurchaseItem[], supplier: Supplier }>
+ */
+export async function getPurchaseById(
+  id: string
+): Promise<Purchase & { items: PurchaseItem[]; supplier: Supplier }> {
+  const supabase = await getSupabase()
+
+  // Obtener la compra con el proveedor
+  const { data: purchaseData, error: purchaseError } = await supabase
+    .from('purchases')
+    .select('*, supplier:suppliers(*)')
+    .eq('id', id)
+    .single()
+
+  if (purchaseError || !purchaseData) {
+    throw purchaseError || new Error('Purchase not found')
+  }
+
+  // Obtener los items de la compra
+  const { data: itemsData, error: itemsError } = await supabase
+    .from('purchase_items')
+    .select('*, product:products(*)')
+    .eq('purchase_id', id)
+
+  if (itemsError) throw itemsError
+
+  return { ...purchaseData, items: itemsData || [] }
+}
+
+/**
+ * Crea una nueva compra con sus items
+ * @param purchaseData - datos para creación validados con PurchaseSchema
+ * @returns Promise<Purchase>
+ */
+export async function createPurchase({
+  purchaseData
+}: {
+  purchaseData: z.infer<typeof PurchaseSchema>
+}): Promise<Purchase> {
+  const supabase = await getSupabase()
+
+  // Validar los datos con el schema
+  const validatedData = PurchaseSchema.parse(purchaseData)
+
+  // Iniciar transacción
+  const { data: purchase, error: purchaseError } = await supabase
+    .from('purchases')
+    .insert({
+      code: validatedData.code,
+      date: validatedData.date,
+      supplier_id: validatedData.supplier_id,
+      guide_number: validatedData.guide_number,
+      subtotal: validatedData.subtotal,
+      discount: validatedData.discount,
+      tax_rate: validatedData.tax_rate,
+      tax_amount: validatedData.tax_amount,
+      total_amount: validatedData.total_amount
+    })
+    .select()
+    .single()
+
+  if (purchaseError || !purchase) {
+    throw purchaseError || new Error('Purchase creation failed')
+  }
+
+  // Insertar items de la compra
+  const { error: itemsError } = await supabase.from('purchase_items').insert(
+    validatedData.items.map((item) => ({
+      purchase_id: purchase.id,
+      product_id: item.product_id,
+      quantity: item.quantity,
+      price: item.price
+      //   subtotal: item.subtotal
+    }))
+  )
+
+  if (itemsError) {
+    // Si falla la inserción de items, eliminar la compra creada
+    await supabase.from('purchases').delete().eq('id', purchase.id)
+    throw itemsError
+  }
+
+  revalidatePath(APP_URLS.PURCHASES.LIST)
+  return purchase
+}
+
+/**
+ * Actualiza una compra completa
+ * @param id - UUID de la compra
+ * @param updated - campos a actualizar validados con PurchaseSchema
+ * @returns Promise<Purchase>
+ */
+export async function updatePurchase({
+  id,
+  updated
+}: {
+  id: string
+  updated: z.infer<typeof PurchaseSchema>
+}): Promise<Purchase> {
+  const supabase = await getSupabase()
+  const validatedData = PurchaseSchema.parse(updated)
+
+  // Actualizar la compra
+  const { data: purchase, error: purchaseError } = await supabase
+    .from('purchases')
+    .update({
+      code: validatedData.code,
+      date: validatedData.date,
+      supplier_id: validatedData.supplier_id,
+      guide_number: validatedData.guide_number,
+      subtotal: validatedData.subtotal,
+      discount: validatedData.discount,
+      tax_rate: validatedData.tax_rate,
+      tax_amount: validatedData.tax_amount,
+      total_amount: validatedData.total_amount,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (purchaseError || !purchase) {
+    throw purchaseError || new Error('Purchase update failed')
+  }
+
+  // Eliminar items antiguos y agregar nuevos
+  const { error: deleteError } = await supabase
+    .from('purchase_items')
+    .delete()
+    .eq('purchase_id', id)
+
+  if (deleteError) throw deleteError
+
+  const { error: itemsError } = await supabase.from('purchase_items').insert(
+    validatedData.items.map((item) => ({
+      purchase_id: id,
+      product_id: item.product_id,
+      quantity: item.quantity,
+      price: item.price
+      //   subtotal: item.subtotal
+    }))
+  )
+
+  if (itemsError) throw itemsError
+
+  revalidatePath(APP_URLS.PURCHASES.LIST)
+  revalidatePath(`${APP_URLS.PURCHASES.EDIT}/${id}`)
+  return purchase
+}
+
+/**
+ * Actualiza un solo campo de una compra
+ * @param id - UUID de la compra
+ * @param field - nombre del campo
+ * @param value - nuevo valor
+ * @returns Promise<Purchase>
+ */
+export async function patchPurchaseField(
+  id: string,
+  field: keyof Purchase,
+  value: Purchase[keyof Purchase]
+): Promise<Purchase> {
+  const supabase = await getSupabase()
+  const { data, error } = await supabase
+    .from('purchases')
+    .update({ [field]: value, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error || !data) throw error || new Error('Patch failed')
+  revalidatePath(APP_URLS.PURCHASES.LIST)
+  revalidatePath(`${APP_URLS.PURCHASES.EDIT}/${id}`)
+  return data
+}
+
+/**
+ * Elimina una compra por ID
+ * @param id - UUID de la compra
+ * @returns Promise<void>
+ */
+export async function deletePurchase(id: string): Promise<void> {
+  const supabase = await getSupabase()
+
+  // Primero eliminar los items asociados
+  const { error: itemsError } = await supabase
+    .from('purchase_items')
+    .delete()
+    .eq('purchase_id', id)
+
+  if (itemsError) throw itemsError
+
+  // Luego eliminar la compra
+  const { error } = await supabase.from('purchases').delete().eq('id', id)
+
+  if (error) throw error
+
+  revalidatePath(APP_URLS.PURCHASES.LIST)
+}
