@@ -42,13 +42,7 @@ import {
 } from '../schemas'
 import { generatePurchaseCode } from './generate-code'
 import { Product } from '@/types'
-// import { useToast } from '@/hooks/use-toast'
-
-// import { purchaseApi } from '../../../lib/purchase-api'
-// import { supplierApi } from '../../../lib/supplier-api'
-// import type { Supplier } from '../../../suppliers-list'
-// import type { Product } from '../../../lib/product-schema'
-// import ProductSelectorModal from '../../../components/product-selector-modal'
+import { ProductSelectorModal } from './product-selector-modal'
 
 export const NewPurchasePage = () => {
   const [isLoading, setIsLoading] = useState(false)

@@ -21,6 +21,7 @@ import { Badge } from '@/components/ui/badge'
 import { Product } from '@/types'
 import { useProducts } from '@/hooks/use-products'
 import { SearchInput } from '@/components/app/search-input'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 interface ProductSelectorModalProps {
   open: boolean
@@ -35,8 +36,8 @@ export const ProductSelectorModal = ({
   onSelectProduct,
   selectedProductIds
 }: ProductSelectorModalProps) => {
+  const [searchType, setSearchType] = useState<'name' | 'code'>('name')
   const [searchTerm, setSearchTerm] = useState('')
-  const [searchProducts, setSearchProducts] = useState<string>()
   const [searchCode, setSearchCode] = useState<string>()
 
   const { products, loading: isLoadingProducts, fetchProducts } = useProducts()
@@ -46,14 +47,6 @@ export const ProductSelectorModal = ({
       fetchProducts({ query: searchTerm, code: searchCode })
     }
   }, [open, searchTerm, searchCode, fetchProducts])
-
-  const filteredProducts = products.filter(
-    (product) =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (product.brand &&
-        product.brand.toLowerCase().includes(searchTerm.toLowerCase()))
-  )
 
   const handleSelectProduct = (product: Product) => {
     onSelectProduct(product)
@@ -68,13 +61,35 @@ export const ProductSelectorModal = ({
         </DialogHeader>
 
         <div className="space-y-4 flex-1 overflow-hidden flex flex-col">
+          {/* Selector de tipo de búsqueda */}
+          <Tabs
+            value={searchType}
+            onValueChange={(value) => {
+              setSearchType(value as 'name' | 'code')
+              setSearchTerm('') // Limpiar búsqueda al cambiar tipo
+            }}
+            className="w-full"
+          >
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="name">Buscar por Nombre</TabsTrigger>
+              <TabsTrigger value="code">Buscar por Código</TabsTrigger>
+            </TabsList>
+          </Tabs>
+
           {/* Búsqueda */}
           <SearchInput
-            placeholder="Buscar por nombre, código o marca..."
+            placeholder={
+              searchType === 'name'
+                ? 'Buscar por nombre o marca...'
+                : 'Buscar por código...'
+            }
             value={searchTerm}
-            onChange={setSearchTerm}
+            onChange={
+              searchType === 'name'
+                ? (value) => setSearchTerm(value)
+                : (value) => setSearchCode(value)
+            }
           />
-
           {/* Lista de productos */}
           <div className="flex-1 overflow-auto border rounded-lg">
             <Table>
@@ -96,7 +111,7 @@ export const ProductSelectorModal = ({
                   </TableRow>
                 )}
                 {!isLoadingProducts &&
-                  filteredProducts.map((product) => {
+                  products.map((product) => {
                     const isSelected = selectedProductIds.includes(product.id)
                     return (
                       <TableRow
