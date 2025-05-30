@@ -3,7 +3,7 @@ export interface Product {
   name: string
   description: string | null
   code: string
-  price: number // numeric(10,2) maps to number
+  // price: number // numeric(10,2) maps to number
   category_id: number | null // bigint maps to number
   unit: string
   brand: string | null

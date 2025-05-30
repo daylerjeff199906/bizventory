@@ -73,13 +73,6 @@ export const ProductsList = ({
     })
   }
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-ES', {
-      style: 'currency',
-      currency: 'EUR'
-    }).format(amount)
-  }
-
   const handleSort = (field: SortField) => {
     let newDirection: SortDirection = 'asc'
 
@@ -132,7 +125,7 @@ export const ProductsList = ({
               </Button>
             </TableHead>
             <TableHead className="border-r border-gray-200">
-              <div className="font-medium text-gray-700">Precio</div>
+              <div className="font-medium text-gray-700">Unidad</div>
             </TableHead>
             <TableHead className="border-r border-gray-200">
               <Button
@@ -239,9 +232,6 @@ export const ProductsList = ({
                   </div>
                 </TableCell>
                 <TableCell className="border-r border-gray-100">
-                  <div className="font-medium">
-                    {formatCurrency(product.price)}
-                  </div>
                   <div className="text-xs text-gray-500">
                     {product.unit || 'unidad'}
                   </div>
