@@ -87,7 +87,14 @@ export async function getProducts({
     ascending: false
   })
 
-  if (error) throw error
+  if (error)
+    return {
+      data: [],
+      page,
+      page_size: pageSize,
+      total: 0,
+      total_pages: 0
+    }
 
   const total = count || 0
   const total_pages = Math.ceil(total / pageSize)

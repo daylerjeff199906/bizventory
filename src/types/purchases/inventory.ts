@@ -22,3 +22,11 @@ export interface ProductStock {
   current_stock: number
   updated_at?: string | null // ISO timestamp string
 }
+
+export interface InventoryStock {
+  product_id: string
+  product_name: string
+  product_code: string
+  category_id: string
+  total_quantity: number
+}

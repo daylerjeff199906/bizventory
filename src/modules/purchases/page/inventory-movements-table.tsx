@@ -66,8 +66,8 @@ export const InventoryMovementsTable = (props: IProps) => {
     <div className="border rounded-lg overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="sticky top-0 bg-gray-100 font-semibold border-b">
-            <tr className="text-left text-sm text-gray-600">
+          <thead className="sticky top-0 bg-gray-100 font-bold border-b">
+            <tr className="text-left text-sm">
               <th className="p-3 font-medium">Fecha y hora</th>
               <th className="p-3 font-medium">Código</th>
               <th className="p-3 font-medium">Producto</th>
@@ -97,11 +97,9 @@ export const InventoryMovementsTable = (props: IProps) => {
                       </span>
                     )}
                   </td>
-                  <td className="p-3 text-sm font-medium">
-                    {movement.product.code}
-                  </td>
+                  <td className="p-3 text-sm">{movement.product.code}</td>
                   <td className="p-3">
-                    <div className="font-medium text-sm">
+                    <div className="text-sm">
                       {movement.product.description}
                     </div>
                   </td>

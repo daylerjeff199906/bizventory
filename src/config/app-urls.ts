@@ -6,7 +6,8 @@ export const APP_URLS = {
     CREATE: `${URL_PREFIX}/products/create`,
     MULTIMEDIA: (id: string) => `${URL_PREFIX}/products/${id}/media`,
     EDIT: (id: string) => `${URL_PREFIX}/products/${id}/edit`,
-    VIEW: (id: string) => `${URL_PREFIX}/products/${id}`
+    VIEW: (id: string) => `${URL_PREFIX}/products/${id}`,
+    PRODUCTS_STOCK: `${URL_PREFIX}/products-stock`
   },
   SUPPLIERS: {
     LIST: `${URL_PREFIX}/suppliers`,
