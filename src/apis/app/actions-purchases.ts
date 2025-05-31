@@ -179,7 +179,6 @@ export async function createPurchaseWithItems({
       await supabase.rpc('update_product_stock_after_purchase', {
         p_purchase_id: purchase.id
       })
-    console.log('Stock update error:', stockUpdateError)
 
     if (stockUpdateError) {
       // Si falla la actualización del stock, eliminar la compra y los items creados

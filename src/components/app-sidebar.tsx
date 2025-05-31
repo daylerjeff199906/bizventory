@@ -53,8 +53,8 @@ const navMain = [
     url: '#',
     icon: Warehouse,
     items: [
-      { title: 'Estado de Stock', url: '/inventory' },
-      { title: 'Historial de Movimientos', url: '/inventory/history' },
+      { title: 'Estado de Stock', url: APP_URLS.PURCHASES.INVENTORY },
+      { title: 'Historial de Movimientos', url: APP_URLS.PURCHASES.INVENTORY },
       { title: 'Alertas de Stock', url: '/inventory/alerts' }
     ]
   },

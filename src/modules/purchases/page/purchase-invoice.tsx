@@ -1,14 +1,20 @@
 'use client'
 
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-// import { Badge } from '@/components/ui/badge'
-import type { PurchaseList } from '@/types'
+import { Download, Printer, Share2 } from 'lucide-react'
+import type { PurchaseItemList, PurchaseList } from '@/types'
 
 interface PurchaseInvoiceProps {
   purchase: PurchaseList
+  items?: PurchaseItemList[]
 }
 
-export default function PurchaseInvoice({ purchase }: PurchaseInvoiceProps) {
+export default function PurchaseInvoice({
+  purchase,
+  items
+}: PurchaseInvoiceProps) {
   const formatDate = (date: Date | string | null | undefined) => {
     if (!date) return 'No especificada'
     return new Date(date).toLocaleDateString('es-ES', {
@@ -25,287 +31,387 @@ export default function PurchaseInvoice({ purchase }: PurchaseInvoiceProps) {
     }).format(amount)
   }
 
+  const handlePrint = () => {
+    window.print()
+  }
+
+  const handleDownload = () => {
+    // Convert to PDF or trigger download
+    window.print()
+  }
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Orden de Compra ${purchase.code}`,
+          text: `Orden de compra de ${purchase.supplier?.name}`,
+          url: window.location.href
+        })
+      } catch (error) {
+        console.log('Error sharing:', error)
+      }
+    } else {
+      // Fallback: copy to clipboard
+      navigator.clipboard.writeText(window.location.href)
+    }
+  }
+
   return (
-    <div className="bg-white print:shadow-none shadow-sm border print:border-0 rounded-lg print:rounded-none">
-      <div className="p-8 print:p-6">
-        {/* Header */}
-        <div className="flex justify-between items-start mb-8">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              Mi Empresa S.A.C.
-            </h1>
-            <div className="text-sm text-gray-600 space-y-1">
-              <p>RUC: 20123456789</p>
-              <p>Av. Principal 123, Lima, Perú</p>
-              <p>Teléfono: +51 1 234-5678</p>
-              <p>Email: contacto@miempresa.com</p>
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="bg-gray-100 print:bg-gray-50 px-4 py-3 rounded-lg print:rounded">
-              <h2 className="text-lg font-semibold text-gray-900 mb-1">
-                ORDEN DE COMPRA
-              </h2>
-              <p className="text-sm text-gray-600">
-                #{purchase.code || 'Sin código'}
-              </p>
-            </div>
+    <div className="min-h-screen  print:bg-white">
+      {/* Action Bar - Hidden on print */}
+      <div className="print:hidden sticky top-0 z-10 bg-white border-b border-gray-200 px-6 py-4">
+        <div className="w-full flex justify-between items-center">
+          <h1 className="text-lg font-semibold text-gray-900">
+            Orden de Compra #{purchase.code || 'Sin código'}
+          </h1>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={handlePrint}>
+              <Printer className="h-4 w-4 mr-2" />
+              Imprimir
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleShare}>
+              <Share2 className="h-4 w-4 mr-2" />
+              Compartir
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleDownload}>
+              <Download className="h-4 w-4 mr-2" />
+              Descargar
+            </Button>
           </div>
         </div>
+      </div>
 
-        {/* Información de la compra y proveedor */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wide">
-              Proveedor
-            </h3>
-            {purchase.supplier ? (
-              <div className="space-y-2">
-                <p className="font-medium text-gray-900">
-                  {purchase.supplier.name}
-                </p>
-                <p className="text-sm text-gray-600">
-                  <strong>Contacto:</strong> {purchase.supplier.contact}
-                </p>
-                <p className="text-sm text-gray-600">
-                  <strong>Email:</strong> {purchase.supplier.email}
-                </p>
-                <p className="text-sm text-gray-600">
-                  <strong>Teléfono:</strong> {purchase.supplier.phone}
-                </p>
-                <p className="text-sm text-gray-600">
-                  <strong>Dirección:</strong> {purchase.supplier.address}
-                </p>
-                <p className="text-sm text-gray-600">
-                  <strong>RUC/DNI:</strong> {purchase.supplier.document_type}:{' '}
-                  {purchase.supplier.document_number}
-                </p>
-              </div>
-            ) : (
-              <p className="text-gray-500">Proveedor no especificado</p>
-            )}
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wide">
-              Detalles de la compra
-            </h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Fecha de compra:</span>
-                <span className="font-medium">{formatDate(purchase.date)}</span>
-              </div>
-              {purchase.guide_number && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Guía de remisión:</span>
-                  <span className="font-medium">{purchase.guide_number}</span>
+      {/* Invoice Content */}
+      <div className="w-full py-6 print:p-0">
+        <div className="bg-white print:shadow-none shadow-sm border print:border-0 rounded-lg print:rounded-none">
+          <div className="p-8 print:p-6">
+            {/* Header */}
+            <div className="flex justify-between items-start mb-12">
+              <div>
+                <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                  Mi Empresa S.A.C.
+                </h2>
+                <div className="text-sm text-gray-600 space-y-1 leading-relaxed">
+                  <p>RUC: 20123456789</p>
+                  <p>Av. Principal 123, Lima, Perú</p>
+                  <p>Teléfono: +51 1 234-5678</p>
+                  <p>Email: contacto@miempresa.com</p>
                 </div>
-              )}
-              <div className="flex justify-between">
-                <span className="text-gray-600">Fecha de registro:</span>
-                <span className="font-medium">
-                  {formatDate(purchase.created_at)}
-                </span>
               </div>
-              {purchase.updated_at && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Última actualización:</span>
-                  <span className="font-medium">
-                    {formatDate(purchase.updated_at)}
-                  </span>
+              <div className="text-right">
+                <div className="bg-gray-900 text-white px-6 py-4 rounded-lg">
+                  <h3 className="text-xl font-bold mb-2">ORDEN DE COMPRA</h3>
+                  <p className="text-gray-200 text-lg">
+                    #{purchase.code || 'Sin código'}
+                  </p>
                 </div>
-              )}
-              <div className="flex justify-between pt-2">
-                <span className="text-gray-600">Moneda:</span>
-                <span className="font-medium">
-                  {purchase.supplier?.currency || 'PEN'} -{' '}
-                  {purchase.supplier?.currency === 'USD' ? 'Dólares' : 'Soles'}
-                </span>
               </div>
             </div>
-          </div>
-        </div>
 
-        <Separator className="my-8" />
-
-        {/* Tabla de productos */}
-        {/* <div className="mb-8">
-          <h3 className="text-sm font-semibold text-gray-900 mb-4 uppercase tracking-wide">
-            Productos
-          </h3>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                    Producto
-                  </th>
-                  <th className="text-left py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                    Código
-                  </th>
-                  <th className="text-center py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                    Cantidad
-                  </th>
-                  <th className="text-right py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                    Precio Unit.
-                  </th>
-                  <th className="text-right py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                    Subtotal
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {purchase.items && purchase.items.length > 0 ? (
-                  purchase.items.map((item: any, index) => (
-                    <tr key={index} className="border-b border-gray-100">
-                      <td className="py-4">
-                        <div>
-                          <p className="font-medium text-gray-900">
-                            {item.product?.name || `Producto #${index + 1}`}
-                          </p>
-                          {item.product && (
-                            <p className="text-sm text-gray-500">
-                              {item.product.unit} |{' '}
-                              {item.product.brand || 'Sin marca'}
-                            </p>
-                          )}
+            {/* Information Grid - Responsive with grid-cols-2 on desktop, grid-cols-1 on mobile */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              {/* Supplier Information */}
+              <div>
+                <div className=" pb-2 mb-2">
+                  <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
+                    Información del Proveedor
+                  </h4>
+                </div>
+                <div className="p-4 border border-gray-200 rounded-md">
+                  {purchase.supplier ? (
+                    <div className="space-y-3">
+                      <div>
+                        <p className="font-semibold text-gray-900 text-lg">
+                          {purchase.supplier.name}
+                        </p>
+                      </div>
+                      <div className="grid grid-cols-1 gap-2 text-sm">
+                        <div className="flex">
+                          <span className="text-gray-500 w-20">Contacto:</span>
+                          <span className="text-gray-900">
+                            {purchase.supplier.contact}
+                          </span>
                         </div>
-                      </td>
-                      <td className="py-4">
-                        <Badge variant="outline" className="text-xs">
-                          {item.product?.code || 'N/A'}
-                        </Badge>
-                      </td>
-                      <td className="py-4 text-center font-medium">
-                        {item.quantity}
-                      </td>
-                      <td className="py-4 text-right font-medium">
-                        {formatCurrency(item.price)}
-                      </td>
-                      <td className="py-4 text-right font-medium">
-                        {formatCurrency(item.quantity * item.price)}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={5} className="py-4 text-center text-gray-500">
-                      No hay productos en esta compra
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div> */}
-
-        {/* Totales */}
-        <div className="flex justify-end">
-          <div className="w-full max-w-sm">
-            <div className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Subtotal:</span>
-                <span className="font-medium">
-                  {formatCurrency(purchase.subtotal)}
-                </span>
+                        <div className="flex">
+                          <span className="text-gray-500 w-20">Email:</span>
+                          <span className="text-gray-900">
+                            {purchase.supplier.email}
+                          </span>
+                        </div>
+                        <div className="flex">
+                          <span className="text-gray-500 w-20">Teléfono:</span>
+                          <span className="text-gray-900">
+                            {purchase.supplier.phone}
+                          </span>
+                        </div>
+                        <div className="flex">
+                          <span className="text-gray-500 w-20">Dirección:</span>
+                          <span className="text-gray-900">
+                            {purchase.supplier.address}
+                          </span>
+                        </div>
+                        <div className="flex">
+                          <span className="text-gray-500 w-20">Documento:</span>
+                          <span className="text-gray-900">
+                            {purchase.supplier.document_type}:{' '}
+                            {purchase.supplier.document_number}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-gray-500">Proveedor no especificado</p>
+                  )}
+                </div>
               </div>
 
-              {purchase.discount && purchase.discount > 0 && (
-                <div className="flex justify-between text-sm text-red-600">
-                  <span>Descuento:</span>
-                  <span>-{formatCurrency(purchase.discount)}</span>
+              {/* Purchase Details */}
+              <div>
+                <div className="pb-2 mb-2">
+                  <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
+                    Detalles de la Compra
+                  </h4>
                 </div>
-              )}
-
-              {purchase.tax_amount && purchase.tax_amount > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">
-                    IGV ({purchase.tax_rate}%):
-                  </span>
-                  <span className="font-medium">
-                    {formatCurrency(purchase.tax_amount)}
-                  </span>
+                <div className="p-4 border border-gray-200 rounded-md">
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Fecha de compra:</span>
+                      <span className="font-medium text-gray-900">
+                        {formatDate(purchase.date)}
+                      </span>
+                    </div>
+                    {purchase.guide_number && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Guía de remisión:</span>
+                        <span className="font-medium text-gray-900">
+                          {purchase.guide_number}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Fecha de registro:</span>
+                      <span className="font-medium text-gray-900">
+                        {formatDate(purchase.created_at)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">
+                        Última actualización:
+                      </span>
+                      <span className="font-medium text-gray-900">
+                        {formatDate(purchase.updated_at)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Moneda:</span>
+                      <span className="font-medium text-gray-900">
+                        {purchase.supplier?.currency || 'PEN'} -{' '}
+                        {purchase.supplier?.currency === 'USD'
+                          ? 'Dólares'
+                          : 'Soles'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-              )}
-
-              <Separator />
-
-              <div className="flex justify-between text-lg font-bold">
-                <span>Total:</span>
-                <span>{formatCurrency(purchase.total_amount)}</span>
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* Observaciones */}
-        {purchase.supplier?.notes && (
-          <div className="mt-8 pt-6 border-t border-gray-200">
-            <h3 className="text-sm font-semibold text-gray-900 mb-2 uppercase tracking-wide">
-              Observaciones
-            </h3>
-            <p className="text-sm text-gray-600">{purchase.supplier.notes}</p>
-          </div>
-        )}
+            {/* Products Table - Only table headers have gray background */}
+            <div className="mb-12">
+              <div className="border-b border-gray-200 pb-2 mb-4">
+                <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
+                  Productos
+                </h4>
+              </div>
+              <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className="text-left py-4 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">
+                          Código
+                        </th>
+                        <th className="text-left py-4 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">
+                          Producto
+                        </th>
+                        <th className="text-center py-4 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">
+                          Unidad
+                        </th>
+                        <th className="text-center py-4 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">
+                          Cantidad
+                        </th>
+                        <th className="text-right py-4 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">
+                          Precio Unit.
+                        </th>
+                        <th className="text-right py-4 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">
+                          Subtotal
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-100">
+                      {items && items.length > 0 ? (
+                        items.map((item: PurchaseItemList, index) => (
+                          <tr key={index} className="hover:bg-gray-50">
+                            <td className="py-4 px-4">
+                              <Badge
+                                variant="secondary"
+                                className="text-xs font-mono"
+                              >
+                                {item.product?.code || 'N/A'}
+                              </Badge>
+                            </td>
+                            <td className="py-4 px-4">
+                              <div>
+                                <p className="font-medium text-gray-900 text-sm">
+                                  {item.product?.description ||
+                                    `Producto #${index + 1}`}
+                                </p>
+                                {item.product && (
+                                  <p className="text-xs text-gray-500">
+                                    {item.product.brand || 'Sin marca'}
+                                  </p>
+                                )}
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 text-center">
+                              <span className="text-sm text-gray-600">
+                                {item.product?.unit || 'N/E'}
+                              </span>
+                            </td>
+                            <td className="py-4 px-4 text-center font-medium text-gray-900">
+                              {item.quantity}
+                            </td>
 
-        {/* Footer */}
-        <div className="mt-12 pt-8 border-t border-gray-200">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-xs text-gray-500">
-            <div>
-              <h4 className="font-semibold text-gray-700 mb-2">
-                Términos y condiciones:
-              </h4>
-              <ul className="space-y-1">
-                <li>
-                  • Los productos deben ser entregados en las condiciones
-                  acordadas
-                </li>
-                <li>
-                  • Cualquier discrepancia debe ser reportada dentro de 24 horas
-                </li>
-                <li>
-                  • El pago se realizará según los términos acordados con el
-                  proveedor
-                </li>
-                <li>
-                  • Esta orden de compra está sujeta a los términos comerciales
-                  establecidos
-                </li>
-              </ul>
+                            <td className="py-4 px-4 text-right font-medium text-gray-900">
+                              {formatCurrency(item.price)}
+                            </td>
+                            <td className="py-4 px-4 text-right font-semibold text-gray-900">
+                              {formatCurrency(item.quantity * item.price)}
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td
+                            colSpan={5}
+                            className="py-8 text-center text-gray-500"
+                          >
+                            No hay productos en esta compra
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
-            <div className="text-right">
-              <p className="mb-2">
-                <strong>Documento generado el:</strong>
-              </p>
-              <p>
-                {new Date().toLocaleDateString('es-ES', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}
-              </p>
-            </div>
-          </div>
-        </div>
 
-        {/* Firmas */}
-        <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-16">
-          <div className="text-center">
-            <div className="border-t border-gray-300 pt-2">
-              <p className="text-sm font-medium text-gray-700">
-                Autorizado por
-              </p>
-              <p className="text-xs text-gray-500 mt-1">Firma y sello</p>
+            {/* Totals */}
+            <div className="flex justify-end mb-12">
+              <div className="w-full max-w-sm">
+                <div className="border border-gray-200 rounded-lg p-6">
+                  <div className="space-y-4">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Subtotal:</span>
+                      <span className="font-medium text-gray-900">
+                        {formatCurrency(purchase.subtotal)}
+                      </span>
+                    </div>
+
+                    {typeof purchase.discount === 'number' &&
+                      purchase.discount > 0 && (
+                        <div className="flex justify-between text-sm text-red-600">
+                          <span>Descuento:</span>
+                          <span>-{formatCurrency(purchase.discount)}</span>
+                        </div>
+                      )}
+
+                    {typeof purchase.tax_amount === 'number' &&
+                      purchase.tax_amount > 0 &&
+                      typeof purchase.tax_rate === 'number' &&
+                      purchase.tax_rate > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">
+                            IGV ({purchase.tax_rate}%):
+                          </span>
+                          <span className="font-medium text-gray-900">
+                            {formatCurrency(purchase.tax_amount)}
+                          </span>
+                        </div>
+                      )}
+
+                    <Separator />
+
+                    <div className="flex justify-between text-xl font-bold">
+                      <span className="text-gray-900">Total:</span>
+                      <span className="text-gray-900">
+                        {formatCurrency(purchase.total_amount)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="text-center">
-            <div className="border-t border-gray-300 pt-2">
-              <p className="text-sm font-medium text-gray-700">Recibido por</p>
-              <p className="text-xs text-gray-500 mt-1">
-                Firma y sello del proveedor
-              </p>
-            </div>
+
+            {/* Observations */}
+            {purchase.supplier?.notes && (
+              <div className="mb-8">
+                <div className="border-b border-gray-200 pb-2 mb-4">
+                  <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
+                    Observaciones
+                  </h4>
+                </div>
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <p className="text-sm text-gray-700 leading-relaxed">
+                    {purchase.supplier.notes}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Terms and Footer */}
+            {/* <div className="border-t border-gray-200 pt-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 text-xs text-gray-600">
+                <div>
+                  <h5 className="font-semibold text-gray-800 mb-3 uppercase tracking-wide">
+                    Términos y condiciones:
+                  </h5>
+                  <ul className="space-y-2 leading-relaxed">
+                    <li>
+                      • Los productos deben ser entregados en las condiciones
+                      acordadas
+                    </li>
+                    <li>
+                      • Cualquier discrepancia debe ser reportada dentro de 24
+                      horas
+                    </li>
+                    <li>
+                      • El pago se realizará según los términos acordados con el
+                      proveedor
+                    </li>
+                    <li>
+                      • Esta orden de compra está sujeta a los términos
+                      comerciales establecidos
+                    </li>
+                  </ul>
+                </div>
+                <div className="text-right">
+                  <p className="font-semibold text-gray-800 mb-2">
+                    Documento generado el:
+                  </p>
+                  <p className="text-gray-600">
+                    {new Date().toLocaleDateString('es-ES', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
+                </div>
+              </div>
+            </div> */}
           </div>
         </div>
       </div>

@@ -98,7 +98,7 @@ export async function getPurchases({
  */
 export async function getPurchaseById(
   id: string
-): Promise<Purchase & { items: PurchaseItem[]; supplier: Supplier }> {
+): Promise<(Purchase & { items: PurchaseItem[]; supplier: Supplier }) | null> {
   const supabase = await getSupabase()
 
   // Obtener la compra con el proveedor
@@ -118,7 +118,7 @@ export async function getPurchaseById(
     .select('*, product:products(*)')
     .eq('purchase_id', id)
 
-  if (itemsError) throw itemsError
+  if (itemsError) return null
 
   return { ...purchaseData, items: itemsData || [] }
 }

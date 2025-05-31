@@ -29,47 +29,52 @@ export const PageHeader = ({
   backButton
 }: PageHeaderProps) => {
   return (
-    <div className="flex flex-col gap-4">
-      {/* Botón de volver atrás */}
-      {backButton && !backButton.hidden && (
-        <div>
-          <Button variant="ghost" size="sm" asChild>
-            <Link href={backButton.href}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver
-            </Link>
-          </Button>
-        </div>
-      )}
+    <div className="flex items-start justify-between gap-4">
+      <div className="flex items-start gap-4">
+        {/* Botón de volver atrás */}
+        {backButton && !backButton.hidden && (
+          <div className="mt-2">
+            <Button
+              variant="outline"
+              className="rounded-full"
+              size="sm"
+              asChild
+            >
+              <Link href={backButton.href}>
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        )}
 
-      {/* Cabecera principal */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-          {description && (
-            <p className="text-muted-foreground">{description}</p>
-          )}
+        {/* Cabecera principal */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+            {description && (
+              <p className="text-muted-foreground">{description}</p>
+            )}
+          </div>
         </div>
-
-        {/* Botón de acción */}
-        {actionButton && !actionButton.hidden && (
-          <>
-            {actionButton.href ? (
-              <Button asChild>
-                <Link href={actionButton.href}>
-                  {actionButton.icon || <Plus className="h-4 w-4 mr-2" />}
-                  {actionButton.label}
-                </Link>
-              </Button>
-            ) : (
-              <Button onClick={actionButton.onClick}>
+      </div>
+      {/* Botón de acción */}
+      {actionButton && !actionButton.hidden && (
+        <>
+          {actionButton.href ? (
+            <Button asChild>
+              <Link href={actionButton.href}>
                 {actionButton.icon || <Plus className="h-4 w-4 mr-2" />}
                 {actionButton.label}
-              </Button>
-            )}
-          </>
-        )}
-      </div>
+              </Link>
+            </Button>
+          ) : (
+            <Button onClick={actionButton.onClick}>
+              {actionButton.icon || <Plus className="h-4 w-4 mr-2" />}
+              {actionButton.label}
+            </Button>
+          )}
+        </>
+      )}
     </div>
   )
 }
