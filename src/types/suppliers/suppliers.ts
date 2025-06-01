@@ -1,3 +1,5 @@
+import { StatusItems } from '../core'
+
 export interface Supplier {
   id: string
   name: string
@@ -6,7 +8,7 @@ export interface Supplier {
   phone: string
   address: string
   currency: string
-  status: 'activo' | 'inactivo' | 'pendiente'
+  status: StatusItems
   notes: string
   created_at: string
   updated_at: string

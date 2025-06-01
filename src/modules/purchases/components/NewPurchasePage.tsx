@@ -250,7 +250,7 @@ export const NewPurchasePage = () => {
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2  gap-6">
                 <FormField
                   control={form.control}
                   name="code"
@@ -271,31 +271,13 @@ export const NewPurchasePage = () => {
                           </Button>
                         </div>
                       </FormControl>
+                      <FormDescription>
+                        Código único interno para identificar la compra
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="date"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-base font-medium">
-                        Fecha de compra *
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="date"
-                          //   value={field.value.toISOString().split('T')[0]}
-                          onChange={(e) => field.onChange(e.target.value)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
+                />{' '}
                 <FormField
                   control={form.control}
                   name="supplier_id"
@@ -332,7 +314,10 @@ export const NewPurchasePage = () => {
                           {filteredSuppliers.length > 0 ? (
                             filteredSuppliers.map((supplier) => (
                               <SelectItem key={supplier.id} value={supplier.id}>
-                                {supplier.name}
+                                {supplier.name} ( {supplier.document_type}{' '}
+                                {supplier.document_number ||
+                                  'Sin # de documento'}
+                                )
                               </SelectItem>
                             ))
                           ) : (
@@ -342,11 +327,36 @@ export const NewPurchasePage = () => {
                           )}
                         </SelectContent>
                       </Select>
+                      <FormDescription>
+                        Selecciona el proveedor de la compra
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-
+                <FormField
+                  control={form.control}
+                  name="date"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base font-medium">
+                        Fecha de compra *
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="date"
+                          //   value={field.value.toISOString().split('T')[0]}
+                          onChange={(e) => field.onChange(e.target.value)}
+                          min={new Date().toISOString().split('T')[0]}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Fecha en la que se realizó la compra
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <FormField
                   control={form.control}
                   name="guide_number"
@@ -359,7 +369,7 @@ export const NewPurchasePage = () => {
                         <Input placeholder="Ej: 001-001-000123" {...field} />
                       </FormControl>
                       <FormDescription>
-                        Número de guía de remisión (opcional)
+                        Número de guía de remisión (O boleta de compras)
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

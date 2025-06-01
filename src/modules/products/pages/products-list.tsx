@@ -160,7 +160,7 @@ export const ProductsList = ({
         <TableBody>
           {isLoading ? (
             <TableRow>
-              <TableCell colSpan={6} className="h-24 text-center">
+              <TableCell colSpan={8} className="h-24 text-center">
                 <div className="flex items-center justify-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin" />
                   <span>Cargando productos...</span>
@@ -169,7 +169,7 @@ export const ProductsList = ({
             </TableRow>
           ) : dataProducts?.data?.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} className="py-12 text-center">
+              <TableCell colSpan={8} className="py-12 text-center">
                 <div className="flex flex-col items-center justify-center gap-4">
                   <PackageSearch className="h-12 w-12 text-gray-400" />
                   <div className="space-y-1">

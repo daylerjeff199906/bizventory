@@ -42,6 +42,7 @@ import { Supplier } from '@/types'
 import { createSupplier, updateSupplier } from '@/apis/app'
 import { toast } from 'react-toastify'
 import { ToastCustom } from '@/components/app/toast-custom'
+import { StatusItems } from '@/types'
 
 interface SupplierFormProps {
   open: boolean
@@ -62,17 +63,17 @@ export default function SupplierForm({
   const form = useForm<CreateSupplierData>({
     resolver: zodResolver(supplierSchema),
     defaultValues: {
-      address: supplier?.address,
-      company_type: supplier?.company_type,
-      contact: supplier?.contact || '',
-      currency: supplier?.currency || 'EUR',
-      document_number: supplier?.document_number || '',
-      document_type: supplier?.document_type || 'CIF',
-      email: supplier?.email || '',
-      name: supplier?.name,
-      notes: supplier?.notes || '',
-      phone: supplier?.phone || '',
-      status: supplier?.status || 'activo'
+      address: '',
+      company_type: '',
+      contact: '',
+      currency: 'PEN',
+      document_number: '',
+      document_type: 'RUC',
+      email: undefined,
+      name: '',
+      notes: '',
+      phone: '',
+      status: StatusItems.ACTIVE
     }
   })
 
@@ -142,28 +143,28 @@ export default function SupplierForm({
         address: supplier.address,
         company_type: supplier.company_type,
         contact: supplier.contact || '',
-        currency: supplier.currency || 'EUR',
+        currency: supplier.currency || 'PEN',
         document_number: supplier.document_number || '',
-        document_type: supplier.document_type || 'CIF',
-        email: supplier.email || '',
+        document_type: supplier.document_type || 'RUC',
+        email: supplier.email || undefined,
         name: supplier.name,
         notes: supplier.notes || '',
         phone: supplier.phone || '',
-        status: supplier.status || 'activo'
+        status: supplier.status || StatusItems.ACTIVE
       })
     } else {
       form.reset({
         address: '',
         company_type: '',
         contact: '',
-        currency: 'EUR',
+        currency: 'PEN',
         document_number: '',
-        document_type: 'CIF',
-        email: '',
+        document_type: 'RUC',
+        email: undefined,
         name: '',
         notes: '',
         phone: '',
-        status: 'activo'
+        status: StatusItems.ACTIVE
       })
     }
   }, [supplier, form])
@@ -206,7 +207,7 @@ export default function SupplierForm({
                 name="contact"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Persona de contacto</FormLabel>
+                    <FormLabel>Celular</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="Ej: María González"
@@ -275,7 +276,7 @@ export default function SupplierForm({
               />
 
               {/* Información empresarial */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <FormField
                   control={form.control}
                   name="company_type"
@@ -295,7 +296,10 @@ export default function SupplierForm({
                           <SelectItem value="S.A.">S.A.</SelectItem>
                           <SelectItem value="S.L.">S.L.</SelectItem>
                           <SelectItem value="S.C.">S.C.</SelectItem>
+                          <SelectItem value="S.A.C.">S.A.C.</SelectItem>
+                          <SelectItem value="E.I.R.L.">E.I.R.L.</SelectItem>
                           <SelectItem value="Autónomo">Autónomo</SelectItem>
+                          <SelectItem value="Otro">Otro</SelectItem>
                           <SelectItem value="Cooperativa">
                             Cooperativa
                           </SelectItem>
@@ -322,9 +326,9 @@ export default function SupplierForm({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="CIF">CIF</SelectItem>
-                          <SelectItem value="NIF">NIF</SelectItem>
-                          <SelectItem value="NIE">NIE</SelectItem>
+                          <SelectItem value="RUC">RUC</SelectItem>
+                          <SelectItem value="DNI">DNI</SelectItem>
+                          <SelectItem value="OTRO">OTRO</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -365,6 +369,7 @@ export default function SupplierForm({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
+                          <SelectItem value="PEN">PEN - Sol Peruano</SelectItem>
                           <SelectItem value="EUR">EUR - Euro</SelectItem>
                           <SelectItem value="USD">USD - Dólar</SelectItem>
                           <SelectItem value="GBP">GBP - Libra</SelectItem>
@@ -393,9 +398,12 @@ export default function SupplierForm({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="activo">Activo</SelectItem>
-                          <SelectItem value="inactivo">Inactivo</SelectItem>
-                          <SelectItem value="pendiente">Pendiente</SelectItem>
+                          <SelectItem value={StatusItems.ACTIVE}>
+                            Activo
+                          </SelectItem>
+                          <SelectItem value={StatusItems.INACTIVE}>
+                            Inactivo
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />

@@ -24,8 +24,20 @@ import {
   TableRow
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Supplier } from '@/types'
+import { StatusItems, Supplier } from '@/types'
 import { SupplierForm } from '../components'
+import { cn } from '@/lib/utils'
+import { patchSupplierField } from '@/apis/app'
+import { toast } from 'react-toastify'
+import { ToastCustom } from '@/components/app/toast-custom'
+import {
+  AlertDialog,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogTitle, // Añade esto
+  AlertDialogDescription // Añade esto para mejor semántica
+} from '@/components/ui/alert-dialog'
 
 // Tipado para los proveedores
 
@@ -44,6 +56,7 @@ export default function SuppliersList(props: IProps) {
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingSupplier, setEditingSupplier] = useState<Supplier | undefined>()
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -68,12 +81,19 @@ export default function SuppliersList(props: IProps) {
   const filteredAndSortedSuppliers = useMemo(() => {
     const filtered = suppliers?.filter(
       (supplier) =>
-        supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        supplier.contact.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        supplier.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        supplier.id.toLowerCase().includes(searchTerm.toLowerCase())
+        (supplier?.name?.toLowerCase() || '').includes(
+          searchTerm?.toLowerCase() || ''
+        ) ||
+        (supplier?.contact?.toLowerCase() || '').includes(
+          searchTerm?.toLowerCase() || ''
+        ) ||
+        (supplier?.email?.toLowerCase() || '').includes(
+          searchTerm?.toLowerCase() || ''
+        ) ||
+        (supplier?.id?.toLowerCase() || '').includes(
+          searchTerm?.toLowerCase() || ''
+        )
     )
-
     return filtered?.sort((a, b) => {
       let aValue: string | number
       let bValue: string | number
@@ -114,12 +134,21 @@ export default function SuppliersList(props: IProps) {
 
   const getStatusBadge = (status: Supplier['status']) => {
     const variants = {
-      activo: 'default',
-      inactivo: 'secondary',
-      pendiente: 'outline'
+      [StatusItems.ACTIVE]:
+        'bg-green-100 text-green-700 border border-green-300',
+      [StatusItems.INACTIVE]:
+        'bg-yellow-100 text-yellow-700 border border-yellow-300',
+      [StatusItems.DELETED]: 'bg-red-100 text-red-700 border border-red-300'
     } as const
 
-    return <Badge variant={variants[status]}>{status}</Badge>
+    const colorClass =
+      variants[status] || 'bg-gray-100 text-gray-700 border border-gray-300'
+
+    return (
+      <Badge className={cn('rounded-full px-3 uppercase', colorClass)}>
+        {status}
+      </Badge>
+    )
   }
 
   const formatDate = (dateString: string) => {
@@ -138,6 +167,26 @@ export default function SuppliersList(props: IProps) {
   const handleEditSupplier = (supplier: Supplier) => {
     setEditingSupplier(supplier)
     setDialogOpen(true)
+  }
+
+  const handleDeleteSupplier = async (id: string) => {
+    try {
+      await patchSupplierField(id, 'status', StatusItems.DELETED)
+      toast.success(
+        <ToastCustom
+          title="Proveedor eliminado"
+          message="El proveedor ha sido eliminado correctamente"
+        />
+      )
+      window.location.reload() // Recargar la página para reflejar los cambios
+    } catch {
+      toast.error(
+        <ToastCustom
+          title="Error al eliminar"
+          message="No se pudo eliminar el proveedor. Inténtalo de nuevo más tarde."
+        />
+      )
+    }
   }
 
   return (
@@ -173,7 +222,7 @@ export default function SuppliersList(props: IProps) {
         {/* Table */}
         <div className="border rounded-lg">
           {filteredAndSortedSuppliers &&
-          filteredAndSortedSuppliers.length > 0 ? (
+          filteredAndSortedSuppliers?.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -187,8 +236,8 @@ export default function SuppliersList(props: IProps) {
                       {getSortIcon('name')}
                     </Button>
                   </TableHead>
+                  <TableHead># de Documento</TableHead>
                   <TableHead>Contacto</TableHead>
-                  <TableHead>Email</TableHead>
                   <TableHead>Teléfono</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead>
@@ -225,8 +274,13 @@ export default function SuppliersList(props: IProps) {
                         </div>
                       </div>
                     </TableCell>
+                    <TableCell>
+                      {supplier.document_type}:{' '}
+                      <span className="font-semibold">
+                        {supplier.document_number}
+                      </span>
+                    </TableCell>
                     <TableCell>{supplier.contact}</TableCell>
-                    <TableCell>{supplier.email}</TableCell>
                     <TableCell>{supplier.phone}</TableCell>
                     <TableCell>{getStatusBadge(supplier.status)}</TableCell>
                     <TableCell>{formatDate(supplier.created_at)}</TableCell>
@@ -237,16 +291,22 @@ export default function SuppliersList(props: IProps) {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleEditSupplier(supplier)}
+                          disabled={supplier.status === StatusItems.DELETED}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          // onClick={() => handleDeleteSupplier(supplier.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        {supplier.status !== StatusItems.DELETED && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setEditingSupplier(supplier)
+                              setIsDeleteDialogOpen(true)
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -275,6 +335,43 @@ export default function SuppliersList(props: IProps) {
         onOpenChange={setDialogOpen}
         supplier={editingSupplier}
       />
+
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar Proveedor</AlertDialogTitle>{' '}
+            {/* Añadido */}
+            <AlertDialogDescription>
+              {' '}
+              {/* Mejor estructura */}
+              ¿Estás seguro de que deseas eliminar este proveedor? Esta acción
+              no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (editingSupplier) {
+                  handleDeleteSupplier(editingSupplier.id)
+                }
+                setIsDeleteDialogOpen(false)
+              }}
+            >
+              Eliminar
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }

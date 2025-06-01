@@ -33,7 +33,7 @@ export async function getSuppliers(
   }
 
   const { data, error } = await query.order('created_at', { ascending: false })
-  if (error) throw error
+  if (error) return []
   return data || []
 }
 
@@ -113,7 +113,7 @@ export async function patchSupplierField(
   id: string,
   field: keyof Supplier,
   value: Supplier[keyof Supplier]
-): Promise<Supplier> {
+): Promise<Supplier | null> {
   const supabase = await getSupabase()
   const { data, error } = await supabase
     .from('suppliers')
@@ -122,7 +122,9 @@ export async function patchSupplierField(
     .select()
     .single()
 
-  if (error || !data) throw error || new Error('Patch failed')
+  revalidatePath(APP_URLS.SUPPLIERS.LIST)
+
+  if (error || !data) return null
   return data
 }
 
