@@ -2,7 +2,7 @@
 // Servicio de funciones CRUD para la tabla 'products' usando Supabase en Server Components
 'use server'
 import { createClient } from '@/utils/supabase/server'
-import { Product } from '@/types'
+import { Product, ProductDetails } from '@/types'
 import { revalidatePath } from 'next/cache'
 import { APP_URLS } from '@/config/app-urls'
 import { CreateProductData } from '@/modules/products'
@@ -42,7 +42,7 @@ export async function getProducts({
   filters?: Record<string, string | number | string[] | undefined>
   sortBy?: string
   sortDirection?: 'asc' | 'desc'
-}): Promise<ResApi<Product>> {
+}): Promise<ResApi<ProductDetails>> {
   const supabase = await getSupabase()
   const from = (page - 1) * pageSize
   const to = from + pageSize - 1
@@ -60,7 +60,7 @@ export async function getProducts({
 
   let query = supabase
     .from('products')
-    .select('*', { count: 'exact' })
+    .select('*, brand:brands(*)', { count: 'exact' })
     .range(from, to)
     .order(sortColumn, { ascending: sortDirection === 'asc' })
 

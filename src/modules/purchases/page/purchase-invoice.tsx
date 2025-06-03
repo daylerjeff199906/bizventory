@@ -242,6 +242,9 @@ export default function PurchaseInvoice({
                           Cantidad
                         </th>
                         <th className="text-right py-4 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">
+                          Descuento
+                        </th>
+                        <th className="text-right py-4 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">
                           Precio Unit.
                         </th>
                         <th className="text-right py-4 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">
@@ -258,7 +261,7 @@ export default function PurchaseInvoice({
                                 variant="secondary"
                                 className="text-xs font-mono"
                               >
-                                {item.product?.code || 'N/A'}
+                                {item?.code || 'N/A'}
                               </Badge>
                             </td>
                             <td className="py-4 px-4">
@@ -269,7 +272,7 @@ export default function PurchaseInvoice({
                                 </p>
                                 {item.product && (
                                   <p className="text-xs text-gray-500">
-                                    {item.product.brand || 'Sin marca'}
+                                    {item.product.brand?.name || 'Sin marca'}
                                   </p>
                                 )}
                               </div>
@@ -285,6 +288,17 @@ export default function PurchaseInvoice({
 
                             <td className="py-4 px-4 text-right font-medium text-gray-900">
                               {formatCurrency(item.price)}
+                            </td>
+                            <td
+                              className={`py-4 px-4 text-right font-medium ${
+                                item.discount ? 'text-red-600' : 'text-gray-900'
+                              }`}
+                            >
+                              {item.discount ? (
+                                <>- {formatCurrency(item.discount)}</>
+                              ) : (
+                                '0.00'
+                              )}
                             </td>
                             <td className="py-4 px-4 text-right font-semibold text-gray-900">
                               {formatCurrency(item.quantity * item.price)}

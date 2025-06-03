@@ -5,7 +5,10 @@ export const PurchaseItemSchema = z.object({
   purchase_id: z.string().uuid().nullable(),
   product_id: z.string().uuid(),
   quantity: z.number().int().positive('La cantidad debe ser mayor a 0'),
-  price: z.number().positive('El precio debe ser mayor a 0').max(99999999.99)
+  price: z.number().positive('El precio debe ser mayor a 0').max(99999999.99),
+  code: z.string().optional(),
+  discount: z.number().min(0).max(99999999.99).optional(),
+  bar_code: z.string().optional()
 })
 
 export const PurchaseSchema = z.object({
@@ -30,7 +33,7 @@ export type PurchaseItem = z.infer<typeof PurchaseItemSchema> & {
     name: string
     unit: string
     brand: string | null
-    code: string
+    description: string | null
   }
 }
 

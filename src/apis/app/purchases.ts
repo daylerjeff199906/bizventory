@@ -115,7 +115,7 @@ export async function getPurchaseById(
   // Obtener los items de la compra
   const { data: itemsData, error: itemsError } = await supabase
     .from('purchase_items')
-    .select('*, product:products(*)')
+    .select('*, product:products(*, brand:brands(*))')
     .eq('purchase_id', id)
 
   if (itemsError) return null

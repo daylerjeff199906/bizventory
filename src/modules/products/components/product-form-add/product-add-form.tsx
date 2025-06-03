@@ -1,8 +1,7 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 'use client'
 
-import type React from 'react'
-
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
@@ -39,19 +38,24 @@ import { APP_URLS } from '@/config/app-urls'
 import { createProduct } from '@/apis/app'
 import { ToastCustom } from '@/components/app/toast-custom'
 import { toast } from 'react-toastify'
+import { SearchSelectPopover } from '@/components/app/SearchSelectPopover'
+import { useBrands } from '@/hooks/use-brands'
 
 export const NewProductForm = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [tagInput, setTagInput] = useState('')
   const [showConfirmation, setShowConfirmation] = useState(false)
   const router = useRouter()
+  const [searchBrand, setSearchBrand] = useState<string>('')
+
+  const { brands, fetchBrands, loading: loadingBrands } = useBrands()
 
   const form = useForm<CreateProductData>({
     resolver: zodResolver(productSchema),
     defaultValues: {
       name: '',
       description: '',
-      brand: '',
+      brand_id: '',
       code: '',
       tags: []
       //   images: []
@@ -130,6 +134,17 @@ export const NewProductForm = () => {
     }
   }
 
+  useEffect(() => {
+    fetchBrands({
+      query: searchBrand
+    })
+  }, [searchBrand])
+
+  const optionsBrands = brands.map((brand) => ({
+    id: brand.id,
+    name: brand.name
+  }))
+
   return (
     <div className="min-h-screen bg-white">
       <div className="w-full max-w-4xl mx-auto p-6">
@@ -147,6 +162,72 @@ export const NewProductForm = () => {
                 <p className="text-gray-600 mt-1">
                   Datos principales del producto
                 </p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="brand_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <SearchSelectPopover
+                        options={optionsBrands}
+                        isLoading={loadingBrands}
+                        placeholder="Selecciona una marca"
+                        defaultValue={null}
+                        emptyText="No se encontraron marcas"
+                        label="Marca del producto"
+                        required
+                        loadingText="Cargando marcas..."
+                        searchPlaceholder="Buscar marca por nombre..."
+                        onSearch={(value) => {
+                          setSearchBrand(value)
+                        }}
+                        onChange={(value) => {
+                          console.log('Selected brand:', value)
+                          field.onChange(value)
+                        }}
+                      />
+                      <FormDescription>
+                        Selecciona la marca a la que pertenece este producto.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="code"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base font-medium">
+                        Código del producto
+                      </FormLabel>
+                      <FormControl>
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="PRD-2025-0001"
+                            className="text-base"
+                            {...field}
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={generateCode}
+                          >
+                            <RefreshCw className="h-4 w-4 mr-2" />
+                            Generar
+                          </Button>
+                        </div>
+                      </FormControl>
+                      <FormDescription>
+                        Código único para identificación interna. Se genera
+                        automáticamente si no se especifica.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
               <div className="grid grid-cols-1 gap-6">
@@ -206,62 +287,6 @@ export const NewProductForm = () => {
                 <p className="text-gray-600 mt-1">
                   Datos opcionales para mejor organización
                 </p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="brand"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-base font-medium">
-                        Marca
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Ej: Nike, Adidas, etc."
-                          className="text-base"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="code"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-base font-medium">
-                        Código del producto
-                      </FormLabel>
-                      <FormControl>
-                        <div className="flex gap-2">
-                          <Input
-                            placeholder="PRD-2025-0001"
-                            className="text-base"
-                            {...field}
-                          />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={generateCode}
-                          >
-                            <RefreshCw className="h-4 w-4 mr-2" />
-                            Generar
-                          </Button>
-                        </div>
-                      </FormControl>
-                      <FormDescription>
-                        Código único para identificación interna. Se genera
-                        automáticamente si no se especifica.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               </div>
 
               {/* Tags */}

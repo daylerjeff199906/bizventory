@@ -1,3 +1,5 @@
+import { Brand } from './brands'
+
 export interface Product {
   id: string // UUID maps to string in TypeScript
   name: string
@@ -6,7 +8,7 @@ export interface Product {
   // price: number // numeric(10,2) maps to number
   category_id: number | null // bigint maps to number
   unit: string
-  brand: string | null
+  brand_id: string | null // UUID maps to string in TypeScript
   supplier_code: string | null
   location: string | null
   created_at: string // timestamp with time zone can be Date or ISO string
@@ -15,6 +17,10 @@ export interface Product {
   tags: string[] | null
   updated_at: string | null
   images: ProductImage[] | null
+}
+
+export interface ProductDetails extends Omit<Product, 'brand_id'> {
+  brand: Brand | null
 }
 
 export interface ProductImage {

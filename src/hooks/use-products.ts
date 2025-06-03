@@ -1,17 +1,17 @@
 'use client'
 import { useState } from 'react'
 import { getProducts } from '@/apis/app'
-import { ResApi, Product } from '@/types'
+import { ProductDetails, ResApi } from '@/types'
 
 export const useProducts = () => {
-  const [products, setProducts] = useState<Product[]>([])
+  const [products, setProducts] = useState<ProductDetails[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<Error | null>(null)
 
   const fetchProducts = async ({ query = '', code = '' } = {}) => {
     try {
       setLoading(true)
-      const response: ResApi<Product> = await getProducts({
+      const response: ResApi<ProductDetails> = await getProducts({
         filters: {
           name: query,
           code: code

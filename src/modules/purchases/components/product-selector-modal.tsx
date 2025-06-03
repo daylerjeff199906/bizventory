@@ -19,7 +19,7 @@ import {
   TableRow
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Product } from '@/types'
+import { ProductDetails } from '@/types'
 import { useProducts } from '@/hooks/use-products'
 import { SearchInput } from '@/components/app/search-input'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -27,7 +27,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 interface ProductSelectorModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSelectProduct: (product: Product) => void
+  onSelectProduct: (product: ProductDetails) => void
   selectedProductIds: string[]
 }
 
@@ -49,7 +49,7 @@ export const ProductSelectorModal = ({
     }
   }, [open, searchTerm, searchCode])
 
-  const handleSelectProduct = (product: Product) => {
+  const handleSelectProduct = (product: ProductDetails) => {
     onSelectProduct(product)
     onOpenChange(false)
   }
@@ -151,7 +151,9 @@ export const ProductSelectorModal = ({
                         <TableCell>
                           <Badge variant="outline">{product.code}</Badge>
                         </TableCell>
-                        <TableCell>{product.brand || 'Sin marca'}</TableCell>
+                        <TableCell>
+                          {product.brand?.name || 'Sin marca'}
+                        </TableCell>
                         <TableCell>{product.unit}</TableCell>
                         <TableCell>
                           <Button

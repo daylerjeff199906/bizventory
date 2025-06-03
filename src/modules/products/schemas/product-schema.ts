@@ -5,8 +5,8 @@ export const productSchema = z.object({
   description: z
     .string()
     .min(10, 'La descripción debe tener al menos 10 caracteres'),
-  brand: z.string().optional(),
   tags: z.array(z.string()).optional(),
+  brand_id: z.string().optional(),
   code: z.string().optional(),
   images: z.array(z.string()).optional()
 })

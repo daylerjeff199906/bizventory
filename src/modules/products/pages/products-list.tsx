@@ -29,7 +29,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
-import { ResApi, Product } from '@/types'
+import { ResApi, ProductDetails } from '@/types'
 import { APP_URLS } from '@/config/app-urls'
 import { cn } from '@/lib/utils'
 
@@ -37,7 +37,7 @@ type SortField = 'name' | 'updated_at' | 'created_at' | 'price' | 'code'
 type SortDirection = 'asc' | 'desc'
 
 interface ProductsListProps {
-  dataProducts: ResApi<Product>
+  dataProducts: ResApi<ProductDetails>
   isLoading?: boolean
   searchQuery?: string
 }
@@ -245,7 +245,7 @@ export const ProductsList = ({
                 </TableCell>
                 <TableCell className="border-r border-gray-100">
                   <div className="text-xs text-gray-500">
-                    {product.brand || 'Sin marca'}
+                    {product?.brand ? product?.brand?.name : 'Sin marca'}
                   </div>
                 </TableCell>
                 <TableCell className="border-r border-gray-100">

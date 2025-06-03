@@ -5,11 +5,12 @@ import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
-import { Save, Plus, Trash2, RefreshCw } from 'lucide-react'
+import { Save, Plus, Trash2, RefreshCw, Edit2 } from 'lucide-react'
 import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Select,
   SelectContent,
@@ -34,14 +35,22 @@ import {
   FormLabel,
   FormMessage
 } from '@/components/ui/form'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog'
 import { useSuppliers } from '@/hooks/use-suppliers'
 import {
   PurchaseSchema,
   type CreatePurchaseData,
-  PurchaseItem
+  type PurchaseItem
 } from '../schemas'
 import { generatePurchaseCode } from './generate-code'
-import { Product } from '@/types'
+import type { ProductDetails } from '@/types'
 import { ProductSelectorModal } from './product-selector-modal'
 import { toast } from 'react-toastify'
 import { ToastCustom } from '@/components/app/toast-custom'
@@ -58,12 +67,261 @@ import {
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
 
+// Función para generar código de barras aleatorio
+const generateBarCode = (): string => {
+  const timestamp = Date.now().toString()
+  const random = Math.random().toString(36).substring(2, 8).toUpperCase()
+  return `${timestamp.slice(-6)}${random}`
+}
+
+// Función para generar código de producto aleatorio
+const generateProductCode = (): string => {
+  const prefix = 'PROD'
+  const timestamp = Date.now().toString().slice(-4)
+  const random = Math.floor(Math.random() * 10000)
+    .toString()
+    .padStart(4, '0')
+  return `${prefix}-${timestamp}${random}`
+}
+
+interface EditItemDialogProps {
+  item: PurchaseItem | null
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onSave: (updatedItem: PurchaseItem) => void
+}
+
+const EditItemDialog = ({
+  item,
+  open,
+  onOpenChange,
+  onSave
+}: EditItemDialogProps) => {
+  const [editData, setEditData] = useState<Partial<PurchaseItem>>({})
+  const [includeBarCode, setIncludeBarCode] = useState(false)
+
+  useEffect(() => {
+    if (item) {
+      setEditData({
+        quantity: item.quantity,
+        price: item.price,
+        discount: item.discount || 0,
+        code: item.code || '',
+        bar_code: item.bar_code || ''
+      })
+      setIncludeBarCode(!!item.bar_code)
+    }
+  }, [item])
+
+  const handleSave = () => {
+    if (!item) return
+
+    const updatedItem: PurchaseItem = {
+      ...item,
+      quantity: editData.quantity || item.quantity,
+      price: editData.price || item.price,
+      discount: editData.discount || 0,
+      code: editData.code || generateProductCode(),
+      bar_code: includeBarCode
+        ? editData.bar_code || generateBarCode()
+        : undefined
+    }
+
+    onSave(updatedItem)
+    onOpenChange(false)
+  }
+
+  const handleGenerateCode = () => {
+    setEditData((prev) => ({
+      ...prev,
+      code: generateProductCode()
+    }))
+  }
+
+  if (!item) return null
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>Editar Producto</DialogTitle>
+          <DialogDescription>
+            Modifica los detalles del producto en la compra
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Producto</label>
+            <p className="text-sm text-gray-600">
+              {item.product?.brand} {item.product?.description}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Cantidad</label>
+              <Input
+                type="number"
+                min="1"
+                value={editData.quantity || ''}
+                onChange={(e) =>
+                  setEditData((prev) => ({
+                    ...prev,
+                    quantity: Number(e.target.value)
+                  }))
+                }
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Precio Unitario</label>
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                value={editData.price || ''}
+                onChange={(e) =>
+                  setEditData((prev) => ({
+                    ...prev,
+                    price: Number(e.target.value)
+                  }))
+                }
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Descuento (S/)</label>
+            <Input
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="0.00"
+              value={editData.discount || ''}
+              onChange={(e) =>
+                setEditData((prev) => ({
+                  ...prev,
+                  discount: Number(e.target.value) || 0
+                }))
+              }
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Código del Producto</label>
+            <div className="flex gap-2">
+              <Input
+                placeholder="Se generará automáticamente si está vacío"
+                value={editData.code || ''}
+                onChange={(e) =>
+                  setEditData((prev) => ({
+                    ...prev,
+                    code: e.target.value
+                  }))
+                }
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleGenerateCode}
+              >
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="include-barcode"
+                checked={includeBarCode}
+                onCheckedChange={(checked) => setIncludeBarCode(!!checked)}
+              />
+              <label htmlFor="include-barcode" className="text-sm font-medium">
+                Incluir código de barras
+              </label>
+            </div>
+
+            {includeBarCode && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Código de Barras</label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Se generará automáticamente si está vacío"
+                    value={editData.bar_code || ''}
+                    onChange={(e) =>
+                      setEditData((prev) => ({
+                        ...prev,
+                        bar_code: e.target.value
+                      }))
+                    }
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() =>
+                      setEditData((prev) => ({
+                        ...prev,
+                        bar_code: generateBarCode()
+                      }))
+                    }
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {editData.quantity && editData.price && (
+            <div className="bg-gray-50 p-3 rounded-lg space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Subtotal:</span>
+                <span>
+                  S/ {(editData.quantity * editData.price).toFixed(2)}
+                </span>
+              </div>
+              {(editData.discount || 0) > 0 && (
+                <div className="flex justify-between text-sm text-red-600">
+                  <span>Descuento:</span>
+                  <span>-S/ {(editData.discount || 0).toFixed(2)}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-sm font-medium border-t pt-2">
+                <span>Total:</span>
+                <span>
+                  S/{' '}
+                  {(
+                    editData.quantity * editData.price -
+                    (editData.discount || 0)
+                  ).toFixed(2)}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancelar
+          </Button>
+          <Button onClick={handleSave}>Guardar Cambios</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 export const NewPurchasePage = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [purchaseItems, setPurchaseItems] = useState<PurchaseItem[]>([])
   const [productModalOpen, setProductModalOpen] = useState(false)
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [editingItem, setEditingItem] = useState<PurchaseItem | null>(null)
   const [searchSupplier, setSearchSupplier] = useState<string>('')
   const [confirmOpen, setConfirmOpen] = useState(false)
+
   const router = useRouter()
 
   const { suppliers } = useSuppliers()
@@ -102,10 +360,10 @@ export const NewPurchasePage = () => {
   }
 
   const calculateTotals = () => {
-    const subtotal = purchaseItems.reduce(
-      (sum, item) => sum + item.quantity * item.price,
-      0
-    )
+    const subtotal = purchaseItems.reduce((sum, item) => {
+      const itemTotal = item.quantity * item.price - (item.discount || 0)
+      return sum + itemTotal
+    }, 0)
     const discount = form.getValues('discount') || 0
     const taxRate = form.getValues('tax_rate') || 0
 
@@ -119,7 +377,7 @@ export const NewPurchasePage = () => {
     form.setValue('items', purchaseItems)
   }
 
-  const handleAddProduct = (product: Product) => {
+  const handleAddProduct = (product: ProductDetails) => {
     const existingItem = purchaseItems.find(
       (item) => item.product_id === product.id
     )
@@ -138,26 +396,30 @@ export const NewPurchasePage = () => {
       product_id: product.id,
       quantity: 1,
       price: 0,
+      discount: 0,
       purchase_id: null,
+      code: generateProductCode(), // Generar código único para el producto
       product: {
         id: product.id,
         name: product.name,
         unit: product.unit,
-        brand: product.brand,
-        code: product.code
+        brand: product.brand?.name || 'Sin marca',
+        description: product.description || null
       }
     }
 
     setPurchaseItems([...purchaseItems, newItem])
   }
 
-  const handleUpdateItem = (
-    index: number,
-    field: 'quantity' | 'price',
-    value: number
-  ) => {
-    const updatedItems = [...purchaseItems]
-    updatedItems[index] = { ...updatedItems[index], [field]: value }
+  const handleEditItem = (item: PurchaseItem) => {
+    setEditingItem(item)
+    setEditDialogOpen(true)
+  }
+
+  const handleSaveEditedItem = (updatedItem: PurchaseItem) => {
+    const updatedItems = purchaseItems.map((item) =>
+      item.product_id === updatedItem.product_id ? updatedItem : item
+    )
     setPurchaseItems(updatedItems)
   }
 
@@ -347,7 +609,7 @@ export const NewPurchasePage = () => {
                           type="date"
                           //   value={field.value.toISOString().split('T')[0]}
                           onChange={(e) => field.onChange(e.target.value)}
-                          min={new Date().toISOString().split('T')[0]}
+                          max={new Date().toISOString().split('T')[0]}
                         />
                       </FormControl>
                       <FormDescription>
@@ -402,68 +664,76 @@ export const NewPurchasePage = () => {
                       <TableRow className="bg-gray-50">
                         <TableHead>Producto</TableHead>
                         <TableHead>Código</TableHead>
-                        <TableHead>Marca</TableHead>
                         <TableHead>Unidad</TableHead>
                         <TableHead>Cantidad</TableHead>
-                        <TableHead>Precio Unitario</TableHead>
+                        <TableHead>Precio Unit.</TableHead>
+                        <TableHead>Descuento</TableHead>
                         <TableHead>Subtotal</TableHead>
-                        <TableHead className="w-20"></TableHead>
+                        {purchaseItems.some((item) => item.bar_code) && (
+                          <TableHead>Código Barras</TableHead>
+                        )}
+                        <TableHead className="w-20">Acciones</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {purchaseItems.map((item, index) => (
                         <TableRow key={index}>
                           <TableCell className="font-medium">
-                            {item.product?.name}
+                            {item.product?.brand} {item.product?.description}
                           </TableCell>
-                          <TableCell>{item.product?.code}</TableCell>
+                          <TableCell>{item.code}</TableCell>
                           <TableCell>
                             {item.product?.brand || 'Sin marca'}
                           </TableCell>
                           <TableCell>{item.product?.unit}</TableCell>
-                          <TableCell>
-                            <Input
-                              type="number"
-                              min="1"
-                              value={item.quantity}
-                              onChange={(e) =>
-                                handleUpdateItem(
-                                  index,
-                                  'quantity',
-                                  Number(e.target.value)
-                                )
-                              }
-                              className="w-20"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              type="number"
-                              min="0"
-                              step="0.01"
-                              value={item.price}
-                              onChange={(e) =>
-                                handleUpdateItem(
-                                  index,
-                                  'price',
-                                  Number(e.target.value)
-                                )
-                              }
-                              className="w-24"
-                            />
+                          <TableCell className="font-medium">
+                            {item.quantity}
                           </TableCell>
                           <TableCell className="font-medium">
-                            S/ {(item.quantity * item.price).toFixed(2)}
+                            S/ {item.price.toFixed(2)}
                           </TableCell>
+                          <TableCell className="text-red-600">
+                            {item.discount
+                              ? `S/ ${item.discount.toFixed(2)}`
+                              : '-'}
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            S/{' '}
+                            {(
+                              item.quantity * item.price -
+                              (item.discount || 0)
+                            ).toFixed(2)}
+                          </TableCell>
+                          {purchaseItems.some((item) => item.bar_code) && (
+                            <TableCell className="text-xs text-gray-500">
+                              {item.bar_code ? (
+                                <span className="bg-gray-100 px-2 py-1 rounded">
+                                  {item.bar_code}
+                                </span>
+                              ) : (
+                                '-'
+                              )}
+                            </TableCell>
+                          )}
                           <TableCell>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleRemoveItem(index)}
-                            >
-                              <Trash2 className="h-4 w-4 text-red-500" />
-                            </Button>
+                            <div className="flex gap-1">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEditItem(item)}
+                              >
+                                <Edit2 className="h-4 w-4 text-blue-500" />
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleRemoveItem(index)}
+                              >
+                                <Trash2 className="h-4 w-4 text-red-500" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -503,7 +773,7 @@ export const NewPurchasePage = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-base font-medium">
-                          Descuento
+                          Descuento General
                         </FormLabel>
                         <FormControl>
                           <Input
@@ -518,7 +788,8 @@ export const NewPurchasePage = () => {
                           />
                         </FormControl>
                         <FormDescription>
-                          Descuento en soles (opcional)
+                          Descuento general en soles (adicional a descuentos por
+                          producto)
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -556,14 +827,14 @@ export const NewPurchasePage = () => {
 
                 <div className="bg-gray-50 p-6 rounded-lg space-y-3">
                   <div className="flex justify-between">
-                    <span>Subtotal:</span>
+                    <span>Subtotal (con descuentos por producto):</span>
                     <span className="font-medium">
                       S/ {form.watch('subtotal').toFixed(2)}
                     </span>
                   </div>
                   {(form.watch('discount') ?? 0) > 0 && (
                     <div className="flex justify-between text-red-600">
-                      <span>Descuento:</span>
+                      <span>Descuento general:</span>
                       <span>
                         -S/ {(form.watch('discount') ?? 0).toFixed(2)}
                       </span>
@@ -621,6 +892,14 @@ export const NewPurchasePage = () => {
           onOpenChange={setProductModalOpen}
           onSelectProduct={handleAddProduct}
           selectedProductIds={selectedProductIds}
+        />
+
+        {/* Modal de edición de productos */}
+        <EditItemDialog
+          item={editingItem}
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          onSave={handleSaveEditedItem}
         />
 
         {/* Dialogo de confirmación */}
