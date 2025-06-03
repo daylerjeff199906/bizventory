@@ -25,6 +25,7 @@ import {
   SidebarHeader,
   SidebarRail
 } from '@/components/ui/sidebar'
+import { APP_URLS } from '@/config/app-urls'
 
 const navMain = [
   // {
@@ -42,9 +43,8 @@ const navMain = [
     url: '#',
     icon: PackageCheck,
     items: [
-      { title: 'Catálogo de Productos', url: '/products' },
+      { title: 'Lista de productos', url: APP_URLS.PRODUCTS.LIST },
       { title: 'Categorías', url: '/products/categories' },
-      { title: 'Códigos de Barras / QR', url: '/products/codes' },
       { title: 'Stock Mínimo', url: '/products/min-stock' }
     ]
   },
@@ -53,8 +53,8 @@ const navMain = [
     url: '#',
     icon: Warehouse,
     items: [
-      { title: 'Estado de Stock', url: '/inventory' },
-      { title: 'Historial de Movimientos', url: '/inventory/history' },
+      { title: 'Estado de Stock', url: APP_URLS.PRODUCTS.PRODUCTS_STOCK },
+      { title: 'Historial de Movimientos', url: APP_URLS.PURCHASES.INVENTORY },
       { title: 'Alertas de Stock', url: '/inventory/alerts' }
     ]
   },
@@ -63,8 +63,8 @@ const navMain = [
     url: '#',
     icon: FileDown,
     items: [
-      { title: 'Nueva Compra', url: '/purchases/new' },
-      { title: 'Lista de Compras', url: '/purchases' },
+      { title: 'Nueva Compra', url: APP_URLS.PURCHASES.CREATE },
+      { title: 'Lista de Compras', url: APP_URLS.PURCHASES.LIST },
       { title: 'Comprobantes (PDF)', url: '/purchases/receipts' }
     ]
   },
@@ -94,7 +94,7 @@ const navMain = [
     icon: Contact2,
     items: [
       { title: 'Clientes', url: '/clients' },
-      { title: 'Proveedores', url: '/suppliers' },
+      { title: 'Proveedores', url: APP_URLS.SUPPLIERS.LIST },
       { title: 'Relaciones', url: '/relationships' }
     ]
   }

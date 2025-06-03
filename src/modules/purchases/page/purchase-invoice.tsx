@@ -1,0 +1,434 @@
+'use client'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
+import { Download, Printer, Share2 } from 'lucide-react'
+import type { PurchaseItemList, PurchaseList } from '@/types'
+
+interface PurchaseInvoiceProps {
+  purchase: PurchaseList
+  items?: PurchaseItemList[]
+}
+
+export default function PurchaseInvoice({
+  purchase,
+  items
+}: PurchaseInvoiceProps) {
+  const formatDate = (date: Date | string | null | undefined) => {
+    if (!date) return 'No especificada'
+    return new Date(date).toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+  }
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('es-PE', {
+      style: 'currency',
+      currency: 'PEN'
+    }).format(amount)
+  }
+
+  const handlePrint = () => {
+    window.print()
+  }
+
+  const handleDownload = () => {
+    // Convert to PDF or trigger download
+    window.print()
+  }
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Orden de Compra ${purchase.code}`,
+          text: `Orden de compra de ${purchase.supplier?.name}`,
+          url: window.location.href
+        })
+      } catch (error) {
+        console.log('Error sharing:', error)
+      }
+    } else {
+      // Fallback: copy to clipboard
+      navigator.clipboard.writeText(window.location.href)
+    }
+  }
+
+  return (
+    <div className="min-h-screen  print:bg-white">
+      {/* Action Bar - Hidden on print */}
+      <div className="print:hidden sticky top-0 z-10 bg-white border-b border-gray-200 px-6 py-4">
+        <div className="w-full flex justify-between items-center">
+          <h1 className="text-lg font-semibold text-gray-900">
+            Orden de Compra #{purchase.code || 'Sin código'}
+          </h1>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={handlePrint}>
+              <Printer className="h-4 w-4 mr-2" />
+              Imprimir
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleShare}>
+              <Share2 className="h-4 w-4 mr-2" />
+              Compartir
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleDownload}>
+              <Download className="h-4 w-4 mr-2" />
+              Descargar
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Invoice Content */}
+      <div className="w-full py-6 print:p-0">
+        <div className="bg-white print:shadow-none shadow-sm border print:border-0 rounded-lg print:rounded-none">
+          <div className="p-8 print:p-6">
+            {/* Header */}
+            <div className="flex justify-between items-start mb-12">
+              <div>
+                <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                  Mi Empresa S.A.C.
+                </h2>
+                <div className="text-sm text-gray-600 space-y-1 leading-relaxed">
+                  <p>RUC: 20123456789</p>
+                  <p>Av. Principal 123, Lima, Perú</p>
+                  <p>Teléfono: +51 1 234-5678</p>
+                  <p>Email: contacto@miempresa.com</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="bg-gray-900 text-white px-6 py-4 rounded-lg">
+                  <h3 className="text-xl font-bold mb-2">ORDEN DE COMPRA</h3>
+                  <p className="text-gray-200 text-lg">
+                    #{purchase.code || 'Sin código'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Information Grid - Responsive with grid-cols-2 on desktop, grid-cols-1 on mobile */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              {/* Supplier Information */}
+              <div>
+                <div className=" pb-2 mb-2">
+                  <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
+                    Información del Proveedor
+                  </h4>
+                </div>
+                <div className="p-4 border border-gray-200 rounded-md">
+                  {purchase.supplier ? (
+                    <div className="space-y-3">
+                      <div>
+                        <p className="font-semibold text-gray-900 text-lg">
+                          {purchase.supplier.name}
+                        </p>
+                      </div>
+                      <div className="grid grid-cols-1 gap-2 text-sm">
+                        <div className="flex">
+                          <span className="text-gray-500 w-20">Contacto:</span>
+                          <span className="text-gray-900">
+                            {purchase.supplier.contact}
+                          </span>
+                        </div>
+                        <div className="flex">
+                          <span className="text-gray-500 w-20">Email:</span>
+                          <span className="text-gray-900">
+                            {purchase.supplier.email}
+                          </span>
+                        </div>
+                        <div className="flex">
+                          <span className="text-gray-500 w-20">Teléfono:</span>
+                          <span className="text-gray-900">
+                            {purchase.supplier.phone}
+                          </span>
+                        </div>
+                        <div className="flex">
+                          <span className="text-gray-500 w-20">Dirección:</span>
+                          <span className="text-gray-900">
+                            {purchase.supplier.address}
+                          </span>
+                        </div>
+                        <div className="flex">
+                          <span className="text-gray-500 w-20">Documento:</span>
+                          <span className="text-gray-900">
+                            {purchase.supplier.document_type}:{' '}
+                            {purchase.supplier.document_number}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-gray-500">Proveedor no especificado</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Purchase Details */}
+              <div>
+                <div className="pb-2 mb-2">
+                  <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
+                    Detalles de la Compra
+                  </h4>
+                </div>
+                <div className="p-4 border border-gray-200 rounded-md">
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Fecha de compra:</span>
+                      <span className="font-medium text-gray-900">
+                        {formatDate(purchase.date)}
+                      </span>
+                    </div>
+                    {purchase.guide_number && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Guía de remisión:</span>
+                        <span className="font-medium text-gray-900">
+                          {purchase.guide_number}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Fecha de registro:</span>
+                      <span className="font-medium text-gray-900">
+                        {formatDate(purchase.created_at)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">
+                        Última actualización:
+                      </span>
+                      <span className="font-medium text-gray-900">
+                        {formatDate(purchase.updated_at)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Moneda:</span>
+                      <span className="font-medium text-gray-900">
+                        {purchase.supplier?.currency || 'PEN'} -{' '}
+                        {purchase.supplier?.currency === 'USD'
+                          ? 'Dólares'
+                          : 'Soles'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Products Table - Only table headers have gray background */}
+            <div className="mb-12">
+              <div className="border-b border-gray-200 pb-2 mb-4">
+                <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
+                  Productos
+                </h4>
+              </div>
+              <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className="text-left py-4 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">
+                          Código
+                        </th>
+                        <th className="text-left py-4 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">
+                          Producto
+                        </th>
+                        <th className="text-center py-4 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">
+                          Unidad
+                        </th>
+                        <th className="text-center py-4 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">
+                          Cantidad
+                        </th>
+                        <th className="text-right py-4 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">
+                          Descuento
+                        </th>
+                        <th className="text-right py-4 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">
+                          Precio Unit.
+                        </th>
+                        <th className="text-right py-4 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">
+                          Subtotal
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-100">
+                      {items && items.length > 0 ? (
+                        items.map((item: PurchaseItemList, index) => (
+                          <tr key={index} className="hover:bg-gray-50">
+                            <td className="py-4 px-4">
+                              <Badge
+                                variant="secondary"
+                                className="text-xs font-mono"
+                              >
+                                {item?.code || 'N/A'}
+                              </Badge>
+                            </td>
+                            <td className="py-4 px-4">
+                              <div>
+                                <p className="font-medium text-gray-900 text-sm">
+                                  {item.product?.description ||
+                                    `Producto #${index + 1}`}
+                                </p>
+                                {item.product && (
+                                  <p className="text-xs text-gray-500">
+                                    {item.product.brand?.name || 'Sin marca'}
+                                  </p>
+                                )}
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 text-center">
+                              <span className="text-sm text-gray-600">
+                                {item.product?.unit || 'N/E'}
+                              </span>
+                            </td>
+                            <td className="py-4 px-4 text-center font-medium text-gray-900">
+                              {item.quantity}
+                            </td>
+
+                            <td className="py-4 px-4 text-right font-medium text-gray-900">
+                              {formatCurrency(item.price)}
+                            </td>
+                            <td
+                              className={`py-4 px-4 text-right font-medium ${
+                                item.discount ? 'text-red-600' : 'text-gray-900'
+                              }`}
+                            >
+                              {item.discount ? (
+                                <>- {formatCurrency(item.discount)}</>
+                              ) : (
+                                '0.00'
+                              )}
+                            </td>
+                            <td className="py-4 px-4 text-right font-semibold text-gray-900">
+                              {formatCurrency(item.quantity * item.price)}
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td
+                            colSpan={5}
+                            className="py-8 text-center text-gray-500"
+                          >
+                            No hay productos en esta compra
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            {/* Totals */}
+            <div className="flex justify-end mb-12">
+              <div className="w-full max-w-sm">
+                <div className="border border-gray-200 rounded-lg p-6">
+                  <div className="space-y-4">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Subtotal:</span>
+                      <span className="font-medium text-gray-900">
+                        {formatCurrency(purchase.subtotal)}
+                      </span>
+                    </div>
+
+                    {typeof purchase.discount === 'number' &&
+                      purchase.discount > 0 && (
+                        <div className="flex justify-between text-sm text-red-600">
+                          <span>Descuento:</span>
+                          <span>-{formatCurrency(purchase.discount)}</span>
+                        </div>
+                      )}
+
+                    {typeof purchase.tax_amount === 'number' &&
+                      purchase.tax_amount > 0 &&
+                      typeof purchase.tax_rate === 'number' &&
+                      purchase.tax_rate > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">
+                            IGV ({purchase.tax_rate}%):
+                          </span>
+                          <span className="font-medium text-gray-900">
+                            {formatCurrency(purchase.tax_amount)}
+                          </span>
+                        </div>
+                      )}
+
+                    <Separator />
+
+                    <div className="flex justify-between text-xl font-bold">
+                      <span className="text-gray-900">Total:</span>
+                      <span className="text-gray-900">
+                        {formatCurrency(purchase.total_amount)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Observations */}
+            {purchase.supplier?.notes && (
+              <div className="mb-8">
+                <div className="border-b border-gray-200 pb-2 mb-4">
+                  <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
+                    Observaciones
+                  </h4>
+                </div>
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <p className="text-sm text-gray-700 leading-relaxed">
+                    {purchase.supplier.notes}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Terms and Footer */}
+            {/* <div className="border-t border-gray-200 pt-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 text-xs text-gray-600">
+                <div>
+                  <h5 className="font-semibold text-gray-800 mb-3 uppercase tracking-wide">
+                    Términos y condiciones:
+                  </h5>
+                  <ul className="space-y-2 leading-relaxed">
+                    <li>
+                      • Los productos deben ser entregados en las condiciones
+                      acordadas
+                    </li>
+                    <li>
+                      • Cualquier discrepancia debe ser reportada dentro de 24
+                      horas
+                    </li>
+                    <li>
+                      • El pago se realizará según los términos acordados con el
+                      proveedor
+                    </li>
+                    <li>
+                      • Esta orden de compra está sujeta a los términos
+                      comerciales establecidos
+                    </li>
+                  </ul>
+                </div>
+                <div className="text-right">
+                  <p className="font-semibold text-gray-800 mb-2">
+                    Documento generado el:
+                  </p>
+                  <p className="text-gray-600">
+                    {new Date().toLocaleDateString('es-ES', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
+                </div>
+              </div>
+            </div> */}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
