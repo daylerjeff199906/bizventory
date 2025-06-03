@@ -57,7 +57,7 @@ export async function getInventoryMovements({
 
   let query = supabase
     .from('inventory_movements')
-    .select('*, product:products(name, code, description)')
+    .select('*, product:products(name, code, description,  brand:brands(*))')
     .range(from, to)
     .order(sortColumn, { ascending: sortDirection === 'asc' })
 
@@ -105,7 +105,7 @@ export async function getInventoryMovements({
 export async function getProductTotals(): Promise<ResApi<InventoryStock>> {
   const supabase = await getSupabase()
 
-  const { data, error } = await supabase.rpc('get_product_totals').select('*')
+  const { data, error } = await supabase.rpc('get_product_stock').select('*')
 
   if (error) {
     return {

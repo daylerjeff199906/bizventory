@@ -16,7 +16,7 @@ export default function InventoryStockTable({ inventoryStock }: Props) {
         color: 'bg-red-100 text-red-800',
         icon: <AlertTriangle className="h-3 w-3" />
       }
-    if (quantity <= 10)
+    if (quantity <= 5)
       return {
         label: 'Stock Bajo',
         color: 'bg-yellow-100 text-yellow-800',
@@ -53,20 +53,22 @@ export default function InventoryStockTable({ inventoryStock }: Props) {
         </thead>
         <tbody className="bg-white divide-y divide-gray-100">
           {inventoryStock.map((item, index) => {
-            const status = getStockStatus(item.total_quantity)
+            const status = getStockStatus(item.current_stock)
             const textColor =
-              item.total_quantity === 0
+              item.current_stock === 0
                 ? 'text-red-600'
-                : item.total_quantity <= 10
+                : item.current_stock <= 10
                 ? 'text-yellow-600'
-                : item.total_quantity >= 50
+                : item.current_stock >= 50
                 ? 'text-blue-600'
                 : 'text-green-600'
 
             return (
               <tr key={item.product_id} className="hover:bg-gray-50">
                 <td className="p-3 text-sm text-gray-500">{index + 1}</td>
-                <td className="p-3 text-sm font-medium">{item.product_name}</td>
+                <td className="p-3 text-sm font-medium">
+                  {item.brand_name} {item.product_description}
+                </td>
                 <td className="p-3">
                   <Badge variant="outline" className="text-xs font-mono">
                     {item.product_code}
@@ -75,7 +77,7 @@ export default function InventoryStockTable({ inventoryStock }: Props) {
                 <td
                   className={`p-3 text-lg font-semibold text-center ${textColor}`}
                 >
-                  {item.total_quantity}
+                  {item.current_stock}
                 </td>
                 <td className="p-3 text-center">
                   <Badge className={status.color}>

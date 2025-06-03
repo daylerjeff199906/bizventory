@@ -97,9 +97,12 @@ export const InventoryMovementsTable = (props: IProps) => {
                       </span>
                     )}
                   </td>
-                  <td className="p-3 text-sm">{movement.product.code}</td>
+                  <td className="p-3 text-sm">
+                    {movement.product.code || '-'}
+                  </td>
                   <td className="p-3">
                     <div className="text-sm">
+                      {movement.product.brand?.name}{' '}
                       {movement.product.description}
                     </div>
                   </td>
