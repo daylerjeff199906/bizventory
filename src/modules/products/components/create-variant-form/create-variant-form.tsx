@@ -45,7 +45,7 @@ import {
 } from '@/modules/products'
 import { generateVariantCode } from './generate-variant-code'
 import { APP_URLS } from '@/config/app-urls'
-import { createProductVariants } from '@/apis/app/product-variants'
+import { createProductVariants } from '@/apis/app/products.variants'
 import { ToastCustom } from '@/components/app/toast-custom'
 import { toast } from 'react-toastify'
 
@@ -173,11 +173,13 @@ export const CreateVariantForm = ({
         variants: variantsData
       })
 
-      if (!response) {
+      if (response?.error) {
         toast.error(
           <ToastCustom
             title="Error al crear variantes"
-            message="No se pudieron crear las variantes del producto. Por favor, inténtalo de nuevo."
+            message={`${
+              response.error || 'Ocurrió un error al crear las variantes.'
+            }`}
           />
         )
         return
