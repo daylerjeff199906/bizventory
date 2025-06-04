@@ -4,10 +4,13 @@ export const APP_URLS = {
   PRODUCTS: {
     LIST: `${URL_PREFIX}/products`,
     CREATE: `${URL_PREFIX}/products/create`,
+    CREATE_VARIANT: (id: string) =>
+      `${URL_PREFIX}/products/${id}/create-variant`,
     MULTIMEDIA: (id: string) => `${URL_PREFIX}/products/${id}/media`,
     EDIT: (id: string) => `${URL_PREFIX}/products/${id}/edit`,
     VIEW: (id: string) => `${URL_PREFIX}/products/${id}`,
-    PRODUCTS_STOCK: `${URL_PREFIX}/products-stock`
+    PRODUCTS_STOCK: `${URL_PREFIX}/products-stock`,
+    DETAIL: (id: string) => `${URL_PREFIX}/products/${id}/details`
   },
   SUPPLIERS: {
     LIST: `${URL_PREFIX}/suppliers`,

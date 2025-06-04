@@ -119,7 +119,7 @@ export const NewProductForm = () => {
             message="El producto se ha creado correctamente."
           />
         )
-        router.push(APP_URLS.PRODUCTS.LIST)
+        router.push(APP_URLS.PRODUCTS.CREATE_VARIANT(response.id))
       }
     } catch (error) {
       console.error('Error al crear el producto:', error)
