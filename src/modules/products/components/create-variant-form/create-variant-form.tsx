@@ -48,11 +48,14 @@ import { APP_URLS } from '@/config/app-urls'
 import { createProductVariants } from '@/apis/app/products.variants'
 import { ToastCustom } from '@/components/app/toast-custom'
 import { toast } from 'react-toastify'
+import { ProductWithVariants } from '@/types'
+import { VariantsPreview } from './VariantsPreview'
 
 interface CreateVariantFormProps {
   productId: string
   productName: string
   productCode: string
+  productWithVariants?: ProductWithVariants
 }
 
 const createVariantsFormSchema = z.object({
@@ -66,7 +69,8 @@ type CreateVariantsFormValues = {
 export const CreateVariantForm = ({
   productId,
   productName,
-  productCode
+  productCode,
+  productWithVariants
 }: CreateVariantFormProps) => {
   const [isLoading, setIsLoading] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(false)
@@ -80,7 +84,7 @@ export const CreateVariantForm = ({
       variants: [
         {
           name: '',
-          code: generateVariantCode(productCode, 1),
+          code: generateVariantCode(productCode),
           attributes: []
         }
       ]
@@ -104,8 +108,8 @@ export const CreateVariantForm = ({
     append({
       name: '',
       code: enableManualCode
-        ? generateVariantCode(productCode, fields.length + 1)
-        : generateVariantCode(productCode, fields.length + 1),
+        ? generateVariantCode(productCode)
+        : generateVariantCode(productCode),
       attributes: createCommonAttributesForVariant()
     })
   }
@@ -190,7 +194,16 @@ export const CreateVariantForm = ({
             message="Las variantes del producto se han creado correctamente."
           />
         )
-        router.push(APP_URLS.PRODUCTS.DETAIL(productId))
+        form.reset({
+          variants: [
+            {
+              name: '',
+              code: generateVariantCode(productCode),
+              attributes: createCommonAttributesForVariant()
+            }
+          ]
+        })
+        router.push(APP_URLS.PRODUCTS.CREATE_VARIANT(productId))
       }
     } catch (error) {
       console.error('Error al crear las variantes:', error)
@@ -207,7 +220,7 @@ export const CreateVariantForm = ({
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="w-full max-w-6xl mx-auto p-6">
+      <div className="w-full max-w-5xl mx-auto p-6">
         <div className="flex items-center mb-6">
           <Link href={APP_URLS.PRODUCTS.DETAIL(productId)} className="mr-4">
             <Button variant="ghost" size="icon">
@@ -262,16 +275,16 @@ export const CreateVariantForm = ({
                 setEnableManualCode(checked as boolean)
                 if (checked) {
                   // Si se habilita la edición manual, generar un nuevo código
-                  const newVariants = form.getValues().variants.map((v, i) => ({
+                  const newVariants = form.getValues().variants.map((v) => ({
                     ...v,
-                    code: generateVariantCode(productCode, i + 1)
+                    code: generateVariantCode(productCode)
                   }))
                   form.setValue('variants', newVariants)
                 } else {
                   // Si se deshabilita, regenerar códigos automáticos
-                  const newVariants = form.getValues().variants.map((v, i) => ({
+                  const newVariants = form.getValues().variants.map((v) => ({
                     ...v,
-                    code: generateVariantCode(productCode, i + 1)
+                    code: generateVariantCode(productCode)
                   }))
                   form.setValue('variants', newVariants)
                 }
@@ -284,6 +297,14 @@ export const CreateVariantForm = ({
           </div>
         </div>
 
+        {/* Previsualización de variantes */}
+        {productWithVariants && productWithVariants.variants.length > 0 && (
+          <VariantsPreview
+            variants={productWithVariants?.variants || []}
+            productName={productName}
+            productCode={productCode}
+          />
+        )}
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}

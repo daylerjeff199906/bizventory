@@ -2,6 +2,7 @@
 // Servicio de funciones CRUD para la tabla 'products' usando Supabase en Server Components
 'use server'
 import { APP_URLS } from '@/config/app-urls'
+import { ProductWithVariants } from '@/types'
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 // import { Product, ProductDetails } from '@/types'
@@ -89,5 +90,39 @@ export const createProductVariants = async ({
       data: null,
       error: errorMessage
     }
+  }
+}
+
+export const getProductWithVariants = async (
+  productId: string
+): Promise<ProductWithVariants> => {
+  const supabase = await getSupabase()
+
+  const { data: product, error: productError } = await supabase
+    .from('products')
+    .select('*')
+    .eq('id', productId)
+    .single()
+
+  if (productError) throw productError
+
+  const { data: variants, error: variantsError } = await supabase
+    .from('product_variants')
+    .select(
+      `
+      *,
+      attributes:product_variant_attributes(
+        attribute_type,
+        attribute_value
+      )
+    `
+    )
+    .eq('product_id', productId)
+
+  if (variantsError) throw variantsError
+
+  return {
+    ...product,
+    variants
   }
 }
