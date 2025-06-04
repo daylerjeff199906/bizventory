@@ -398,11 +398,25 @@ export const CreateVariantForm = ({
 
                 {/* Botones de acción */}
                 <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-                  <Link href={APP_URLS.PRODUCTS.DETAIL(productId)}>
-                    <Button type="button" variant="outline" size="sm">
-                      Cancelar
-                    </Button>
-                  </Link>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setVariantCreated(false)
+                      form.reset({
+                        variants: [
+                          {
+                            name: '',
+                            code: generateVariantCode(productCode),
+                            attributes: createCommonAttributesForVariant()
+                          }
+                        ]
+                      })
+                    }}
+                  >
+                    Cancelar creación
+                  </Button>
                   <Button type="submit" disabled={isLoading} size="sm">
                     {isLoading ? (
                       <>

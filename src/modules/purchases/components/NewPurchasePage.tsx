@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+// import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import { Save, Plus, Trash2, RefreshCw, Edit2 } from 'lucide-react'
 import Link from 'next/link'
@@ -46,6 +46,7 @@ import {
 import { useSuppliers } from '@/hooks/use-suppliers'
 import {
   PurchaseSchema,
+  // PurchaseSchema,
   type CreatePurchaseData,
   type PurchaseItem
 } from '../schemas'
@@ -66,6 +67,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
+import { zodResolver } from '@hookform/resolvers/zod'
 
 // Función para generar código de barras aleatorio
 const generateBarCode = (): string => {
@@ -342,7 +344,12 @@ export const NewPurchasePage = () => {
       tax_rate: 18, // IGV por defecto 18%
       tax_amount: 0,
       total_amount: 0,
-      items: []
+      items: [] as PurchaseItem[],
+      status: 'draft',
+      payment_status: 'pending',
+      notes: '',
+      inventory_updated: false,
+      reference_number: ''
     }
   })
 
@@ -491,7 +498,9 @@ export const NewPurchasePage = () => {
     }
   }
 
-  const selectedProductIds = purchaseItems.map((item) => item.product_id)
+  const selectedProductIds = purchaseItems
+    .map((item) => item.product_id)
+    .filter((id): id is string => typeof id === 'string')
 
   return (
     <div className="min-h-screen bg-white">
@@ -512,7 +521,7 @@ export const NewPurchasePage = () => {
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2  gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <FormField
                   control={form.control}
                   name="code"
@@ -632,6 +641,67 @@ export const NewPurchasePage = () => {
                       </FormControl>
                       <FormDescription>
                         Número de guía de remisión (O boleta de compras)
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base font-medium">
+                        Estado de la compra
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleccionar estado" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="draft">Borrador</SelectItem>
+                          <SelectItem value="pending">Pendiente</SelectItem>
+                          <SelectItem value="completed">Completada</SelectItem>
+                          <SelectItem value="cancelled">Cancelada</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Estado actual de la compra
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="payment_status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base font-medium">
+                        Estado del pago
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleccionar estado de pago" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="pending">Pendiente</SelectItem>
+                          <SelectItem value="partial">Parcial</SelectItem>
+                          <SelectItem value="paid">Pagado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Estado del pago de la compra
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -886,7 +956,6 @@ export const NewPurchasePage = () => {
           </form>
         </Form>
 
-        {/* Modal de selección de productos */}
         <ProductSelectorModal
           open={productModalOpen}
           onOpenChange={setProductModalOpen}
