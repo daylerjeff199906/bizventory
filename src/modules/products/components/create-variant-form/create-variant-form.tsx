@@ -72,10 +72,15 @@ export const CreateVariantForm = ({
   productCode,
   productWithVariants
 }: CreateVariantFormProps) => {
+  const emptyVariant = productWithVariants
+    ? productWithVariants.variants.length === 0
+    : true
+
   const [isLoading, setIsLoading] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [commonAttributes, setCommonAttributes] = useState<string[]>([])
   const [enableManualCode, setEnableManualCode] = useState(false)
+  const [variantCreated, setVariantCreated] = useState(emptyVariant)
   const router = useRouter()
 
   const form = useForm<CreateVariantsFormValues>({
@@ -221,151 +226,201 @@ export const CreateVariantForm = ({
   return (
     <div className="min-h-screen bg-white">
       <div className="w-full max-w-5xl mx-auto p-6">
-        <div className="flex items-center mb-6">
-          <Link href={APP_URLS.PRODUCTS.DETAIL(productId)} className="mr-4">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Crear variantes
-            </h1>
-            <p className="text-gray-600">
-              Producto: {productName} ({productCode})
-            </p>
-          </div>
-        </div>
-
-        {/* Configuración inicial */}
-        <div className="mb-6 p-3 bg-gray-50 rounded-lg">
-          <h3 className="text-sm font-semibold mb-3">Configuración inicial</h3>
-
-          {/* Atributos comunes */}
-          <div className="mb-3">
-            <label className="text-xs font-medium mb-2 block">
-              Atributos comunes para todas las variantes:
-            </label>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
-              {Object.entries(ATTRIBUTE_TYPES).map(([key, label]) => (
-                <div key={key} className="flex items-center space-x-1">
-                  <Checkbox
-                    id={key}
-                    checked={commonAttributes.includes(key)}
-                    onCheckedChange={(checked) =>
-                      handleCommonAttributeChange(key, checked as boolean)
-                    }
-                    className="h-3 w-3"
-                  />
-                  <label htmlFor={key} className="text-xs cursor-pointer">
-                    {label}
-                  </label>
-                </div>
-              ))}
+        <div className="mb-4 flex justify-between items-center">
+          <div className="flex items-center mb-6">
+            <Link href={APP_URLS.PRODUCTS.DETAIL(productId)} className="mr-4">
+              <Button variant="ghost" size="icon">
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                Crear variantes
+              </h1>
+              <p className="text-gray-600">
+                Producto: {productName} ({productCode})
+              </p>
             </div>
           </div>
-
-          {/* Configuración de código */}
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="manual-code"
-              checked={enableManualCode}
-              // onCheckedChange={setEnableManualCode}
-              onCheckedChange={(checked) => {
-                setEnableManualCode(checked as boolean)
-                if (checked) {
-                  // Si se habilita la edición manual, generar un nuevo código
-                  const newVariants = form.getValues().variants.map((v) => ({
-                    ...v,
-                    code: generateVariantCode(productCode)
-                  }))
-                  form.setValue('variants', newVariants)
-                } else {
-                  // Si se deshabilita, regenerar códigos automáticos
-                  const newVariants = form.getValues().variants.map((v) => ({
-                    ...v,
-                    code: generateVariantCode(productCode)
-                  }))
-                  form.setValue('variants', newVariants)
-                }
-              }}
-              className="h-3 w-3"
-            />
-            <label htmlFor="manual-code" className="text-xs cursor-pointer">
-              Permitir edición manual de códigos
-            </label>
-          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="mb-4"
+            onClick={() => {
+              if (variantCreated) {
+                setVariantCreated(false)
+                form.reset({
+                  variants: [
+                    {
+                      name: '',
+                      code: generateVariantCode(productCode),
+                      attributes: createCommonAttributesForVariant()
+                    }
+                  ]
+                })
+              } else {
+                setVariantCreated(true)
+                // Resetear el formulario para una nueva variante
+                form.reset({
+                  variants: [
+                    {
+                      name: '',
+                      code: generateVariantCode(productCode),
+                      attributes: createCommonAttributesForVariant()
+                    }
+                  ]
+                })
+              }
+            }}
+          >
+            {!variantCreated && <Plus className="h-3 w-3 mr-1" />}
+            {!variantCreated ? 'Agregar variante' : 'Cancelar creación'}
+          </Button>
         </div>
 
         {/* Previsualización de variantes */}
-        {productWithVariants && productWithVariants.variants.length > 0 && (
-          <VariantsPreview
-            variants={productWithVariants?.variants || []}
-            productName={productName}
-            productCode={productCode}
-          />
-        )}
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(handleSubmit)}
-            className="w-full space-y-4"
-          >
-            {fields.length > 0 && (
-              <div className="mb-2">
-                <h3 className="text-sm font-semibold text-gray-900 mb-2">
-                  Variantes del producto ({fields.length})
-                </h3>
-                <div className="space-y-2">
-                  {fields.map((field, index) => (
-                    <VariantCard
-                      key={field.id}
-                      index={index}
-                      form={form}
-                      onRemove={() => remove(index)}
-                      canRemove={fields.length > 1}
-                      commonAttributes={commonAttributes}
-                      enableManualCode={enableManualCode}
-                    />
+        {!variantCreated &&
+          productWithVariants &&
+          productWithVariants.variants.length > 0 && (
+            <VariantsPreview
+              variants={productWithVariants?.variants || []}
+              productName={productName}
+              productCode={productCode}
+            />
+          )}
+
+        {variantCreated && (
+          <>
+            {/* Configuración inicial */}
+            <div className="mb-6 p-3 bg-gray-50 rounded-lg">
+              <h3 className="text-sm font-semibold mb-3">
+                Configuración inicial
+              </h3>
+
+              {/* Atributos comunes */}
+              <div className="mb-3">
+                <label className="text-xs font-medium mb-2 block">
+                  Atributos comunes para todas las variantes:
+                </label>
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                  {Object.entries(ATTRIBUTE_TYPES).map(([key, label]) => (
+                    <div key={key} className="flex items-center space-x-1">
+                      <Checkbox
+                        id={key}
+                        checked={commonAttributes.includes(key)}
+                        onCheckedChange={(checked) =>
+                          handleCommonAttributeChange(key, checked as boolean)
+                        }
+                        className="h-3 w-3"
+                      />
+                      <label htmlFor={key} className="text-xs cursor-pointer">
+                        {label}
+                      </label>
+                    </div>
                   ))}
                 </div>
               </div>
-            )}
 
-            <div className="flex justify-center">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={addVariant}
-                className="h-8 text-xs"
+              {/* Configuración de código */}
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="manual-code"
+                  checked={enableManualCode}
+                  // onCheckedChange={setEnableManualCode}
+                  onCheckedChange={(checked) => {
+                    setEnableManualCode(checked as boolean)
+                    if (checked) {
+                      // Si se habilita la edición manual, generar un nuevo código
+                      const newVariants = form
+                        .getValues()
+                        .variants.map((v) => ({
+                          ...v,
+                          code: generateVariantCode(productCode)
+                        }))
+                      form.setValue('variants', newVariants)
+                    } else {
+                      // Si se deshabilita, regenerar códigos automáticos
+                      const newVariants = form
+                        .getValues()
+                        .variants.map((v) => ({
+                          ...v,
+                          code: generateVariantCode(productCode)
+                        }))
+                      form.setValue('variants', newVariants)
+                    }
+                  }}
+                  className="h-3 w-3"
+                />
+                <label htmlFor="manual-code" className="text-xs cursor-pointer">
+                  Permitir edición manual de códigos
+                </label>
+              </div>
+            </div>
+
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(handleSubmit)}
+                className="w-full space-y-4"
               >
-                <Plus className="h-3 w-3 mr-1" />
-                Agregar otra variante
-              </Button>
-            </div>
-
-            {/* Botones de acción */}
-            <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-              <Link href={APP_URLS.PRODUCTS.DETAIL(productId)}>
-                <Button type="button" variant="outline" size="sm">
-                  Cancelar
-                </Button>
-              </Link>
-              <Button type="submit" disabled={isLoading} size="sm">
-                {isLoading ? (
-                  <>
-                    <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
-                    Guardando...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-3 w-3 mr-1" />
-                    Guardar variantes
-                  </>
+                {fields.length > 0 && (
+                  <div className="mb-2">
+                    <h3 className="text-sm font-semibold text-gray-900 mb-2">
+                      Variantes del producto ({fields.length})
+                    </h3>
+                    <div className="space-y-2">
+                      {fields.map((field, index) => (
+                        <VariantCard
+                          key={field.id}
+                          index={index}
+                          form={form}
+                          onRemove={() => remove(index)}
+                          canRemove={fields.length > 1}
+                          commonAttributes={commonAttributes}
+                          enableManualCode={enableManualCode}
+                        />
+                      ))}
+                    </div>
+                  </div>
                 )}
-              </Button>
-            </div>
-          </form>
-        </Form>
+
+                <div className="flex justify-center">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={addVariant}
+                    className="h-8 text-xs"
+                  >
+                    <Plus className="h-3 w-3 mr-1" />
+                    Agregar otra variante
+                  </Button>
+                </div>
+
+                {/* Botones de acción */}
+                <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                  <Link href={APP_URLS.PRODUCTS.DETAIL(productId)}>
+                    <Button type="button" variant="outline" size="sm">
+                      Cancelar
+                    </Button>
+                  </Link>
+                  <Button type="submit" disabled={isLoading} size="sm">
+                    {isLoading ? (
+                      <>
+                        <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                        Guardando...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-3 w-3 mr-1" />
+                        Guardar variantes
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </>
+        )}
       </div>
 
       {/* Diálogo de confirmación */}
