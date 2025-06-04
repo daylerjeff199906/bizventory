@@ -20,35 +20,29 @@ export const PurchaseItemSchema = z
     path: ['product_id']
   })
 
-export const PurchaseSchema = z.object({
-  id: z.string().uuid().optional(),
-  code: z.string().optional(),
-  date: z
-    .string()
-    .refine((value) => !isNaN(Date.parse(value)), 'Fecha inválida'),
-  supplier_id: z.string().uuid('Debe seleccionar un proveedor'),
+// Esquema para el formulario (permite items vacíos)
+export const PurchaseFormSchema = z.object({
+  date: z.string(),
+  supplier_id: z.string(),
   guide_number: z.string().optional(),
   reference_number: z.string().optional(),
-  subtotal: z.number().min(0).max(99999999.99),
-  discount: z.number().min(0).max(99999999.99).optional(),
-  tax_rate: z.number().min(0).max(100).optional().default(18), // IGV en porcentaje
-  tax_amount: z.number().min(0).max(99999999.99).optional().default(0),
-  total_amount: z.number().min(0).max(99999999.99),
-  status: z
-    .enum(['draft', 'pending', 'completed', 'cancelled'])
-    .optional()
-    .default('draft'),
-  payment_status: z
-    .enum(['pending', 'partial', 'paid'])
-    .optional()
-    .default('pending'),
+  code: z.string().optional(),
+  subtotal: z.number(),
+  discount: z.number(), // NO .optional()
+  tax_rate: z.number(),
+  tax_amount: z.number(),
+  total_amount: z.number(),
+  status: z.enum(['draft', 'pending', 'completed', 'cancelled']),
+  payment_status: z.enum(['pending', 'paid', 'partially_paid', 'cancelled']),
   notes: z.string().optional(),
-  inventory_updated: z.boolean().optional().default(false),
-  items: z
-    .array(PurchaseItemSchema)
-    .min(1, 'Debe agregar al menos un producto'),
-  created_at: z.string().optional(),
+  inventory_updated: z.boolean(),
+  items: z.array(z.any()),
   updated_at: z.string().optional()
+})
+
+// Esquema para validación final (requiere al menos 1 item)
+export const PurchaseSchema = PurchaseFormSchema.extend({
+  items: z.array(PurchaseItemSchema).min(1, 'Debe agregar al menos un producto')
 })
 
 export type PurchaseItem = z.infer<typeof PurchaseItemSchema> & {
@@ -74,3 +68,4 @@ export type Purchase = z.infer<typeof PurchaseSchema> & {
 }
 
 export type CreatePurchaseData = z.infer<typeof PurchaseSchema>
+export type PurchaseFormData = z.infer<typeof PurchaseFormSchema>

@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
-// import { zodResolver } from '@hookform/resolvers/zod'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import { Save, Plus, Trash2, RefreshCw, Edit2 } from 'lucide-react'
 import Link from 'next/link'
@@ -43,20 +43,6 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
-import { useSuppliers } from '@/hooks/use-suppliers'
-import {
-  PurchaseSchema,
-  // PurchaseSchema,
-  type CreatePurchaseData,
-  type PurchaseItem
-} from '../schemas'
-import { generatePurchaseCode } from './generate-code'
-import type { ProductDetails } from '@/types'
-import { ProductSelectorModal } from './product-selector-modal'
-import { toast } from 'react-toastify'
-import { ToastCustom } from '@/components/app/toast-custom'
-import { APP_URLS } from '@/config/app-urls'
-import { createPurchaseWithItems } from '@/apis/app'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -67,7 +53,22 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
-import { zodResolver } from '@hookform/resolvers/zod'
+
+import { useSuppliers } from '@/hooks/use-suppliers'
+import {
+  PurchaseFormSchema,
+  PurchaseSchema,
+  type PurchaseFormData,
+  type CreatePurchaseData,
+  type PurchaseItem
+} from '@/modules/purchases/schemas'
+import { generatePurchaseCode } from './generate-code'
+import type { ProductDetails } from '@/types'
+import { ProductSelectorModal } from './product-selector-modal'
+import { toast } from 'react-toastify'
+import { ToastCustom } from '@/components/app/toast-custom'
+import { APP_URLS } from '@/config/app-urls'
+import { createPurchaseWithItems } from '@/apis/app'
 
 // Función para generar código de barras aleatorio
 const generateBarCode = (): string => {
@@ -325,31 +326,30 @@ export const NewPurchasePage = () => {
   const [confirmOpen, setConfirmOpen] = useState(false)
 
   const router = useRouter()
-
   const { suppliers } = useSuppliers()
 
   const filteredSuppliers = suppliers.filter((supplier) =>
     supplier.name.toLowerCase().includes(searchSupplier.toLowerCase())
   )
 
-  const form = useForm<CreatePurchaseData>({
-    resolver: zodResolver(PurchaseSchema),
+  const form = useForm<PurchaseFormData>({
+    resolver: zodResolver(PurchaseFormSchema),
     defaultValues: {
       date: new Date().toISOString().split('T')[0],
       supplier_id: '',
       guide_number: '',
+      reference_number: '',
       code: '',
       subtotal: 0,
       discount: 0,
-      tax_rate: 18, // IGV por defecto 18%
+      tax_rate: 18,
       tax_amount: 0,
       total_amount: 0,
-      items: [] as PurchaseItem[],
       status: 'draft',
       payment_status: 'pending',
       notes: '',
       inventory_updated: false,
-      reference_number: ''
+      items: []
     }
   })
 
@@ -405,7 +405,7 @@ export const NewPurchasePage = () => {
       price: 0,
       discount: 0,
       purchase_id: null,
-      code: generateProductCode(), // Generar código único para el producto
+      code: generateProductCode(),
       product: {
         id: product.id,
         name: product.name,
@@ -445,6 +445,22 @@ export const NewPurchasePage = () => {
       )
       return
     }
+
+    // Validar con el esquema final que requiere items
+    const formData = form.getValues()
+    const dataWithItems = { ...formData, items: purchaseItems }
+
+    const validation = PurchaseSchema.safeParse(dataWithItems)
+    if (!validation.success) {
+      toast.error(
+        <ToastCustom
+          title="Error de validación"
+          message="Por favor revisa los datos del formulario."
+        />
+      )
+      return
+    }
+
     setConfirmOpen(true)
   }
 
@@ -454,14 +470,17 @@ export const NewPurchasePage = () => {
     setConfirmOpen(false)
 
     try {
+      const purchaseData: CreatePurchaseData = {
+        ...data,
+        items: purchaseItems,
+        date: new Date(data.date).toISOString(),
+        code: data.code || generatePurchaseCode(),
+        subtotal: form.getValues('subtotal')
+      }
+
       const response = await createPurchaseWithItems({
         itemsData: purchaseItems,
-        purchaseData: {
-          ...data,
-          date: new Date(data.date).toISOString(),
-          code: data.code || generatePurchaseCode(),
-          subtotal: form.getValues('subtotal')
-        }
+        purchaseData
       })
 
       if (response.status === 'error') {
@@ -548,7 +567,8 @@ export const NewPurchasePage = () => {
                       <FormMessage />
                     </FormItem>
                   )}
-                />{' '}
+                />
+
                 <FormField
                   control={form.control}
                   name="supplier_id"
@@ -585,7 +605,7 @@ export const NewPurchasePage = () => {
                           {filteredSuppliers.length > 0 ? (
                             filteredSuppliers.map((supplier) => (
                               <SelectItem key={supplier.id} value={supplier.id}>
-                                {supplier.name} ( {supplier.document_type}{' '}
+                                {supplier.name} ({supplier.document_type}{' '}
                                 {supplier.document_number ||
                                   'Sin # de documento'}
                                 )
@@ -605,6 +625,7 @@ export const NewPurchasePage = () => {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
                   name="date"
@@ -616,7 +637,7 @@ export const NewPurchasePage = () => {
                       <FormControl>
                         <Input
                           type="date"
-                          //   value={field.value.toISOString().split('T')[0]}
+                          value={field.value}
                           onChange={(e) => field.onChange(e.target.value)}
                           max={new Date().toISOString().split('T')[0]}
                         />
@@ -628,6 +649,7 @@ export const NewPurchasePage = () => {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
                   name="guide_number"
@@ -646,6 +668,7 @@ export const NewPurchasePage = () => {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
                   name="status"
@@ -659,7 +682,7 @@ export const NewPurchasePage = () => {
                         value={field.value}
                       >
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="w-full">
                             <SelectValue placeholder="Seleccionar estado" />
                           </SelectTrigger>
                         </FormControl>
@@ -677,6 +700,7 @@ export const NewPurchasePage = () => {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
                   name="payment_status"
@@ -690,7 +714,7 @@ export const NewPurchasePage = () => {
                         value={field.value}
                       >
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="w-full">
                             <SelectValue placeholder="Seleccionar estado de pago" />
                           </SelectTrigger>
                         </FormControl>
@@ -734,6 +758,7 @@ export const NewPurchasePage = () => {
                       <TableRow className="bg-gray-50">
                         <TableHead>Producto</TableHead>
                         <TableHead>Código</TableHead>
+                        <TableHead>Marca</TableHead>
                         <TableHead>Unidad</TableHead>
                         <TableHead>Cantidad</TableHead>
                         <TableHead>Precio Unit.</TableHead>
@@ -749,7 +774,7 @@ export const NewPurchasePage = () => {
                       {purchaseItems.map((item, index) => (
                         <TableRow key={index}>
                           <TableCell className="font-medium">
-                            {item.product?.brand} {item.product?.description}
+                            {item.product?.name || 'Sin nombre'}
                           </TableCell>
                           <TableCell>{item.code}</TableCell>
                           <TableCell>
@@ -851,7 +876,7 @@ export const NewPurchasePage = () => {
                             min="0"
                             step="0.01"
                             placeholder="0.00"
-                            {...field}
+                            value={field.value || ''}
                             onChange={(e) =>
                               field.onChange(Number(e.target.value) || 0)
                             }
@@ -880,7 +905,7 @@ export const NewPurchasePage = () => {
                             min="0"
                             max="100"
                             step="0.01"
-                            {...field}
+                            value={field.value || ''}
                             onChange={(e) =>
                               field.onChange(Number(e.target.value) || 0)
                             }
@@ -899,29 +924,31 @@ export const NewPurchasePage = () => {
                   <div className="flex justify-between">
                     <span>Subtotal (con descuentos por producto):</span>
                     <span className="font-medium">
-                      S/ {form.watch('subtotal').toFixed(2)}
+                      S/ {(form.watch('subtotal') || 0).toFixed(2)}
                     </span>
                   </div>
-                  {(form.watch('discount') ?? 0) > 0 && (
+                  {(form.watch('discount') || 0) > 0 && (
                     <div className="flex justify-between text-red-600">
                       <span>Descuento general:</span>
                       <span>
-                        -S/ {(form.watch('discount') ?? 0).toFixed(2)}
+                        -S/ {(form.watch('discount') || 0).toFixed(2)}
                       </span>
                     </div>
                   )}
-                  {(form.watch('tax_amount') ?? 0) > 0 && (
+                  {(form.watch('tax_amount') || 0) > 0 && (
                     <div className="flex justify-between">
-                      <span>IGV ({form.watch('tax_rate') ?? 0}%):</span>
+                      <span>IGV ({form.watch('tax_rate') || 0}%):</span>
                       <span>
-                        S/ {(form.watch('tax_amount') ?? 0).toFixed(2)}
+                        S/ {(form.watch('tax_amount') || 0).toFixed(2)}
                       </span>
                     </div>
                   )}
                   <div className="border-t pt-3">
                     <div className="flex justify-between text-lg font-bold">
                       <span>Total:</span>
-                      <span>S/ {form.watch('total_amount').toFixed(2)}</span>
+                      <span>
+                        S/ {(form.watch('total_amount') || 0).toFixed(2)}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -963,7 +990,6 @@ export const NewPurchasePage = () => {
           selectedProductIds={selectedProductIds}
         />
 
-        {/* Modal de edición de productos */}
         <EditItemDialog
           item={editingItem}
           open={editDialogOpen}
@@ -971,14 +997,13 @@ export const NewPurchasePage = () => {
           onSave={handleSaveEditedItem}
         />
 
-        {/* Dialogo de confirmación */}
         <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Confirmar compra</AlertDialogTitle>
               <AlertDialogDescription>
                 ¿Estás seguro que deseas registrar esta compra por un total de
-                S/ {form.watch('total_amount').toFixed(2)}?
+                S/ {(form.watch('total_amount') || 0).toFixed(2)}?
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
