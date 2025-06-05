@@ -63,12 +63,12 @@ import {
   type PurchaseItem
 } from '@/modules/purchases/schemas'
 import { generatePurchaseCode } from './generate-code'
-import type { ProductDetails } from '@/types'
 import { ProductSelectorModal } from './product-selector-modal'
 import { toast } from 'react-toastify'
 import { ToastCustom } from '@/components/app/toast-custom'
 import { APP_URLS } from '@/config/app-urls'
 import { createPurchaseWithItems } from '@/apis/app'
+import { CombinedResult } from '@/apis/app/productc.variants.list'
 
 // Función para generar código de barras aleatorio
 const generateBarCode = (): string => {
@@ -384,10 +384,15 @@ export const NewPurchasePage = () => {
     form.setValue('items', purchaseItems)
   }
 
-  const handleAddProduct = (product: ProductDetails) => {
-    const existingItem = purchaseItems.find(
-      (item) => item.product_id === product.id
-    )
+  const handleAddProduct = (product: CombinedResult) => {
+    console.log('Producto seleccionado:', product)
+    const existingItem = product.has_variants
+      ? purchaseItems.find(
+          (item) =>
+            item.product_id === product.id &&
+            item.product_variant_id === product.variant_id
+        )
+      : purchaseItems.find((item) => item.product_id === product.id)
 
     if (existingItem) {
       toast.error(
@@ -401,6 +406,7 @@ export const NewPurchasePage = () => {
 
     const newItem: PurchaseItem = {
       product_id: product.id,
+      product_variant_id: product.has_variants ? product.variant_id : null,
       quantity: 1,
       price: 0,
       discount: 0,
@@ -478,6 +484,9 @@ export const NewPurchasePage = () => {
         subtotal: form.getValues('subtotal')
       }
 
+      console.log('Datos de compra a enviar:', purchaseData)
+      console.log('Items de compra:', purchaseItems)
+
       const response = await createPurchaseWithItems({
         itemsData: purchaseItems,
         purchaseData
@@ -517,9 +526,13 @@ export const NewPurchasePage = () => {
     }
   }
 
-  const selectedProductIds = purchaseItems
-    .map((item) => item.product_id)
-    .filter((id): id is string => typeof id === 'string')
+  const selectedProductIds = purchaseItems.map((item) => ({
+    productId: typeof item.product_id === 'string' ? item.product_id : null,
+    variantId:
+      typeof item.product_variant_id === 'string'
+        ? item.product_variant_id
+        : null
+  }))
 
   return (
     <div className="min-h-screen bg-white">
@@ -758,7 +771,6 @@ export const NewPurchasePage = () => {
                       <TableRow className="bg-gray-50">
                         <TableHead>Producto</TableHead>
                         <TableHead>Código</TableHead>
-                        <TableHead>Marca</TableHead>
                         <TableHead>Unidad</TableHead>
                         <TableHead>Cantidad</TableHead>
                         <TableHead>Precio Unit.</TableHead>
@@ -774,12 +786,11 @@ export const NewPurchasePage = () => {
                       {purchaseItems.map((item, index) => (
                         <TableRow key={index}>
                           <TableCell className="font-medium">
+                            {item.product?.brand || ''}{' '}
                             {item.product?.name || 'Sin nombre'}
                           </TableCell>
                           <TableCell>{item.code}</TableCell>
-                          <TableCell>
-                            {item.product?.brand || 'Sin marca'}
-                          </TableCell>
+
                           <TableCell>{item.product?.unit}</TableCell>
                           <TableCell className="font-medium">
                             {item.quantity}

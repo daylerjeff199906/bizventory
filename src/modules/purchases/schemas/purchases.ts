@@ -4,21 +4,24 @@ export const PurchaseItemSchema = z
   .object({
     id: z.string().uuid().optional(),
     purchase_id: z.string().uuid().nullable().optional(),
-    product_id: z.string().uuid().optional(),
-    product_variant_id: z.string().uuid().optional(),
+    product_id: z.string().uuid().nullable().optional(),
+    product_variant_id: z.string().uuid().nullable().optional(),
     quantity: z.number().int().positive('La cantidad debe ser mayor a 0'),
     price: z.number().positive('El precio debe ser mayor a 0').max(99999999.99),
-    code: z.string().optional(),
-    bar_code: z.string().optional(),
-    discount: z.number().min(0).max(100).optional(),
-    variant_attributes: z.record(z.unknown()).optional(),
-    original_variant_name: z.string().optional(),
-    original_product_name: z.string().optional()
+    code: z.string().nullable().optional(),
+    bar_code: z.string().nullable().optional(),
+    discount: z.number().min(0).max(100).nullable().optional(),
+    variant_attributes: z.record(z.unknown()).nullable().optional(),
+    original_variant_name: z.string().nullable().optional(),
+    original_product_name: z.string().nullable().optional()
   })
-  .refine((data) => data.product_id || data.product_variant_id, {
-    message: 'Debe proporcionar un product_id o product_variant_id',
-    path: ['product_id']
-  })
+  .refine(
+    (data) => data.product_id !== null || data.product_variant_id !== null,
+    {
+      message: 'Debe proporcionar un product_id o product_variant_id',
+      path: ['product_id']
+    }
+  )
 
 // Esquema para el formulario (permite items vacíos)
 export const PurchaseFormSchema = z.object({
@@ -69,3 +72,9 @@ export type Purchase = z.infer<typeof PurchaseSchema> & {
 
 export type CreatePurchaseData = z.infer<typeof PurchaseSchema>
 export type PurchaseFormData = z.infer<typeof PurchaseFormSchema>
+
+//News esquema
+export const VariantAttributeSchema = z.object({
+  attribute_type: z.string(),
+  attribute_value: z.string()
+})

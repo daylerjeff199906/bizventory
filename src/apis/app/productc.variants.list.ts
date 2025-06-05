@@ -25,7 +25,6 @@ interface VariantAttribute {
 }
 
 export interface CombinedResult extends ProductDetails {
-  is_variant?: boolean
   variant_id?: string
   variant_name?: string
   variant_description?: string | null

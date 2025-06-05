@@ -28,7 +28,10 @@ interface ProductSelectorModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSelectProduct: (product: CombinedResult) => void
-  selectedProductIds: string[]
+  selectedProductIds: {
+    productId: string | null
+    variantId: string | null
+  }[]
 }
 
 export const ProductSelectorModal = ({
@@ -112,10 +115,21 @@ export const ProductSelectorModal = ({
                 )}
                 {!loading &&
                   items.map((product) => {
-                    const isSelected = selectedProductIds.includes(product.id)
+                    const isVariant = product.has_variants || false
+                    const uuid = isVariant ? product.variant_id : product.id
+                    const isSelected = product.has_variants
+                      ? selectedProductIds.some(
+                          (sel) =>
+                            String(product.id) === sel.productId &&
+                            String(product.variant_id) === sel.variantId
+                        )
+                      : selectedProductIds.some(
+                          (sel) => String(product.id) === sel.productId
+                        )
+
                     return (
                       <TableRow
-                        key={product.id}
+                        key={uuid}
                         className={isSelected ? 'bg-gray-50' : ''}
                       >
                         <TableCell>
