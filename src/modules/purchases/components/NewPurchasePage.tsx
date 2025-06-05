@@ -385,8 +385,6 @@ export const NewPurchasePage = () => {
   }
 
   const handleAddProduct = (product: CombinedResult) => {
-    console.log('Producto seleccionado:', product)
-
     // Generar un ID único temporal para cada item
     const tempId = `${product.id}-${
       product.variant_id || 'no-variant'
@@ -409,9 +407,7 @@ export const NewPurchasePage = () => {
         description: product.description || null
       },
       original_product_name: product.description,
-      original_variant_name: product.has_variants
-        ? product.variant_description
-        : null,
+      original_variant_name: product.variant_name,
       variant_attributes: product.attributes || [],
       variant: {
         id: product.variant_id || '',
@@ -596,7 +592,7 @@ export const NewPurchasePage = () => {
                         value={field.value}
                       >
                         <FormControl>
-                          <SelectTrigger className="w-full">
+                          <SelectTrigger className="w-full max-w-[350px]">
                             <SelectValue
                               placeholder="Seleccionar proveedor"
                               className="w-full"

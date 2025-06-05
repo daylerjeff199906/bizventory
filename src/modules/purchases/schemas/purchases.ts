@@ -71,7 +71,7 @@ export type PurchaseItem = z.infer<typeof PurchaseItemSchema> & {
 }
 
 export type Purchase = z.infer<typeof PurchaseSchema> & {
-  supplier?: {
+  supplier: {
     id: string
     name: string
   }

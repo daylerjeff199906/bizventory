@@ -96,39 +96,32 @@ export async function createPurchaseWithItems({
     const { data: createdItems, error: itemsError } = await supabase
       .from('purchase_items')
       .insert(itemsWithPurchaseId)
-      .select('*, product:products(*), variant:product_variants(*)')
+      .select(
+        '*, product:products(*), variant:product_variants(*), purchase:purchases(*)'
+      )
+
+    if (itemsData.length === 0) {
+      throw new Error('Debe haber al menos un item en la compra.')
+    }
 
     if (itemsError || !createdItems) {
       throw itemsError || new Error('Failed to create purchase items')
     }
 
-    // 5. Registrar movimientos de inventario si la compra está completada
+    // 5. Si la compra está completada, actualizar inventario
     if (validatedPurchase.status === 'completed') {
-      const { error: movementError } = await supabase.rpc(
-        'register_purchase_movements',
-        {
-          p_purchase_id: purchase.id,
-          p_status: 'completed'
-        }
-      )
-
-      if (movementError) throw movementError
-
-      // Actualizar stock de productos
       const { error: stockError } = await supabase.rpc(
         'update_product_stock_after_purchase',
         {
-          p_purchase_id: purchase.id
+          p_purchase_id: purchase.id,
+          p_movement_type: 'entry' // Entrada de inventario
         }
       )
 
-      if (stockError) throw stockError
-
-      // Marcar compra como inventario actualizado
-      await supabase
-        .from('purchases')
-        .update({ inventory_updated: true })
-        .eq('id', purchase.id)
+      if (stockError) {
+        console.error('Error updating stock:', stockError)
+        throw stockError
+      }
     }
 
     // 6. Obtener la compra completa con relaciones
