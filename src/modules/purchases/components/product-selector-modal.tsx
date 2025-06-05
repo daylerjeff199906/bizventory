@@ -2,7 +2,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus } from 'lucide-react'
+import { ImageOff, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -131,9 +131,7 @@ export const ProductSelectorModal = ({
                                 />
                               ) : (
                                 <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                                  <span className="text-gray-400 text-xs">
-                                    Sin foto
-                                  </span>
+                                  <ImageOff className="h-6 w-6 text-gray-400" />
                                 </div>
                               )}
                             </div>
@@ -142,6 +140,9 @@ export const ProductSelectorModal = ({
                                 <>{product.brand.name}</>
                               )}{' '}
                               {product.description}{' '}
+                              {product?.variant_name && (
+                                <>{product.variant_name}</>
+                              )}
                               {product?.attributes &&
                                 product?.attributes?.length > 0 && (
                                   <div className="mt-1">
