@@ -68,7 +68,7 @@ import { toast } from 'react-toastify'
 import { ToastCustom } from '@/components/app/toast-custom'
 import { APP_URLS } from '@/config/app-urls'
 import { createPurchaseWithItems } from '@/apis/app'
-import { CombinedResult } from '@/apis/app/productc.variants.list'
+import type { CombinedResult } from '@/apis/app/productc.variants.list'
 
 // Función para generar código de barras aleatorio
 const generateBarCode = (): string => {
@@ -386,23 +386,11 @@ export const NewPurchasePage = () => {
 
   const handleAddProduct = (product: CombinedResult) => {
     console.log('Producto seleccionado:', product)
-    const existingItem = product.has_variants
-      ? purchaseItems.find(
-          (item) =>
-            item.product_id === product.id &&
-            item.product_variant_id === product.variant_id
-        )
-      : purchaseItems.find((item) => item.product_id === product.id)
 
-    if (existingItem) {
-      toast.error(
-        <ToastCustom
-          title="Producto ya agregado"
-          message="Este producto ya está en la lista de compra."
-        />
-      )
-      return
-    }
+    // Generar un ID único temporal para cada item
+    const tempId = `${product.id}-${
+      product.variant_id || 'no-variant'
+    }-${Date.now()}`
 
     const newItem: PurchaseItem = {
       product_id: product.id,
@@ -412,32 +400,47 @@ export const NewPurchasePage = () => {
       discount: 0,
       purchase_id: null,
       code: generateProductCode(),
+      _temp_id: tempId, // ID temporal único
       product: {
         id: product.id,
         name: product.name,
         unit: product.unit,
         brand: product.brand?.name || 'Sin marca',
         description: product.description || null
+      },
+      original_product_name: product.description,
+      original_variant_name: product.has_variants
+        ? product.variant_description
+        : null,
+      variant_attributes: product.attributes || [],
+      variant: {
+        id: product.variant_id || '',
+        name: product?.variant_name || '',
+        attributes: product.attributes || []
       }
     }
 
     setPurchaseItems([...purchaseItems, newItem])
   }
 
-  const handleEditItem = (item: PurchaseItem) => {
-    setEditingItem(item)
+  const handleEditItem = (item: PurchaseItem, index: number) => {
+    setEditingItem({ ...item, _index: index }) // Agregar índice temporal
     setEditDialogOpen(true)
   }
 
   const handleSaveEditedItem = (updatedItem: PurchaseItem) => {
-    const updatedItems = purchaseItems.map((item) =>
-      item.product_id === updatedItem.product_id ? updatedItem : item
-    )
+    const updatedItems = purchaseItems.map((item) => {
+      // Usar el ID temporal único para identificar el item exacto
+      return item._temp_id === editingItem?._temp_id ? updatedItem : item
+    })
     setPurchaseItems(updatedItems)
   }
 
-  const handleRemoveItem = (index: number) => {
-    const updatedItems = purchaseItems.filter((_, i) => i !== index)
+  const handleRemoveItem = (itemToRemove: PurchaseItem, index: number) => {
+    // Usar tanto el índice como el ID temporal para mayor seguridad
+    const updatedItems = purchaseItems.filter(
+      (item, i) => !(i === index && item._temp_id === itemToRemove._temp_id)
+    )
     setPurchaseItems(updatedItems)
   }
 
@@ -483,9 +486,6 @@ export const NewPurchasePage = () => {
         code: data.code || generatePurchaseCode(),
         subtotal: form.getValues('subtotal')
       }
-
-      console.log('Datos de compra a enviar:', purchaseData)
-      console.log('Items de compra:', purchaseItems)
 
       const response = await createPurchaseWithItems({
         itemsData: purchaseItems,
@@ -787,7 +787,19 @@ export const NewPurchasePage = () => {
                         <TableRow key={index}>
                           <TableCell className="font-medium">
                             {item.product?.brand || ''}{' '}
-                            {item.product?.name || 'Sin nombre'}
+                            {item.product?.description && (
+                              <> {item.product.description}</>
+                            )}
+                            {item?.variant?.name && <>{item.variant.name}</>}
+                            {item?.variant_attributes &&
+                              item?.variant_attributes?.length > 0 && (
+                                <>
+                                  {' '}
+                                  {item?.variant_attributes
+                                    .map((attr) => ` ${attr.attribute_value}`)
+                                    .join(', ')}
+                                </>
+                              )}
                           </TableCell>
                           <TableCell>{item.code}</TableCell>
 
@@ -827,7 +839,7 @@ export const NewPurchasePage = () => {
                                 type="button"
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleEditItem(item)}
+                                onClick={() => handleEditItem(item, index)}
                               >
                                 <Edit2 className="h-4 w-4 text-blue-500" />
                               </Button>
@@ -835,7 +847,7 @@ export const NewPurchasePage = () => {
                                 type="button"
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleRemoveItem(index)}
+                                onClick={() => handleRemoveItem(item, index)}
                               >
                                 <Trash2 className="h-4 w-4 text-red-500" />
                               </Button>

@@ -1,5 +1,10 @@
 import { z } from 'zod'
 
+export const VariantAttributeSchema = z.object({
+  attribute_type: z.string(),
+  attribute_value: z.string()
+})
+
 export const PurchaseItemSchema = z
   .object({
     id: z.string().uuid().optional(),
@@ -11,7 +16,7 @@ export const PurchaseItemSchema = z
     code: z.string().nullable().optional(),
     bar_code: z.string().nullable().optional(),
     discount: z.number().min(0).max(100).nullable().optional(),
-    variant_attributes: z.record(z.unknown()).nullable().optional(),
+    variant_attributes: z.array(VariantAttributeSchema).nullable().optional(),
     original_variant_name: z.string().nullable().optional(),
     original_product_name: z.string().nullable().optional()
   })
@@ -49,6 +54,8 @@ export const PurchaseSchema = PurchaseFormSchema.extend({
 })
 
 export type PurchaseItem = z.infer<typeof PurchaseItemSchema> & {
+  _temp_id?: string // Para manejar IDs temporales en el frontend
+  _index?: number // Para manejar el índice del item en el formulario
   product?: {
     id: string
     name: string
@@ -59,7 +66,7 @@ export type PurchaseItem = z.infer<typeof PurchaseItemSchema> & {
   variant?: {
     id: string
     name: string
-    attributes: Record<string, unknown>
+    attributes: VariantAttributeType[]
   }
 }
 
@@ -72,9 +79,4 @@ export type Purchase = z.infer<typeof PurchaseSchema> & {
 
 export type CreatePurchaseData = z.infer<typeof PurchaseSchema>
 export type PurchaseFormData = z.infer<typeof PurchaseFormSchema>
-
-//News esquema
-export const VariantAttributeSchema = z.object({
-  attribute_type: z.string(),
-  attribute_value: z.string()
-})
+export type VariantAttributeType = z.infer<typeof VariantAttributeSchema>
