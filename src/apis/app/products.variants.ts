@@ -5,10 +5,6 @@ import { APP_URLS } from '@/config/app-urls'
 import { ProductWithVariants } from '@/types'
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
-// import { Product, ProductDetails } from '@/types'
-// import { revalidatePath } from 'next/cache'
-// import { APP_URLS } from '@/config/app-urls'
-// import { CreateProductData } from '@/modules/products'
 
 async function getSupabase() {
   const supabase = createClient()

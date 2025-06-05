@@ -29,3 +29,21 @@ export interface PurchaseList {
   created_at?: Date | null
   updated_at?: Date | null
 }
+
+// Tipos adicionales que necesitarás definir
+export type ProductSelectionItem = {
+  type: 'product' | 'variant'
+  id: string
+  fullName: string
+  name: string
+  brand: string | null
+}
+
+// code: string | null
+// unit: string
+// description: string | null
+// variantName?: string
+// variantAttributes?: Record<string, unknown> | null
+// productId?: string // Solo para variantes
+// originalVariantName?: string // Solo para variantes
+// originalProductName?: string // Solo para variantes
