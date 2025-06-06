@@ -28,6 +28,10 @@ export interface PurchaseList {
   tax_amount?: number | null
   created_at?: Date | null
   updated_at?: Date | null
+  status?: 'pending' | 'completed' | 'cancelled' | null
+  payment_status?: 'pending' | 'paid' | 'partially_paid' | 'cancelled' | null
+  reference_number?: string | null
+  notes?: string | null
 }
 
 // Tipos adicionales que necesitarás definir

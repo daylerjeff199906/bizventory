@@ -32,6 +32,13 @@ export interface CombinedResult extends ProductDetails {
   attributes?: VariantAttribute[]
 }
 
+export interface CombinedResultExtended extends CombinedResult {
+  quantity?: number
+  price?: number
+  bar_code?: string
+  discount?: number
+}
+
 export async function getProductsAndVariantsForPurchase(
   searchTerm: string,
   limit: number = 10

@@ -4,11 +4,13 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Download, Printer, Share2 } from 'lucide-react'
-import type { PurchaseItemList, PurchaseList } from '@/types'
+import type { PurchaseList } from '@/types'
+import { CombinedResultExtended } from '@/apis/app/productc.variants.list'
+import { StatusBadge } from '../components'
 
 interface PurchaseInvoiceProps {
   purchase: PurchaseList
-  items?: PurchaseItemList[]
+  items?: CombinedResultExtended[]
 }
 
 export default function PurchaseInvoice({
@@ -62,9 +64,15 @@ export default function PurchaseInvoice({
       {/* Action Bar - Hidden on print */}
       <div className="print:hidden sticky top-0 z-10 bg-white border-b border-gray-200 px-6 py-4">
         <div className="w-full flex justify-between items-center">
-          <h1 className="text-lg font-semibold text-gray-900">
-            Orden de Compra #{purchase.code || 'Sin código'}
-          </h1>
+          <div className="flex flex-col gap-1">
+            <h1 className="text-lg font-semibold text-gray-900">
+              Orden de Compra #{purchase.code || 'Sin código'}
+            </h1>
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <StatusBadge status={purchase.status} />
+              <StatusBadge payment_status={purchase.payment_status} />
+            </div>
+          </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={handlePrint}>
               <Printer className="h-4 w-4 mr-2" />
@@ -103,7 +111,7 @@ export default function PurchaseInvoice({
                 <div className="bg-gray-900 text-white px-6 py-4 rounded-lg">
                   <h3 className="text-xl font-bold mb-2">ORDEN DE COMPRA</h3>
                   <p className="text-gray-200 text-lg">
-                    #{purchase.code || 'Sin código'}
+                    #{purchase.guide_number || 'Sin código'}
                   </p>
                 </div>
               </div>
@@ -134,25 +142,29 @@ export default function PurchaseInvoice({
                           </span>
                         </div>
                         <div className="flex">
-                          <span className="text-gray-500 w-20">Email:</span>
+                          <span className="text-gray-500 w-20">Email: </span>
                           <span className="text-gray-900">
                             {purchase.supplier.email}
                           </span>
                         </div>
                         <div className="flex">
-                          <span className="text-gray-500 w-20">Teléfono:</span>
+                          <span className="text-gray-500 w-20">Teléfono: </span>
                           <span className="text-gray-900">
                             {purchase.supplier.phone}
                           </span>
                         </div>
                         <div className="flex">
-                          <span className="text-gray-500 w-20">Dirección:</span>
+                          <span className="text-gray-500 w-20">
+                            Dirección:{' '}
+                          </span>
                           <span className="text-gray-900">
                             {purchase.supplier.address}
                           </span>
                         </div>
                         <div className="flex">
-                          <span className="text-gray-500 w-20">Documento:</span>
+                          <span className="text-gray-500 w-20">
+                            Documento:{' '}
+                          </span>
                           <span className="text-gray-900">
                             {purchase.supplier.document_type}:{' '}
                             {purchase.supplier.document_number}
@@ -239,13 +251,13 @@ export default function PurchaseInvoice({
                           Unidad
                         </th>
                         <th className="text-center py-4 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">
-                          Cantidad
-                        </th>
-                        <th className="text-right py-4 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">
-                          Descuento
+                          Cant.
                         </th>
                         <th className="text-right py-4 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">
                           Precio Unit.
+                        </th>
+                        <th className="text-right py-4 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">
+                          Descuento
                         </th>
                         <th className="text-right py-4 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">
                           Subtotal
@@ -254,7 +266,7 @@ export default function PurchaseInvoice({
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-100">
                       {items && items.length > 0 ? (
-                        items.map((item: PurchaseItemList, index) => (
+                        items.map((item: CombinedResultExtended, index) => (
                           <tr key={index} className="hover:bg-gray-50">
                             <td className="py-4 px-4">
                               <Badge
@@ -267,19 +279,28 @@ export default function PurchaseInvoice({
                             <td className="py-4 px-4">
                               <div>
                                 <p className="font-medium text-gray-900 text-sm">
-                                  {item.product?.description ||
-                                    `Producto #${index + 1}`}
+                                  {item.brand?.name || `Producto #${index + 1}`}{' '}
+                                  {item.name || '-'}
+                                  {item.variant_name && (
+                                    <>{item.variant_name}</>
+                                  )}
+                                  {item?.attributes &&
+                                    item?.attributes.length > 0 && (
+                                      <>
+                                        {' '}
+                                        {item.attributes
+                                          .map(
+                                            (attr) => `${attr.attribute_value}`
+                                          )
+                                          .join(', ')}
+                                      </>
+                                    )}
                                 </p>
-                                {item.product && (
-                                  <p className="text-xs text-gray-500">
-                                    {item.product.brand?.name || 'Sin marca'}
-                                  </p>
-                                )}
                               </div>
                             </td>
                             <td className="py-4 px-4 text-center">
-                              <span className="text-sm text-gray-600">
-                                {item.product?.unit || 'N/E'}
+                              <span className="text-sm text-gray-600 uppercase">
+                                {item.unit || 'N/E'}
                               </span>
                             </td>
                             <td className="py-4 px-4 text-center font-medium text-gray-900">
@@ -287,7 +308,7 @@ export default function PurchaseInvoice({
                             </td>
 
                             <td className="py-4 px-4 text-right font-medium text-gray-900">
-                              {formatCurrency(item.price)}
+                              {formatCurrency(item?.price ?? 0)}
                             </td>
                             <td
                               className={`py-4 px-4 text-right font-medium ${
@@ -301,7 +322,9 @@ export default function PurchaseInvoice({
                               )}
                             </td>
                             <td className="py-4 px-4 text-right font-semibold text-gray-900">
-                              {formatCurrency(item.quantity * item.price)}
+                              {formatCurrency(
+                                (item?.quantity ?? 0) * (item?.price ?? 0)
+                              )}
                             </td>
                           </tr>
                         ))

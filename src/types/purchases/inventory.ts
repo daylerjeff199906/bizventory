@@ -5,7 +5,7 @@ export interface InventoryMovement {
   product_id?: string | null
   date?: string | null // ISO timestamp string
   quantity: number
-  description?: string | null
+  // description?: string | null
   created_at?: string | null // ISO timestamp string
 }
 

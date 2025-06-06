@@ -113,8 +113,8 @@ export async function createPurchaseWithItems({
       const { error: stockError } = await supabase.rpc(
         'update_product_stock_after_purchase',
         {
-          p_purchase_id: purchase.id,
-          p_movement_type: 'entry' // Entrada de inventario
+          p_movement_type: 'entry', // Entrada de inventario
+          p_purchase_id: purchase.id
         }
       )
 
