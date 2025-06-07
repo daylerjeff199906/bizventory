@@ -8,6 +8,7 @@ import type { CombinedResultExtended } from '@/apis/app/productc.variants.list'
 import { StatusBadge } from '../components'
 import { StatusModal } from '../components/status-modal'
 import { PaymentStatusModal } from '../components/payment-status-modal'
+import { CreditCard, Info, Package } from 'lucide-react'
 
 interface PurchaseInvoiceProps {
   purchase: PurchaseList
@@ -39,30 +40,58 @@ export default function PurchaseInvoice({
   }
 
   return (
-    <div className="min-h-screen print:bg-white">
-      {/* Action Bar - Hidden on print */}
-      <div className="print:hidden sticky top-0 z-10 bg-white border-b border-gray-200 px-6 py-4">
+    <div className="print:bg-white">
+      {/* Action Bar  */}
+      <div className="print:hidden bg-white border border-gray-200 px-6 py-4 rounded-md">
         <div className="w-full flex justify-between items-center">
-          <div className="flex flex-col gap-1">
-            <h1 className="text-lg font-semibold text-gray-900">
-              Orden de Compra #{purchase.code || 'Sin código'}
-            </h1>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              {purchase.status !== 'completed' ? (
-                <div
-                  onClick={() => setIsStatusModalOpen(true)}
-                  className="cursor-pointer"
-                >
-                  <StatusBadge status={purchase.status} />
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <Package className="h-5 w-5 text-gray-500" />
+                <h1 className="text-xl font-semibold text-gray-900">
+                  Orden de Compra #{purchase.code || 'Sin código'}
+                </h1>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              {/* Estado de la Orden */}
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  <Info className="h-3 w-3" />
+                  Estado de Orden
                 </div>
-              ) : (
-                <StatusBadge status={purchase.status} />
-              )}
-              <div
-                onClick={() => setIsPaymentStatusModalOpen(true)}
-                className="cursor-pointer"
-              >
-                <StatusBadge payment_status={purchase.payment_status} />
+                {purchase.status !== 'completed' ? (
+                  <div
+                    onClick={() => setIsStatusModalOpen(true)}
+                    className="cursor-pointer hover:scale-105 transition-transform duration-200"
+                    title="Haz clic para cambiar el estado de la orden"
+                  >
+                    <StatusBadge status={purchase.status} />
+                  </div>
+                ) : (
+                  <div title="Orden completada - No se puede modificar">
+                    <StatusBadge status={purchase.status} />
+                  </div>
+                )}
+              </div>
+
+              {/* Separador visual */}
+              <div className="h-6 w-px bg-gray-300"></div>
+
+              {/* Estado del Pago */}
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  <CreditCard className="h-3 w-3" />
+                  Estado de Pago
+                </div>
+                <div
+                  onClick={() => setIsPaymentStatusModalOpen(true)}
+                  className="cursor-pointer hover:scale-105 transition-transform duration-200"
+                  title="Haz clic para actualizar el estado del pago"
+                >
+                  <StatusBadge payment_status={purchase.payment_status} />
+                </div>
               </div>
             </div>
           </div>

@@ -4,7 +4,7 @@ import { Plus } from 'lucide-react'
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-4 p-4 bg-white dark:bg-gray-800">
+    <>
       <PageHeader
         title="Compras realizadas"
         description="Aquí puedes ver todas las compras realizadas por los clientes."
@@ -15,6 +15,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         }}
       />
       <div className="flex flex-col gap-4 container mx-auto">{children}</div>
-    </div>
+    </>
   )
 }

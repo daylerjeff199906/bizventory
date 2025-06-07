@@ -258,13 +258,14 @@ export default function SidebarLayout({
 }) {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
+  // h-screen
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex bg-background">
       {/* Desktop Sidebar */}
       <aside
         className={cn(
-          'hidden lg:flex flex-col border-r bg-muted/40 transition-all duration-300',
+          'hidden lg:flex flex-col border-r bg-muted/40 transition-all duration-300 sticky top-0 h-screen max-h-[calc(100vh-4rem)]',
           isCollapsed ? 'w-16' : 'w-64'
         )}
       >
