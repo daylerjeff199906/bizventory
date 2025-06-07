@@ -114,8 +114,9 @@ export async function getInventoryMovements({
       reference_type: item.reference_type || null,
       movement_date: item.movement_date || item.date, // Usamos 'movement_date' si está presente, si no, usamos 'date'
       movement_status: item.movement_status || 'completed', // Definimos un valor predeterminado para el estado
-      movement_type: item.movement_type || null
-    })
+      movement_type: item.movement_type || null,
+      
+    }),
   )
 
   return {
