@@ -73,9 +73,9 @@ const navMain = [
     url: '#',
     icon: FileUp,
     items: [
-      { title: 'Nueva Venta', url: '/sales/new' },
-      { title: 'Lista de Ventas', url: '/sales' },
-      { title: 'Tickets (PDF)', url: '/sales/tickets' }
+      { title: 'Nueva Venta', url: APP_URLS.SALES.CREATE },
+      { title: 'Lista de Ventas', url: APP_URLS.SALES.LIST },
+      { title: 'Tickets (PDF)', url: APP_URLS.SALES.TICKETS.LIST }
     ]
   },
   {
