@@ -2,14 +2,6 @@
 import { createClient } from '@/utils/supabase/server'
 import { InventoryMovementWithProduct, InventoryStock, ResApi } from '@/types'
 
-// type StockAlert = {
-//   product_id: string
-//   product_name: string
-//   product_code: string
-//   current_stock: number
-//   min_stock: number
-// }
-
 /**
  * Instancia de Supabase en contexto de servidor
  */
@@ -42,7 +34,6 @@ export async function getInventoryMovements({
   const from = (currentPage - 1) * currentPageSize
   const to = from + currentPageSize - 1
 
-  // Columnas válidas para ordenar
   const validSortColumns = [
     'id',
     'date',
@@ -50,32 +41,26 @@ export async function getInventoryMovements({
     'quantity',
     'product_id'
   ]
-  if (sortBy && !validSortColumns.includes(sortBy)) {
-    throw new Error(`No se puede ordenar por la columna ${sortBy}`)
-  }
   const sortColumn = validSortColumns.includes(sortBy) ? sortBy : 'date'
 
   let query = supabase
     .from('inventory_movements')
     .select(
-      '*, product:products(name, code, description, brand:brands(*)), variant:product_variants(*)'
+      `
+      *,
+      product:products(id, name, code, description, brand:brands(*)),
+      variant:product_variants(
+        *,
+        attributes:product_variant_attributes(attribute_type, attribute_value)
+      )
+    `,
+      { count: 'exact' }
     )
     .range(from, to)
     .order(sortColumn, { ascending: sortDirection === 'asc' })
 
-  // traer los atributos de los productos desde product_variant_attributes
-  // let queryWithAttributes = query.select(
-  //   `
-  //       *,
-  //       variant:product_variants(
-  //         *,
-  //         attributes:product_variant_attributes(attribute_type, attribute_value)
-  //       )
-  //     `
-  // )
-
   if (filters) {
-    Object.entries(filters).forEach(([key, value]) => {
+    for (const [key, value] of Object.entries(filters)) {
       if (
         value !== undefined &&
         value !== null &&
@@ -90,13 +75,13 @@ export async function getInventoryMovements({
           query = query.eq(key, value)
         }
       }
-    })
+    }
   }
 
-  query = query.order(sortColumn, { ascending: sortDirection === 'asc' })
-
   const { data, error, count } = await query
-  if (error)
+
+  if (error || !data) {
+    console.error(error)
     return {
       data: [],
       page: currentPage,
@@ -104,19 +89,17 @@ export async function getInventoryMovements({
       total: 0,
       total_pages: 0
     }
+  }
 
-  // Mapeamos los datos para agregar los detalles del producto
-  const mappedData: InventoryMovementWithProduct[] = data.map(
-    (item: InventoryMovementWithProduct) => ({
-      ...item,
-      product: item.product || {}, // Garantizamos que el producto exista
-      variant: item.variant || null, // Aseguramos que el variant esté presente
-      reference_type: item.reference_type || null,
-      movement_date: item.movement_date || item.date, // Usamos 'movement_date' si está presente, si no, usamos 'date'
-      movement_status: item.movement_status || 'completed', // Definimos un valor predeterminado para el estado
-      movement_type: item.movement_type || null
-    })
-  )
+  const mappedData: InventoryMovementWithProduct[] = data.map((item) => ({
+    ...item,
+    product: item.product || null,
+    variant: item.variant || null,
+    reference_type: item.reference_type || null,
+    movement_date: item.movement_date || item.date,
+    movement_status: item.movement_status || 'completed',
+    movement_type: item.movement_type || null
+  }))
 
   return {
     data: mappedData,

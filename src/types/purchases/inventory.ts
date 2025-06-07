@@ -7,14 +7,21 @@ export interface InventoryMovement {
   quantity: number
   created_at?: string | null // ISO timestamp string
 }
-
-export interface InventoryMovementWithProduct extends InventoryMovement {
-  product: ProductDetails
-  variant: ProductVariant | null
-  reference_type?: string | null // e.g., 'purchase', 'sale', 'adjustment'
-  movement_date?: string | null // ISO timestamp string
-  movement_status?: string | null // e.g., 'completed', 'pending'
-  movement_type?: string | null // e.g., 'entry', 'exit'
+export interface InventoryMovementWithProduct {
+  id: string
+  product_id?: string | null
+  product_variant_id?: string | null
+  quantity: number
+  movement_date: string
+  reference_id: string
+  reference_type: string
+  movement_status: string
+  notes?: string | null
+  created_at: string
+  movement_type?: string | null
+  date?: string | null
+  product?: ProductDetails | null
+  variant?: ProductVariant | null
 }
 
 export interface ProductStock {

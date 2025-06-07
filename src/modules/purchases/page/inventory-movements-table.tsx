@@ -118,14 +118,15 @@ export const InventoryMovementsTable = (props: IProps) => {
         return ((a.date || '') > (b.date || '') ? 1 : -1) * direction
       case 'code':
         return (
-          ((a.product.code || '') > (b.product.code || '') ? 1 : -1) * direction
+          ((a?.product?.code || '') > (b?.product?.code || '') ? 1 : -1) *
+          direction
         )
       case 'product':
-        const productA = `${a.product.brand?.name || ''} ${
-          a.product.description || ''
+        const productA = `${a?.product?.brand?.name || ''} ${
+          a?.product?.description || ''
         }`
-        const productB = `${b.product.brand?.name || ''} ${
-          b.product.description || ''
+        const productB = `${b?.product?.brand?.name || ''} ${
+          b?.product?.description || ''
         }`
         return (productA > productB ? 1 : -1) * direction
       case 'type':
@@ -203,6 +204,9 @@ export const InventoryMovementsTable = (props: IProps) => {
                   {getSortIcon('quantity')}
                 </Button>
               </TableHead>
+              <TableHead className="border-r border-gray-200 text-center w-[110px]">
+                Estado
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody className="divide-y">
@@ -226,21 +230,19 @@ export const InventoryMovementsTable = (props: IProps) => {
                     )}
                   </TableCell>
                   <TableCell className="p-3 text-sm border-r border-gray-100">
-                    {movement.product.code || '-'}
+                    {movement?.product?.code || '-'}
                   </TableCell>
                   <TableCell className="p-3 border-r border-gray-100">
                     <div className="text-sm">
-                      {movement.product.brand?.name}{' '}
-                      {movement.product.description}
+                      {movement?.product?.brand?.name}{' '}
+                      {movement?.product?.description}
                       {movement.variant && <>{movement.variant.name}</>}
                       {movement?.variant &&
                         movement?.variant?.attributes?.length > 0 && (
                           <>
-                            {' ('}
                             {movement.variant.attributes
                               .map((attr) => attr.attribute_value)
                               .join(', ')}
-                            {')'}
                           </>
                         )}
                     </div>
@@ -264,6 +266,22 @@ export const InventoryMovementsTable = (props: IProps) => {
                       {quantityDisplay.isPositive ? '+' : '-'}
                       {quantityDisplay.value}
                     </p>
+                  </TableCell>
+                  <TableCell className="p-3 text-center border-r border-gray-100">
+                    <Badge
+                      variant="outline"
+                      className={`text-xs rounded-full ${
+                        movement.movement_status === 'completed'
+                          ? 'bg-green-200 text-green-800'
+                          : movement.movement_status === 'pending'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : movement.movement_status === 'cancelled'
+                          ? 'bg-red-200 text-red-800'
+                          : 'bg-gray-100 text-gray-600'
+                      }`}
+                    >
+                      {movement.movement_status}
+                    </Badge>
                   </TableCell>
                 </TableRow>
               )

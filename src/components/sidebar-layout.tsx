@@ -265,7 +265,7 @@ export default function SidebarLayout({
       {/* Desktop Sidebar */}
       <aside
         className={cn(
-          'hidden lg:flex flex-col border-r bg-muted/40 transition-all duration-300 sticky top-0 h-screen max-h-[calc(100vh-4rem)]',
+          'hidden lg:flex flex-col border-r bg-muted/40 transition-all duration-300 sticky top-0 max-h-[calc(100vh-4rem)] h-[calc(100vh-4rem)] ',
           isCollapsed ? 'w-16' : 'w-64'
         )}
       >
