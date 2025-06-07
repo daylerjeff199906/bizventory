@@ -34,12 +34,8 @@ export interface ProductStock {
 
 export interface InventoryStock {
   product_id: string
-  product_name: string
-  product_description?: string | null
-  category_id: string
-  current_stock: number
-  //others props
-  brand_name?: string | null
-  brand_id?: string | null
-  product_code: string
+  product_full_name: string
+  code: string
+  brand_name?: string
+  stock_total: number
 }

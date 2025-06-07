@@ -111,26 +111,17 @@ export async function getInventoryMovements({
 }
 
 //procedure get_product_totals
-export async function getProductTotals(): Promise<ResApi<InventoryStock>> {
+export async function getFullProductStock(): Promise<InventoryStock[]> {
   const supabase = await getSupabase()
 
-  const { data, error } = await supabase.rpc('get_product_stock').select('*')
+  const { data, error } = await supabase
+    .rpc('get_full_product_stock')
+    .select('*')
 
   if (error) {
-    return {
-      data: [],
-      page: 1,
-      page_size: 0,
-      total: 0,
-      total_pages: 0
-    }
+    console.error('Error fetching product stock:', error)
+    return []
   }
 
-  return {
-    data: data || [],
-    page: 1,
-    page_size: data ? data.length : 0,
-    total: data ? data.length : 0,
-    total_pages: 1
-  }
+  return data || []
 }
