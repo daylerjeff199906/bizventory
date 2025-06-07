@@ -1,7 +1,9 @@
 import { z } from 'zod'
 
 export const saleItemSchema = z.object({
+  temp_id: z.string().optional(),
   product_id: z.string().min(1, 'ID del producto es requerido'),
+  variant_id: z.string().optional(),
   product_name: z.string().min(1, 'Nombre del producto es requerido'),
   quantity: z.number().min(1, 'La cantidad debe ser mayor a 0'),
   unit_price: z.number().min(0, 'El precio debe ser mayor o igual a 0'),

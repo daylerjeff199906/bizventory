@@ -14,20 +14,20 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Search, Package, Check, Plus, Save } from 'lucide-react'
-import { CombinedResultPrice } from '@/apis/app/productc.variants.list'
-import { Currency, SaleItemInput } from '@/types'
+import type { CombinedResultPrice } from '@/apis/app/productc.variants.list'
+import type { Currency, SaleItemInput } from '@/types'
 import { useProductsPrices } from '@/hooks/use-products-price'
 
 interface ProductSelectionModalProps {
   isOpen: boolean
   onClose: () => void
   onAddProduct: (item: SaleItemInput) => void
-  onUpdateProduct?: (index: number, item: SaleItemInput) => void
+  onUpdateProduct?: (tempId: string, item: SaleItemInput) => void
   addedProductIds: string[]
   currency: Currency
   editMode?: boolean
   editingProduct?: SaleItemInput
-  editingIndex?: number
+  editingTempId?: string
 }
 
 export default function ProductSelectionModal({
@@ -39,7 +39,7 @@ export default function ProductSelectionModal({
   currency,
   editMode = false,
   editingProduct,
-  editingIndex
+  editingTempId
 }: ProductSelectionModalProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedProduct, setSelectedProduct] =
@@ -51,6 +51,11 @@ export default function ProductSelectionModal({
   const currencySymbol = currency === 'PEN' ? 'S/' : '$'
 
   const { items: products, loading, fetchItems } = useProductsPrices()
+
+  const productsWithUniqueIds = products.map((product) => ({
+    ...product,
+    temp_id: generateTempId()
+  }))
 
   useEffect(() => {
     if (isOpen) {
@@ -74,17 +79,6 @@ export default function ProductSelectionModal({
         setDiscount(editingProduct.discount_amount)
       } else {
         console.log('Producto no encontrado en la lista')
-        // Si no encontramos el producto en la lista, crear uno temporal
-        // const tempProduct: CombinedResultPrice = {
-        //   id: editingProduct.product_id,
-        //   name: editingProduct.product_name,
-        //   price: editingProduct.unit_price
-        //   //   sku: `SKU-${editingProduct.product_id}`
-        // }
-        // setSelectedProduct(tempProduct)
-        // setQuantity(editingProduct.quantity)
-        // setUnitPrice(editingProduct.unit_price)
-        // setDiscount(editingProduct.discount_amount)
       }
     } else if (isOpen && !editMode) {
       // Resetear estado si no estamos en modo edición
@@ -117,12 +111,18 @@ export default function ProductSelectionModal({
     }
   }
 
+  // Función para generar ID temporal único
+  const generateTempId = () => {
+    return `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  }
+
   const handleAddOrUpdateProduct = () => {
     if (!selectedProduct) return
 
     const totalPrice = unitPrice * quantity - discount
 
     const productItem: SaleItemInput = {
+      temp_id: editMode && editingTempId ? editingTempId : generateTempId(),
       product_id: selectedProduct.id,
       product_name: `${selectedProduct.brand?.name || ''} ${
         selectedProduct.description || ''
@@ -143,13 +143,9 @@ export default function ProductSelectionModal({
 
     console.log('Guardando producto:', productItem)
 
-    if (
-      editMode &&
-      onUpdateProduct !== undefined &&
-      editingIndex !== undefined
-    ) {
-      console.log('Actualizando producto en índice:', editingIndex)
-      onUpdateProduct(editingIndex, productItem)
+    if (editMode && onUpdateProduct && editingTempId) {
+      console.log('Actualizando producto con temp_id:', editingTempId)
+      onUpdateProduct(editingTempId, productItem)
     } else {
       console.log('Agregando nuevo producto')
       onAddProduct(productItem)
@@ -209,18 +205,14 @@ export default function ProductSelectionModal({
               <div className="flex-1 overflow-y-auto border rounded-lg p-2">
                 <div className="space-y-2">
                   {!loading &&
-                    products.map((product) => {
-                      const isAdded = isProductAdded(product.id)
+                    productsWithUniqueIds.map((product) => {
+                      const isAdded = isProductAdded(product.temp_id)
                       const isSelected = selectedProduct?.id === product.id
 
                       const hasVariants = product.variant_id !== undefined
-                      const uuidPoductId = hasVariants
-                        ? product.variant_id
-                        : product.id
-
                       return (
                         <div
-                          key={uuidPoductId}
+                          key={product.temp_id}
                           className={`p-3 rounded-lg border cursor-pointer transition-all ${
                             isSelected
                               ? 'border-blue-500 bg-blue-50'
@@ -254,11 +246,6 @@ export default function ProductSelectionModal({
                                   {(product && product?.price?.toFixed(2)) ||
                                     '0.00'}
                                 </span>
-                                {/* {product.stock_quantity !== undefined && (
-                                <Badge variant="outline" className="text-xs">
-                                  Stock: {product.stock_quantity}
-                                </Badge>
-                              )} */}
                               </div>
                             </div>
                             <div className="ml-3">
@@ -312,17 +299,19 @@ export default function ProductSelectionModal({
 
                   <div className="p-4 bg-gray-50 rounded-lg">
                     <h4 className="font-medium">{selectedProduct.name}</h4>
-                    {/* <p className="text-sm text-gray-500 mt-1">
-                      SKU: {selectedProduct.sku}
-                    </p> */}
                     <p className="text-sm text-green-600 mt-1">
                       Precio base: {currencySymbol}
                       {selectedProduct?.price?.toFixed(2)}
                     </p>
                     {editMode && (
-                      <Badge variant="outline" className="mt-2">
-                        Modo Edición
-                      </Badge>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Badge variant="outline">Modo Edición</Badge>
+                        {editingTempId && (
+                          <Badge variant="secondary" className="text-xs">
+                            ID: {editingTempId.slice(-8)}
+                          </Badge>
+                        )}
+                      </div>
                     )}
                   </div>
 

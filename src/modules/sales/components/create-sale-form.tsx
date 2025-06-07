@@ -1,6 +1,4 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 'use client'
-
 import { useState, useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -20,10 +18,8 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
-import { Badge } from '@/components/ui/badge'
-import { Checkbox } from '@/components/ui/checkbox'
+// import { Checkbox } from '@/components/ui/checkbox'
 import {
   Form,
   FormControl,
@@ -39,15 +35,14 @@ import {
   Calculator,
   Package,
   DollarSign,
-  Shield,
   Pencil
 } from 'lucide-react'
 // import {
 import {
   saleFormSchema,
   SaleFormValues,
-  SaleItemValues,
-  saleItemSchema
+  SaleItemValues
+  //   saleItemSchema
 } from '../schemas'
 import { Currency } from '@/types'
 import ProductSelectionModal from './product-selection-modal'
@@ -129,38 +124,38 @@ export default function CreateSaleForm() {
     setIsProductModalOpen(false)
   }
 
-  const handleUpdateProduct = (index: number, updatedItem: SaleItemValues) => {
-    const currentItems = getValues('items')
-    const newItems = currentItems.map((item, i) =>
-      i === index ? updatedItem : item
-    )
-    setValue('items', newItems, { shouldValidate: true })
-    setIsEditModalOpen(false)
-    setEditingProduct(undefined)
-    setEditingIndex(undefined)
-  }
+  //   const handleUpdateProduct = (index: number, updatedItem: SaleItemValues) => {
+  //     const currentItems = getValues('items')
+  //     const newItems = currentItems.map((item, i) =>
+  //       i === index ? updatedItem : item
+  //     )
+  //     setValue('items', newItems, { shouldValidate: true })
+  //     setIsEditModalOpen(false)
+  //     setEditingProduct(undefined)
+  //     setEditingIndex(undefined)
+  //   }
 
-  const handleEditProduct = (index: number) => {
-    const productToEdit = watchedItems[index]
-    setEditingProduct(productToEdit)
-    setEditingIndex(index)
-    setIsEditModalOpen(true)
-  }
+  //   const handleEditProduct = (index: number) => {
+  //     const productToEdit = watchedItems[index]
+  //     setEditingProduct(productToEdit)
+  //     setEditingIndex(index)
+  //     setIsEditModalOpen(true)
+  //   }
 
-  const removeItem = (index: number) => {
+  const removeItem = (tempId: string) => {
     const currentItems = getValues('items')
     setValue(
       'items',
-      currentItems.filter((_, i) => i !== index),
+      currentItems?.filter((item) => item.temp_id !== tempId),
       { shouldValidate: true }
     )
   }
 
-  const handleCloseEditModal = () => {
-    setIsEditModalOpen(false)
-    setEditingProduct(undefined)
-    setEditingIndex(undefined)
-  }
+  //   const handleCloseEditModal = () => {
+  //     setIsEditModalOpen(false)
+  //     setEditingProduct(undefined)
+  //     setEditingIndex(undefined)
+  //   }
 
   const onSubmit = async (data: SaleFormValues) => {
     const saleData = {
@@ -518,7 +513,9 @@ export default function CreateSaleForm() {
                                       size="sm"
                                       className="h-7 w-7 p-0 text-gray-400 hover:text-red-600"
                                       title="Eliminar"
-                                      onClick={() => removeItem(index)}
+                                      onClick={() =>
+                                        removeItem(item.temp_id || '')
+                                      }
                                     >
                                       <Trash2 className="h-3 w-3" />
                                     </Button>
