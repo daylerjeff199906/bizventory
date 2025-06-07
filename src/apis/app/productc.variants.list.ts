@@ -36,6 +36,7 @@ export interface CombinedResultPrice extends CombinedResult {
   price?: number
   discount?: number
   temp_id?: string // ID temporal para gestión local
+  stock?: number // Stock disponible
 }
 
 export interface CombinedResultExtended extends CombinedResult {
