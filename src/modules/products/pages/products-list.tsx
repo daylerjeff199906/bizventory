@@ -116,6 +116,9 @@ export const ProductsList = ({
               </Button>
             </TableHead>
             <TableHead className="border-r border-gray-200">
+              <div className="font-medium text-gray-700">Marca</div>
+            </TableHead>
+            <TableHead className="border-r border-gray-200">
               <Button
                 variant="ghost"
                 onClick={() => handleSort('name')}
@@ -127,9 +130,6 @@ export const ProductsList = ({
             </TableHead>
             <TableHead className="border-r border-gray-200">
               <div className="font-medium text-gray-700">Unidad</div>
-            </TableHead>
-            <TableHead className="border-r border-gray-200">
-              <div className="font-medium text-gray-700">Marca</div>
             </TableHead>
             <TableHead className="border-r border-gray-200">
               <div className="font-medium text-gray-700">Estado</div>
@@ -201,6 +201,11 @@ export const ProductsList = ({
                   </Badge>
                 </TableCell>
                 <TableCell className="border-r border-gray-100">
+                  <div className="text-xs text-gray-500">
+                    {product?.brand ? product?.brand?.name : 'Sin marca'}
+                  </div>
+                </TableCell>
+                <TableCell className="border-r border-gray-100">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-gray-100 rounded-md flex-shrink-0 overflow-hidden">
                       {product.images && product.images.length > 0 ? (
@@ -239,15 +244,11 @@ export const ProductsList = ({
                   </div>
                 </TableCell>
                 <TableCell className="border-r border-gray-100">
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-gray-500 uppercase">
                     {product.unit || 'unidad'}
                   </div>
                 </TableCell>
-                <TableCell className="border-r border-gray-100">
-                  <div className="text-xs text-gray-500">
-                    {product?.brand ? product?.brand?.name : 'Sin marca'}
-                  </div>
-                </TableCell>
+
                 <TableCell className="border-r border-gray-100">
                   <Badge
                     className={cn('text-xs rounded-full', {
@@ -291,7 +292,7 @@ export const ProductsList = ({
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem asChild>
                         <Link
-                          href={`/products/${product.id}/edit`}
+                          href={APP_URLS.PRODUCTS.EDIT(product.id)}
                           className="flex items-center"
                         >
                           <Edit className="h-4 w-4 mr-2" />

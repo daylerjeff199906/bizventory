@@ -162,7 +162,7 @@ export async function createProduct({
 export async function updateProduct(
   id: string,
   updated: Partial<Product>
-): Promise<Product> {
+): Promise<Product | null> {
   const supabase = await getSupabase()
   const { data, error } = await supabase
     .from('products')
@@ -171,7 +171,7 @@ export async function updateProduct(
     .select()
     .single()
 
-  if (error || !data) throw error || new Error('Update failed')
+  if (error || !data) return null
   revalidatePath(APP_URLS.PRODUCTS.LIST)
   return data
 }

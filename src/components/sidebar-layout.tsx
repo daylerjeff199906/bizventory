@@ -263,7 +263,7 @@ export default function SidebarLayout({
       {/* Desktop Sidebar */}
       <aside
         className={cn(
-          'hidden lg:flex flex-col border-r bg-muted/40 transition-all duration-300 sticky top-0 max-h-[calc(100vh-4rem)] h-[calc(100vh-4rem)] ',
+          'hidden lg:flex flex-col border-r bg-muted/40 transition-all duration-300 sticky top-0 h-screen',
           isCollapsed ? 'w-16' : 'w-64'
         )}
       >
@@ -303,9 +303,7 @@ export default function SidebarLayout({
       </Sheet>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto">
-        <div className="h-full p-6 lg:p-8">{children}</div>
-      </main>
+      <div className="h-fit p-6 w-full">{children}</div>
     </div>
   )
 }

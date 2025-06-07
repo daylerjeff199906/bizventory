@@ -20,7 +20,7 @@ export function LayoutProduct({ children, items, title }: LayoutProductProps) {
   const pathname = usePathname()
   return (
     <section className="flex gap-2">
-      <aside className="w-64 shrink-0">
+      <aside className="w-48 shrink-0 sticky top-6 h-screen overflow-y-auto bg-background">
         {title && (
           <div className="mb-4">
             <h2 className="text-sm font-bold">{title}</h2>
