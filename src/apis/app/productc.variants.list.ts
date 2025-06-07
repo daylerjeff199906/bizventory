@@ -99,7 +99,6 @@ export async function getProductsAndVariantsForPurchase(
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     )
     .slice(0, limit)
-
   return combinedResults
 }
 

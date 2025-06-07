@@ -49,12 +49,12 @@ import {
   SaleItemValues,
   saleItemSchema
 } from '../schemas'
-import { ProductDetails } from '@/types'
+import { Currency } from '@/types'
+import ProductSelectionModal from './product-selection-modal'
 // import ProductSelectionModal from './product-selection-modal'
 // import EditProductModal from './edit-product-modal'
 
 // Datos de ejemplo para productos
-// const mockProducts: ProductDetails[] = []
 
 export default function CreateSaleForm() {
   const [isProductModalOpen, setIsProductModalOpen] = useState(false)
@@ -83,7 +83,7 @@ export default function CreateSaleForm() {
 
   // Watch para cambios en tiempo real
   const watchedItems = watch('items')
-  const watchedCurrency = watch('currency')
+  const watchedCurrency = watch('currency') as Currency
   //   const watchedTaxExempt = watch('tax_exempt') ?? false
   const watchedTaxExempt = 0
   const watchedTaxRate = watch('tax_rate')
@@ -118,31 +118,34 @@ export default function CreateSaleForm() {
     return { subtotal, totalDiscount, taxAmount, total }
   }, [watchedItems, watchedTaxExempt, watchedTaxRate])
 
-  //   const addedProductIds = watchedItems.map((item) => item.product_id)
+  const addedProductIds = watchedItems?.map((item) => item.product_id)
 
-  //   const handleAddProduct = (newItem: SaleItemValues) => {
-  //     const currentItems = getValues('items')
-  //     setValue('items', [...currentItems, newItem], { shouldValidate: true })
-  //     setIsProductModalOpen(false)
-  //   }
+  const handleAddProduct = (newItem: SaleItemValues) => {
+    const currentItems = getValues('items')
 
-  //   const handleUpdateProduct = (index: number, updatedItem: SaleItemValues) => {
-  //     const currentItems = getValues('items')
-  //     const newItems = currentItems.map((item, i) =>
-  //       i === index ? updatedItem : item
-  //     )
-  //     setValue('items', newItems, { shouldValidate: true })
-  //     setIsEditModalOpen(false)
-  //     setEditingProduct(undefined)
-  //     setEditingIndex(undefined)
-  //   }
+    setValue('items', [...(currentItems || []), newItem], {
+      shouldValidate: true
+    })
+    setIsProductModalOpen(false)
+  }
 
-  //   const handleEditProduct = (index: number) => {
-  //     const productToEdit = watchedItems[index]
-  //     setEditingProduct(productToEdit)
-  //     setEditingIndex(index)
-  //     setIsEditModalOpen(true)
-  //   }
+  const handleUpdateProduct = (index: number, updatedItem: SaleItemValues) => {
+    const currentItems = getValues('items')
+    const newItems = currentItems.map((item, i) =>
+      i === index ? updatedItem : item
+    )
+    setValue('items', newItems, { shouldValidate: true })
+    setIsEditModalOpen(false)
+    setEditingProduct(undefined)
+    setEditingIndex(undefined)
+  }
+
+  const handleEditProduct = (index: number) => {
+    const productToEdit = watchedItems[index]
+    setEditingProduct(productToEdit)
+    setEditingIndex(index)
+    setIsEditModalOpen(true)
+  }
 
   //   const removeItem = (index: number) => {
   //     const currentItems = getValues('items')
@@ -424,71 +427,61 @@ export default function CreateSaleForm() {
                     <div className="border rounded-lg overflow-hidden">
                       <div className="overflow-x-auto">
                         <table className="w-full">
-                          <thead className="bg-gray-50 border-b">
-                            <tr>
-                              <th className="text-left p-4 font-semibold text-gray-900">
+                          <thead>
+                            <tr className="border-b border-gray-200">
+                              <th className="text-left py-3 px-2 text-sm font-medium text-gray-700">
                                 #
                               </th>
-                              <th className="text-left p-4 font-semibold text-gray-900">
+                              <th className="text-left py-3 px-2 text-sm font-medium text-gray-700">
                                 Producto
                               </th>
-                              <th className="text-center p-4 font-semibold text-gray-900">
-                                Cantidad
+                              <th className="text-center py-3 px-2 text-sm font-medium text-gray-700">
+                                Cant.
                               </th>
-                              <th className="text-right p-4 font-semibold text-gray-900">
-                                Precio Unit.
+                              <th className="text-right py-3 px-2 text-sm font-medium text-gray-700">
+                                Precio
                               </th>
-                              <th className="text-right p-4 font-semibold text-gray-900">
-                                Descuento
+                              <th className="text-right py-3 px-2 text-sm font-medium text-gray-700">
+                                Desc.
                               </th>
-                              <th className="text-right p-4 font-semibold text-gray-900">
+                              <th className="text-right py-3 px-2 text-sm font-medium text-gray-700">
                                 Total
                               </th>
-                              <th className="text-center p-4 font-semibold text-gray-900">
+                              <th className="text-center py-3 px-2 text-sm font-medium text-gray-700">
                                 Acciones
                               </th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-gray-200">
+                          <tbody>
                             {watchedItems.map((item, index) => (
                               <tr
                                 key={index}
-                                className="hover:bg-gray-50 transition-colors"
+                                className="border-b border-gray-100 hover:bg-gray-25"
                               >
-                                <td className="p-4 text-sm text-gray-600 font-medium">
+                                <td className="py-3 px-2 text-sm text-gray-500">
                                   {index + 1}
                                 </td>
-                                <td className="p-4">
-                                  <div>
-                                    <h4 className="font-medium text-gray-900 text-sm">
-                                      {item.product_name}
-                                    </h4>
-                                    <p className="text-xs text-gray-500 mt-1">
-                                      ID: {item.product_id}
-                                    </p>
+                                <td className="py-3 px-2">
+                                  <div className="text-sm font-medium text-gray-900">
+                                    {item.product_name}
                                   </div>
                                 </td>
-                                <td className="p-4 text-center">
-                                  <Badge
-                                    variant="outline"
-                                    className="font-medium"
-                                  >
+                                <td className="py-3 px-2 text-center">
+                                  <span className="text-sm font-medium">
                                     {item.quantity}
-                                  </Badge>
-                                </td>
-                                <td className="p-4 text-right">
-                                  <span className="font-medium text-gray-900">
-                                    {currencySymbol}
-                                    {item.unit_price.toFixed(2)}
                                   </span>
                                 </td>
-                                <td className="p-4 text-right">
+                                <td className="py-3 px-2 text-right text-sm">
+                                  {currencySymbol}
+                                  {item.unit_price.toFixed(2)}
+                                </td>
+                                <td className="py-3 px-2 text-right">
                                   {item.discount_amount > 0 ? (
-                                    <div className="text-right">
-                                      <span className="text-green-600 font-medium">
+                                    <div>
+                                      <div className="text-sm text-green-600">
                                         -{currencySymbol}
                                         {item.discount_amount.toFixed(2)}
-                                      </span>
+                                      </div>
                                       <div className="text-xs text-green-500">
                                         {(
                                           (item.discount_amount /
@@ -499,36 +492,32 @@ export default function CreateSaleForm() {
                                       </div>
                                     </div>
                                   ) : (
-                                    <span className="text-gray-400 text-sm">
+                                    <span className="text-gray-300 text-sm">
                                       -
                                     </span>
                                   )}
                                 </td>
-                                <td className="p-4 text-right">
-                                  <span className="font-bold text-gray-900 text-lg">
-                                    {currencySymbol}
-                                    {item.total_price.toFixed(2)}
-                                  </span>
+                                <td className="py-3 px-2 text-right text-sm font-semibold">
+                                  {currencySymbol}
+                                  {item.total_price.toFixed(2)}
                                 </td>
-                                <td className="p-4">
+                                <td className="py-3 px-2">
                                   <div className="flex justify-center gap-1">
                                     <Button
                                       type="button"
-                                      variant="outline"
+                                      variant="ghost"
                                       size="sm"
-                                      //   onClick={() => handleEditProduct(index)}
-                                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 h-8 w-8 p-0"
-                                      title="Editar producto"
+                                      className="h-7 w-7 p-0 text-gray-400 hover:text-blue-600"
+                                      title="Editar"
                                     >
                                       <Pencil className="h-3 w-3" />
                                     </Button>
                                     <Button
                                       type="button"
-                                      variant="outline"
+                                      variant="ghost"
                                       size="sm"
-                                      //   onClick={() => removeItem(index)}
-                                      className="text-red-600 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0"
-                                      title="Eliminar producto"
+                                      className="h-7 w-7 p-0 text-gray-400 hover:text-red-600"
+                                      title="Eliminar"
                                     >
                                       <Trash2 className="h-3 w-3" />
                                     </Button>
@@ -537,46 +526,39 @@ export default function CreateSaleForm() {
                               </tr>
                             ))}
                           </tbody>
-                          <tfoot className="bg-gray-50 border-t">
-                            <tr>
+                          <tfoot>
+                            <tr className="border-t border-gray-200">
                               <td
                                 colSpan={2}
-                                className="p-4 font-semibold text-gray-900"
+                                className="py-3 px-2 text-sm font-semibold text-gray-900"
                               >
                                 Totales
                               </td>
-                              <td className="p-4 text-center">
-                                <Badge
-                                  variant="secondary"
-                                  className="font-bold"
-                                >
-                                  {watchedItems.reduce(
-                                    (sum, item) => sum + item.quantity,
-                                    0
-                                  )}
-                                </Badge>
+                              <td className="py-3 px-2 text-center text-sm font-medium">
+                                {watchedItems.reduce(
+                                  (sum, item) => sum + item.quantity,
+                                  0
+                                )}
                               </td>
-                              <td className="p-4 text-right font-medium text-gray-600">
+                              <td className="py-3 px-2 text-right text-sm text-gray-500">
                                 {watchedItems.length} producto
                                 {watchedItems.length !== 1 ? 's' : ''}
                               </td>
-                              <td className="p-4 text-right">
+                              <td className="py-3 px-2 text-right text-sm">
                                 {totalDiscount > 0 ? (
-                                  <span className="text-green-600 font-bold">
+                                  <span className="text-green-600 font-medium">
                                     -{currencySymbol}
                                     {totalDiscount.toFixed(2)}
                                   </span>
                                 ) : (
-                                  <span className="text-gray-400">-</span>
+                                  <span className="text-gray-300">-</span>
                                 )}
                               </td>
-                              <td className="p-4 text-right">
-                                <span className="font-bold text-lg text-gray-900">
-                                  {currencySymbol}
-                                  {subtotal.toFixed(2)}
-                                </span>
+                              <td className="py-3 px-2 text-right text-sm font-bold">
+                                {currencySymbol}
+                                {subtotal.toFixed(2)}
                               </td>
-                              <td className="p-4"></td>
+                              <td className="py-3 px-2"></td>
                             </tr>
                           </tfoot>
                         </table>
@@ -608,7 +590,7 @@ export default function CreateSaleForm() {
             </div>
 
             {/* Resumen de totales */}
-            {/* <div className="lg:col-span-1">
+            <div className="lg:col-span-1">
               <Card className="sticky top-6">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -635,19 +617,25 @@ export default function CreateSaleForm() {
                         </span>
                       </div>
                     )}
-                    <div className="flex justify-between text-sm">
-                      <span className={watchedTaxExempt ? 'text-gray-400' : ''}>
-                        IGV (
-                        {watchedTaxExempt
-                          ? 'Exonerado'
-                          : `${(watchedTaxRate * 100).toFixed(0)}%`}
-                        ):
-                      </span>
-                      <span className={watchedTaxExempt ? 'text-gray-400' : ''}>
-                        {currencySymbol}
-                        {taxAmount.toFixed(2)}
-                      </span>
-                    </div>
+                    {watchedTaxRate > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span
+                          className={watchedTaxExempt ? 'text-gray-400' : ''}
+                        >
+                          IGV (
+                          {watchedTaxExempt
+                            ? 'Exonerado'
+                            : `${(watchedTaxRate * 100).toFixed(0)}%`}
+                          ):
+                        </span>
+                        <span
+                          className={watchedTaxExempt ? 'text-gray-400' : ''}
+                        >
+                          {currencySymbol}
+                          {taxAmount.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
                     <Separator />
                     <div className="flex justify-between font-semibold text-lg">
                       <span>Total:</span>
@@ -658,23 +646,12 @@ export default function CreateSaleForm() {
                     </div>
                   </div>
 
-                  {watchedTaxExempt && (
-                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <div className="flex items-center gap-2 text-blue-700 text-sm">
-                        <Shield className="h-4 w-4" />
-                        <span className="font-medium">
-                          Venta Exonerada de IGV
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
                   <div className="pt-4 space-y-2">
                     <div className="text-sm text-gray-600">
-                      <div>Productos: {watchedItems.length}</div>
+                      <div>Productos: {watchedItems?.length || 0}</div>
                       <div>
                         Cantidad total:{' '}
-                        {watchedItems.reduce(
+                        {watchedItems?.reduce(
                           (sum, item) => sum + item.quantity,
                           0
                         )}
@@ -686,7 +663,7 @@ export default function CreateSaleForm() {
                     type="submit"
                     className="w-full"
                     disabled={
-                      watchedItems.length === 0 || form.formState.isSubmitting
+                      watchedItems?.length === 0 || form.formState?.isSubmitting
                     }
                     size="lg"
                   >
@@ -695,20 +672,19 @@ export default function CreateSaleForm() {
                   </Button>
                 </CardContent>
               </Card>
-            </div> */}
+            </div>
           </div>
         </form>
       </Form>
 
       {/* Modal para agregar productos */}
-      {/* <ProductSelectionModal
+      <ProductSelectionModal
         isOpen={isProductModalOpen}
         onClose={() => setIsProductModalOpen(false)}
         onAddProduct={handleAddProduct}
-        products={mockProducts}
-        addedProductIds={addedProductIds}
-        currency={watchedCurrency}
-      /> */}
+        addedProductIds={addedProductIds || []}
+        currency={watchedCurrency || ('PEN' as Currency)}
+      />
 
       {/* Modal para editar productos */}
       {/* <EditProductModal
