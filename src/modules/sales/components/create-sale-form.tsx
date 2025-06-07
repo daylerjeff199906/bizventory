@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
@@ -83,7 +84,8 @@ export default function CreateSaleForm() {
   // Watch para cambios en tiempo real
   const watchedItems = watch('items')
   const watchedCurrency = watch('currency')
-  //   const watchedTaxExempt = watch('tax_exempt')
+  //   const watchedTaxExempt = watch('tax_exempt') ?? false
+  const watchedTaxExempt = 0
   const watchedTaxRate = watch('tax_rate')
 
   const currencySymbol = watchedCurrency === 'PEN' ? 'S/' : '$'
@@ -105,20 +107,16 @@ export default function CreateSaleForm() {
   }, [setValue])
 
   // Calcular totales
-  //   const { subtotal, totalDiscount, taxAmount, total } = useMemo(() => {
-  //     const subtotal = watchedItems.reduce(
-  //       (sum, item) => sum + item.total_price,
-  //       0
-  //     )
-  //     const totalDiscount = watchedItems.reduce(
-  //       (sum, item) => sum + item.discount_amount,
-  //       0
-  //     )
-  //     const taxAmount = watchedTaxExempt ? 0 : subtotal * watchedTaxRate
-  //     const total = subtotal + taxAmount
+  const { subtotal, totalDiscount, taxAmount, total } = useMemo(() => {
+    const subtotal =
+      watchedItems?.reduce((sum, item) => sum + item.total_price, 0) ?? 0
+    const totalDiscount =
+      watchedItems?.reduce((sum, item) => sum + item.discount_amount, 0) ?? 0
+    const taxAmount = watchedTaxExempt ? 0 : subtotal * watchedTaxRate
+    const total = subtotal + taxAmount
 
-  //     return { subtotal, totalDiscount, taxAmount, total }
-  //   }, [watchedItems, watchedTaxExempt, watchedTaxRate])
+    return { subtotal, totalDiscount, taxAmount, total }
+  }, [watchedItems, watchedTaxExempt, watchedTaxRate])
 
   //   const addedProductIds = watchedItems.map((item) => item.product_id)
 
@@ -415,25 +413,14 @@ export default function CreateSaleForm() {
                     Agregar Productos
                   </Button>
                 </div>
-                <div></div>
-              </div>
-              {/* <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    
-                  </CardTitle>
-                  <CardDescription>
-                   
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
+                <div className="mt-4 grid grid-cols-1 gap-4">
                   {form.formState.errors.items && (
                     <div className="text-sm font-medium text-destructive mb-4">
                       {form.formState.errors.items.message}
                     </div>
                   )}
 
-                  {watchedItems.length > 0 ? (
+                  {watchedItems && watchedItems?.length > 0 ? (
                     <div className="border rounded-lg overflow-hidden">
                       <div className="overflow-x-auto">
                         <table className="w-full">
@@ -529,7 +516,7 @@ export default function CreateSaleForm() {
                                       type="button"
                                       variant="outline"
                                       size="sm"
-                                      onClick={() => handleEditProduct(index)}
+                                      //   onClick={() => handleEditProduct(index)}
                                       className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 h-8 w-8 p-0"
                                       title="Editar producto"
                                     >
@@ -539,7 +526,7 @@ export default function CreateSaleForm() {
                                       type="button"
                                       variant="outline"
                                       size="sm"
-                                      onClick={() => removeItem(index)}
+                                      //   onClick={() => removeItem(index)}
                                       className="text-red-600 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0"
                                       title="Eliminar producto"
                                     >
@@ -596,26 +583,28 @@ export default function CreateSaleForm() {
                       </div>
                     </div>
                   ) : (
-                    <div className="text-center py-12 text-gray-500 border-2 border-dashed border-gray-200 rounded-lg">
+                    <div className="text-center justify-center py-12 text-gray-500 border-2 border-dashed border-gray-200 rounded-lg">
                       <Package className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                      <p className="text-lg font-medium mb-2">
-                        No hay productos agregados
-                      </p>
-                      <p className="text-sm mb-4">
-                        Comienza agregando productos a tu venta
-                      </p>
-                      <Button
-                        type="button"
-                        onClick={() => setIsProductModalOpen(true)}
-                        className="flex items-center gap-2"
-                      >
-                        <Plus className="h-4 w-4" />
-                        Agregar Primer Producto
-                      </Button>
+                      <div className="flex flex-col items-center">
+                        <p className="text-lg font-medium mb-2">
+                          No hay productos agregados
+                        </p>
+                        <p className="text-sm mb-4">
+                          Comienza agregando productos a tu venta
+                        </p>
+                        <Button
+                          type="button"
+                          onClick={() => setIsProductModalOpen(true)}
+                          className="flex items-center gap-2"
+                        >
+                          <Plus className="h-4 w-4" />
+                          Agregar Primer Producto
+                        </Button>
+                      </div>
                     </div>
                   )}
-                </CardContent>
-              </Card> */}
+                </div>
+              </div>
             </div>
 
             {/* Resumen de totales */}
