@@ -1,6 +1,6 @@
 import { Params } from '@/types'
 import { getPurchaseById } from '@/apis/app'
-import DemoPage from './demo-page'
+import DemoPage from '@/modules/purchases/page/demo-page'
 
 interface Props {
   params: Params

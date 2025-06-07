@@ -10,56 +10,8 @@ import {
 } from '@react-pdf/renderer'
 import { Button } from '@/components/ui/button'
 import { Download, FileText } from 'lucide-react'
-import { PurchaseItemList, PurchaseList } from '@/types'
-
-// Interfaces
-interface Purchase {
-  id: string
-  date?: Date | null
-  supplier_id: string
-  total_amount: number
-  code?: string | null
-  guide_number?: string | null
-  subtotal: number
-  discount?: number | null
-  tax_rate?: number | null
-  tax_amount?: number | null
-  created_at?: Date | null
-  updated_at?: Date | null
-}
-
-interface PurchaseItem {
-  id: string
-  purchase_id?: string | null
-  product_id?: string | null
-  quantity: number
-  price: number
-  code?: string
-  bar_code?: string
-  discount?: number
-}
-
-interface Supplier {
-  id: string
-  name: string
-  contact: string
-  email: string
-  phone: string
-  address: string
-  currency: string
-  status: string
-  notes: string
-  created_at: string
-  updated_at: string
-  company_type: string
-  document_type: string
-  document_number: string
-}
-
-type PurchaseWithDetails = Purchase & {
-  items: PurchaseItem[]
-  supplier: Supplier
-}
+import type { PurchaseList } from '@/types'
+import type { CombinedResultExtended } from '@/apis/app/productc.variants.list'
 
 // Estilos para el PDF
 const styles = StyleSheet.create({
@@ -124,9 +76,9 @@ const styles = StyleSheet.create({
     borderBottomColor: '#e0e0e0',
     fontSize: 9
   },
-  col1: { width: '10%' },
-  col2: { width: '15%' },
-  col3: { width: '35%' },
+  col1: { width: '8%' },
+  col2: { width: '12%' },
+  col3: { width: '40%' },
   col4: { width: '10%' },
   col5: { width: '15%' },
   col6: { width: '15%' },
@@ -167,7 +119,13 @@ const styles = StyleSheet.create({
 })
 
 // Componente del documento PDF
-const PurchasePDF = ({ purchase }: { purchase: PurchaseWithDetails }) => {
+const PurchasePDF = ({
+  purchase,
+  items
+}: {
+  purchase: PurchaseList
+  items?: CombinedResultExtended[]
+}) => {
   const formatDate = (date: Date | null | undefined) => {
     if (!date) return 'N/A'
     return new Date(date).toLocaleDateString('es-ES')
@@ -207,29 +165,29 @@ const PurchasePDF = ({ purchase }: { purchase: PurchaseWithDetails }) => {
           <Text style={styles.sectionTitle}>INFORMACIÓN DEL PROVEEDOR</Text>
           <View style={styles.infoRow}>
             <Text style={styles.label}>Nombre:</Text>
-            <Text style={styles.value}>{purchase.supplier.name}</Text>
+            <Text style={styles.value}>{purchase?.supplier?.name}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.label}>Contacto:</Text>
-            <Text style={styles.value}>{purchase.supplier.contact}</Text>
+            <Text style={styles.value}>{purchase?.supplier?.contact}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.label}>Email:</Text>
-            <Text style={styles.value}>{purchase.supplier.email}</Text>
+            <Text style={styles.value}>{purchase?.supplier?.email}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.label}>Teléfono:</Text>
-            <Text style={styles.value}>{purchase.supplier.phone}</Text>
+            <Text style={styles.value}>{purchase?.supplier?.phone}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.label}>Dirección:</Text>
-            <Text style={styles.value}>{purchase.supplier.address}</Text>
+            <Text style={styles.value}>{purchase?.supplier?.address}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.label}>Documento:</Text>
             <Text style={styles.value}>
-              {purchase.supplier.document_type}:{' '}
-              {purchase.supplier.document_number}
+              {purchase?.supplier?.document_type}:{' '}
+              {purchase?.supplier?.document_number}
             </Text>
           </View>
         </View>
@@ -242,30 +200,41 @@ const PurchasePDF = ({ purchase }: { purchase: PurchaseWithDetails }) => {
           <View style={styles.tableHeader}>
             <Text style={styles.col1}>Item</Text>
             <Text style={styles.col2}>Código</Text>
-            <Text style={styles.col3}>Código de Barras</Text>
+            <Text style={styles.col3}>Producto</Text>
             <Text style={styles.col4}>Cant.</Text>
             <Text style={styles.col5}>Precio Unit.</Text>
             <Text style={styles.col6}>Total</Text>
           </View>
 
           {/* Filas de la tabla */}
-          {purchase.items.map((item, index) => (
-            <View key={item.id} style={styles.tableRow}>
+          {items?.map((item, index) => (
+            <View key={item.id || index} style={styles.tableRow}>
               <Text style={styles.col1}>{index + 1}</Text>
               <Text style={styles.col2}>{item.code || 'N/A'}</Text>
-              <Text style={styles.col3}>{item.bar_code || 'N/A'}</Text>
-              <Text style={styles.col4}>{item.quantity}</Text>
+              <Text style={styles.col3}>
+                {item.brand?.name || ''} {item.name || `Producto #${index + 1}`}
+                {item.variant_name && ` - ${item.variant_name}`}
+                {item.attributes &&
+                  item.attributes.length > 0 &&
+                  ` (${item.attributes
+                    .map((attr) => attr.attribute_value)
+                    .join(', ')})`}
+              </Text>
+              <Text style={styles.col4}>{item.quantity || 0}</Text>
               <Text style={styles.col5}>
-                {formatCurrency(item.price, purchase.supplier.currency)}
+                {formatCurrency(
+                  item.price || 0,
+                  purchase.supplier?.currency || 'PEN'
+                )}
               </Text>
               <Text style={styles.col6}>
                 {formatCurrency(
-                  item.quantity * item.price,
-                  purchase.supplier.currency
+                  (item.quantity || 0) * (item.price || 0),
+                  purchase.supplier?.currency || 'PEN'
                 )}
               </Text>
             </View>
-          ))}
+          )) || []}
         </View>
 
         {/* Totales */}
@@ -273,7 +242,7 @@ const PurchasePDF = ({ purchase }: { purchase: PurchaseWithDetails }) => {
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Subtotal:</Text>
             <Text style={styles.totalValue}>
-              {formatCurrency(purchase.subtotal, purchase.supplier.currency)}
+              {formatCurrency(purchase.subtotal, purchase?.supplier?.currency)}
             </Text>
           </View>
 
@@ -281,7 +250,11 @@ const PurchasePDF = ({ purchase }: { purchase: PurchaseWithDetails }) => {
             <View style={styles.totalRow}>
               <Text style={styles.totalLabel}>Descuento:</Text>
               <Text style={styles.totalValue}>
-                -{formatCurrency(purchase.discount, purchase.supplier.currency)}
+                -
+                {formatCurrency(
+                  purchase.discount,
+                  purchase?.supplier?.currency
+                )}
               </Text>
             </View>
           )}
@@ -294,7 +267,7 @@ const PurchasePDF = ({ purchase }: { purchase: PurchaseWithDetails }) => {
               <Text style={styles.totalValue}>
                 {formatCurrency(
                   purchase.tax_amount,
-                  purchase.supplier.currency
+                  purchase?.supplier?.currency
                 )}
               </Text>
             </View>
@@ -305,7 +278,7 @@ const PurchasePDF = ({ purchase }: { purchase: PurchaseWithDetails }) => {
             <Text style={styles.totalValue}>
               {formatCurrency(
                 purchase.total_amount,
-                purchase.supplier.currency
+                purchase?.supplier?.currency
               )}
             </Text>
           </View>
@@ -317,7 +290,7 @@ const PurchasePDF = ({ purchase }: { purchase: PurchaseWithDetails }) => {
             Documento generado el {new Date().toLocaleString('es-ES')}
           </Text>
           <Text>ID de Compra: {purchase.id}</Text>
-          {purchase.supplier.notes && (
+          {purchase?.supplier?.notes && (
             <Text>Notas: {purchase.supplier.notes}</Text>
           )}
         </View>
@@ -329,7 +302,7 @@ const PurchasePDF = ({ purchase }: { purchase: PurchaseWithDetails }) => {
 // Componente principal
 interface PurchasePDFGeneratorProps {
   purchase: PurchaseList
-  items?: PurchaseItemList[]
+  items?: CombinedResultExtended[]
   fileName?: string
 }
 
@@ -341,32 +314,7 @@ export default function PurchasePDFGenerator({
   return (
     <div className="flex gap-2">
       <PDFDownloadLink
-        document={
-          <PurchasePDF
-            purchase={
-              {
-                ...purchase,
-                items: items || [],
-                supplier: purchase.supplier || {
-                  id: '',
-                  name: '',
-                  contact: '',
-                  email: '',
-                  phone: '',
-                  address: '',
-                  currency: 'USD',
-                  status: 'active',
-                  notes: '',
-                  created_at: '',
-                  updated_at: '',
-                  company_type: '',
-                  document_type: '',
-                  document_number: ''
-                }
-              } as PurchaseWithDetails
-            }
-          />
-        }
+        document={<PurchasePDF purchase={purchase} items={items} />}
         fileName={`${fileName}.pdf`}
       >
         {({ blob, url, loading, error }) => (

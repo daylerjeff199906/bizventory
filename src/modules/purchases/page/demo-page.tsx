@@ -1,7 +1,7 @@
 'use client'
 
-import type { PurchaseItemList, PurchaseList } from '@/types'
-import PurchasePDFGenerator from './purchase-pdf-generator'
+import type { PurchaseList } from '@/types'
+import PurchasePDFGenerator from '../components/purchase-pdf-generator'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
@@ -16,10 +16,11 @@ import { Badge } from '@/components/ui/badge'
 import { Info } from 'lucide-react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { CombinedResultExtended } from '@/apis/app/productc.variants.list'
 
 interface PurchaseInvoiceProps {
   purchase: PurchaseList
-  items?: PurchaseItemList[]
+  items?: CombinedResultExtended[]
 }
 
 export default function DemoPage(props: PurchaseInvoiceProps) {
@@ -42,8 +43,8 @@ export default function DemoPage(props: PurchaseInvoiceProps) {
     }).format(amount)
   }
 
-  const calculateItemTotal = (item: PurchaseItemList) => {
-    const subtotal = item.quantity * item.price
+  const calculateItemTotal = (item: CombinedResultExtended) => {
+    const subtotal = (item?.quantity ?? 0) * (item?.price ?? 0)
     const discount = item.discount || 0
     return subtotal - discount
   }
@@ -142,8 +143,7 @@ export default function DemoPage(props: PurchaseInvoiceProps) {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[100px]">Código</TableHead>
-                    <TableHead className="w-[120px]">Marca</TableHead>
-                    <TableHead className="min-w-[200px]">Descripción</TableHead>
+                    <TableHead className="w-[120px]">Producto</TableHead>
                     <TableHead className="w-[80px] text-center">
                       Cant.
                     </TableHead>
@@ -166,18 +166,22 @@ export default function DemoPage(props: PurchaseInvoiceProps) {
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className="text-xs">
-                          {item?.product?.brand?.name || 'N/A'}
+                          {item?.brand?.name || ''} {item.description}{' '}
+                          {item?.variant_name}{' '}
+                          {item?.attributes &&
+                            item?.attributes?.length > 0 &&
+                            item.attributes
+                              .map((attr) => ` ${attr.attribute_value}`)
+                              .join(', ')}
                         </Badge>
                       </TableCell>
-                      <TableCell className="font-medium">
-                        {item.product?.description || 'Sin descripción'}
-                      </TableCell>
+
                       <TableCell className="text-center font-semibold">
                         {item.quantity}
                       </TableCell>
                       <TableCell className="text-right">
                         {formatCurrency(
-                          item.price,
+                          item?.price ?? 0,
                           purchase.supplier?.currency
                         )}
                       </TableCell>
