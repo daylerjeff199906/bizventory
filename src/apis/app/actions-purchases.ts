@@ -1,54 +1,3 @@
-// /**
-//  * Función auxiliar para actualizar los totales de una compra
-//  * @param purchaseId - UUID de la compra a actualizar
-//  */
-// async function updatePurchaseTotal(purchaseId: string): Promise<void> {
-//   const supabase = await getSupabase()
-
-//   // 1. Calcular nuevo subtotal sumando todos los items
-//   const { data: items, error: itemsError } = await supabase
-//     .from('purchase_items')
-//     .select('quantity, price')
-//     .eq('purchase_id', purchaseId)
-
-//   if (itemsError) throw itemsError
-
-//   // Calcular subtotal (suma de quantity * price)
-//   const subtotal = items?.reduce((sum, item) => {
-//     return sum + (item.quantity * item.price)
-//   }, 0) || 0
-
-//   // 2. Obtener los porcentajes de impuesto y descuento de la compra
-//   const { data: purchase, error: purchaseError } = await supabase
-//     .from('purchases')
-//     .select('tax_rate, discount')
-//     .eq('id', purchaseId)
-//     .single()
-
-//   if (purchaseError) throw purchaseError
-
-//   const taxRate = purchase?.tax_rate || 0
-//   const discount = purchase?.discount || 0
-
-//   // 3. Calcular los nuevos valores
-//   const taxAmount = subtotal * (taxRate / 100)
-//   const totalAmount = subtotal + taxAmount - discount
-
-//   // 4. Actualizar la compra con los nuevos valores
-//   const { error: updateError } = await supabase
-//     .from('purchases')
-//     .update({
-//       subtotal,
-//       tax_amount: taxAmount,
-//       total_amount: totalAmount,
-//       updated_at: new Date().toISOString()
-//     })
-//     .eq('id', purchaseId)
-
-//   if (updateError) throw updateError
-// }
-
-// purchase-items.ts
 'use server'
 import { createClient } from '@/utils/supabase/server'
 import { Purchase, PurchaseItem } from '@/types'
@@ -103,45 +52,42 @@ export async function createPurchaseWithItems({
   message?: string
 }> {
   const supabase = await getSupabase()
-
-  // 1. Validar datos de la compra (sin items)
-  const validatedPurchase = PurchaseSchema.omit({ items: true }).parse(
-    purchaseData
-  )
-
-  // 2. Validar items (todos deben tener el mismo purchase_id que tendrá la nueva compra)
-  const validatedItems = itemsData.map((item) => {
-    const parsed = PurchaseItemSchema.parse(item)
-    return {
-      ...parsed,
-      // Forzamos purchase_id a null ya que aún no existe la compra
-      purchase_id: null
-    }
-  })
-
-  // 3. Crear la compra primero
-  const { data: purchase, error: purchaseError } = await supabase
-    .from('purchases')
-    .insert({
-      code: validatedPurchase.code,
-      date: validatedPurchase.date,
-      supplier_id: validatedPurchase.supplier_id,
-      guide_number: validatedPurchase.guide_number,
-      subtotal: validatedPurchase.subtotal,
-      discount: validatedPurchase.discount,
-      tax_rate: validatedPurchase.tax_rate,
-      tax_amount: validatedPurchase.tax_amount,
-      total_amount: validatedPurchase.total_amount
-    })
-    .select()
-    .single()
-
-  if (purchaseError || !purchase) {
-    throw purchaseError || new Error('Purchase creation failed')
-  }
+  let purchaseId: string | null = null
 
   try {
-    // 4. Crear items masivamente asignándoles el purchase_id recién creado
+    // 1. Validar datos de la compra (sin items)
+    const validatedPurchase = PurchaseSchema.omit({ items: true }).parse(
+      purchaseData
+    )
+
+    // 2. Validar items y preparar para inserción
+    const validatedItems = itemsData.map((item) => {
+      const parsed = PurchaseItemSchema.parse(item)
+      return {
+        ...parsed,
+        purchase_id: null,
+        original_product_name: item.original_product_name || null,
+        original_variant_name: item.original_variant_name || null
+      }
+    })
+
+    // 3. Crear la compra con estado inicial
+    const { data: purchase, error: purchaseError } = await supabase
+      .from('purchases')
+      .insert({
+        ...validatedPurchase,
+        status: validatedPurchase.status || 'pending',
+        inventory_updated: false
+      })
+      .select()
+      .single()
+
+    if (purchaseError || !purchase) {
+      throw purchaseError || new Error('Failed to create purchase')
+    }
+    purchaseId = purchase.id
+
+    // 4. Crear items de compra con el purchase_id asignado
     const itemsWithPurchaseId = validatedItems.map((item) => ({
       ...item,
       purchase_id: purchase.id
@@ -150,72 +96,93 @@ export async function createPurchaseWithItems({
     const { data: createdItems, error: itemsError } = await supabase
       .from('purchase_items')
       .insert(itemsWithPurchaseId)
-      .select('*, product:products(*)')
+      .select(
+        '*, product:products(*), variant:product_variants(*), purchase:purchases(*)'
+      )
 
-    if (itemsError || !createdItems) {
-      throw itemsError || new Error('Items creation failed')
+    if (itemsData.length === 0) {
+      throw new Error('Debe haber al menos un item en la compra.')
     }
 
-    // 5. Actualizar totales de la compra con los items creados
-    // await updatePurchaseTotal(purchase.id)
+    if (itemsError || !createdItems) {
+      throw itemsError || new Error('Failed to create purchase items')
+    }
 
-    // 6. Obtener la compra actualizada con los totales calculados
-    const { data: updatedPurchase, error: fetchError } = await supabase
+    // 5. Si la compra está completada, actualizar inventario
+    if (validatedPurchase.status === 'completed') {
+      const { error: stockError } = await supabase.rpc(
+        'update_product_stock_after_purchase',
+        {
+          p_movement_type: 'entry', // Entrada de inventario
+          p_purchase_id: purchase.id
+        }
+      )
+
+      if (stockError) {
+        console.error('Error updating stock:', stockError)
+        throw stockError
+      }
+    }
+
+    // 6. Obtener la compra completa con relaciones
+    const { data: completePurchase, error: fetchError } = await supabase
       .from('purchases')
-      .select('*, supplier:suppliers(*)')
+      .select(
+        `
+        *,
+        supplier:suppliers(*),
+        items:purchase_items(
+          *,
+          product:products(*),
+          variant:product_variants(*)
+        )
+      `
+      )
       .eq('id', purchase.id)
       .single()
 
-    if (fetchError || !updatedPurchase) {
+    if (fetchError || !completePurchase) {
+      console.error('Failed to fetch complete purchase:', fetchError)
       return {
         status: 'error',
-        error: fetchError?.message || 'Failed to fetch updated purchase',
-        message: 'Failed to fetch updated purchase'
+        error: fetchError?.message || 'Failed to fetch complete purchase',
+        message: 'Purchase created but failed to fetch complete data'
       }
     }
 
-    //actualiza el stock de los productos
-    const { data: stockUpdateData, error: stockUpdateError } =
-      await supabase.rpc('update_product_stock_after_purchase', {
-        p_purchase_id: purchase.id
-      })
-
-    if (stockUpdateError) {
-      // Si falla la actualización del stock, eliminar la compra y los items creados
-      await supabase.from('purchases').delete().eq('id', purchase.id)
-      await supabase
-        .from('purchase_items')
-        .delete()
-        .eq('purchase_id', purchase.id)
-      return {
-        status: 'error',
-        error: stockUpdateError.message || 'Failed to update product stock',
-        message: 'Failed to update product stock'
-      }
-    }
-
-    console.log('Stock update result:', stockUpdateData)
-
-    // 7. Revalidar las rutas para que Next.js actualice los datos en caché
+    // 7. Revalidar rutas
     revalidatePath(APP_URLS.PURCHASES.LIST)
     revalidatePath(`${APP_URLS.PURCHASES.EDIT}/${purchase.id}`)
 
     return {
       status: 'success',
-      data: {
-        ...updatedPurchase,
-        items: createdItems as PurchaseItem[]
-      },
-      error: undefined,
+      data: completePurchase as Purchase & { items: PurchaseItem[] },
       message: 'Purchase and items created successfully'
     }
   } catch (error) {
-    // Si falla la creación de items, eliminar la compra creada
-    await supabase.from('purchases').delete().eq('id', purchase.id)
+    console.error('Error in createPurchaseWithItems:', error)
+
+    // Rollback en caso de error
+    if (purchaseId) {
+      await supabase
+        .from('purchase_items')
+        .delete()
+        .eq('purchase_id', purchaseId)
+        .maybeSingle()
+      await supabase
+        .from('purchases')
+        .delete()
+        .eq('id', purchaseId)
+        .maybeSingle()
+    }
+
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error occurred'
+
     return {
       status: 'error',
-      error: (error as Error).message || 'Failed to create purchase items',
-      message: 'Failed to create purchase items'
+      error: errorMessage,
+      message: 'Failed to create purchase'
     }
   }
 }

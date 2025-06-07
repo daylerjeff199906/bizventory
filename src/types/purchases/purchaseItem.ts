@@ -10,6 +10,7 @@ export interface PurchaseItem {
   bar_code?: string // Código de barras del producto
   discount?: number // Descuento aplicado al producto
 }
+
 export interface PurchaseItemList {
   id: string // UUID
   purchase_id?: string | null // UUID referencing purchases.id

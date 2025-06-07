@@ -1,21 +1,20 @@
-import { Brand } from '../products'
+import { ProductDetails, ProductVariant } from '../products'
 
 export interface InventoryMovement {
   id: string
   product_id?: string | null
   date?: string | null // ISO timestamp string
   quantity: number
-  description?: string | null
   created_at?: string | null // ISO timestamp string
 }
 
 export interface InventoryMovementWithProduct extends InventoryMovement {
-  product: {
-    code: string
-    name: string
-    description: string
-    brand?: Brand | null
-  }
+  product: ProductDetails
+  variant: ProductVariant | null
+  reference_type?: string | null // e.g., 'purchase', 'sale', 'adjustment'
+  movement_date?: string | null // ISO timestamp string
+  movement_status?: string | null // e.g., 'completed', 'pending'
+  movement_type?: string | null // e.g., 'entry', 'exit'
 }
 
 export interface ProductStock {

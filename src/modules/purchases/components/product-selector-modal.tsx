@@ -2,7 +2,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus } from 'lucide-react'
+import { ImageOff, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -19,16 +19,19 @@ import {
   TableRow
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { ProductDetails } from '@/types'
-import { useProducts } from '@/hooks/use-products'
 import { SearchInput } from '@/components/app/search-input'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useProductsAndVariants } from '@/hooks/use-products-variants'
+import { CombinedResult } from '@/apis/app/productc.variants.list'
 
 interface ProductSelectorModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSelectProduct: (product: ProductDetails) => void
-  selectedProductIds: string[]
+  onSelectProduct: (product: CombinedResult) => void
+  selectedProductIds: {
+    productId: string | null
+    variantId: string | null
+  }[]
 }
 
 export const ProductSelectorModal = ({
@@ -41,15 +44,15 @@ export const ProductSelectorModal = ({
   const [searchTerm, setSearchTerm] = useState('')
   const [searchCode, setSearchCode] = useState<string>()
 
-  const { products, loading: isLoadingProducts, fetchProducts } = useProducts()
+  const { fetchItems, items, loading } = useProductsAndVariants()
 
   useEffect(() => {
     if (open) {
-      fetchProducts({ query: searchTerm, code: searchCode })
+      fetchItems(searchTerm)
     }
   }, [open, searchTerm, searchCode])
 
-  const handleSelectProduct = (product: ProductDetails) => {
+  const handleSelectProduct = (product: CombinedResult) => {
     onSelectProduct(product)
     onOpenChange(false)
   }
@@ -97,26 +100,36 @@ export const ProductSelectorModal = ({
               <TableHeader>
                 <TableRow>
                   <TableHead>Producto</TableHead>
-                  <TableHead>Código</TableHead>
-                  <TableHead>Marca</TableHead>
+                  {/* <TableHead>Código</TableHead> */}
                   <TableHead>Unidad</TableHead>
                   <TableHead className="w-20"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {isLoadingProducts && (
+                {loading && (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-8">
                       Cargando productos...
                     </TableCell>
                   </TableRow>
                 )}
-                {!isLoadingProducts &&
-                  products.map((product) => {
-                    const isSelected = selectedProductIds.includes(product.id)
+                {!loading &&
+                  items.map((product) => {
+                    const isVariant = product.has_variants || false
+                    const uuid = isVariant ? product.variant_id : product.id
+                    const isSelected = product.has_variants
+                      ? selectedProductIds.some(
+                          (sel) =>
+                            String(product.id) === sel.productId &&
+                            String(product.variant_id) === sel.variantId
+                        )
+                      : selectedProductIds.some(
+                          (sel) => String(product.id) === sel.productId
+                        )
+
                     return (
                       <TableRow
-                        key={product.id}
+                        key={uuid}
                         className={isSelected ? 'bg-gray-50' : ''}
                       >
                         <TableCell>
@@ -132,29 +145,37 @@ export const ProductSelectorModal = ({
                                 />
                               ) : (
                                 <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                                  <span className="text-gray-400 text-xs">
-                                    Sin foto
-                                  </span>
+                                  <ImageOff className="h-6 w-6 text-gray-400" />
                                 </div>
                               )}
                             </div>
-                            <div>
-                              <div className="font-medium">{product.name}</div>
-                              {product.description && (
-                                <div className="text-sm text-gray-500 truncate max-w-xs">
-                                  {product.description.substring(0, 50)}...
-                                </div>
+                            <div className="font-medium text-sm">
+                              {product?.brand?.name && (
+                                <>{product.brand.name}</>
+                              )}{' '}
+                              {product.description}{' '}
+                              {product?.variant_name && (
+                                <>{product.variant_name}</>
                               )}
+                              {product?.attributes &&
+                                product?.attributes?.length > 0 && (
+                                  <div className="mt-1">
+                                    {product.attributes.map((attr) => (
+                                      <Badge
+                                        key={attr.attribute_type}
+                                        className="mr-1 text-xs rounded-full bg-gray-200 text-gray-800 hover:bg-gray-300"
+                                      >
+                                        {attr.attribute_value}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                )}
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{product.code}</Badge>
+                        <TableCell className="uppercase">
+                          {product.unit}
                         </TableCell>
-                        <TableCell>
-                          {product.brand?.name || 'Sin marca'}
-                        </TableCell>
-                        <TableCell>{product.unit}</TableCell>
                         <TableCell>
                           <Button
                             size="sm"

@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import { PurchaseList } from '@/types'
 import { APP_URLS } from '@/config/app-urls'
+import { StatusBadge } from '../components'
 
 type SortField = 'code' | 'date' | 'subtotal' | 'created_at' | 'updated_at'
 type SortDirection = 'asc' | 'desc'
@@ -96,7 +97,7 @@ export const PurchasesList = ({
   }
 
   return (
-    <div className="rounded-md border bg-white shadow-none overflow-hidden">
+    <>
       <Table>
         <TableHeader>
           <TableRow className="bg-gray-100 hover:bg-gray-100">
@@ -135,6 +136,12 @@ export const PurchasesList = ({
               </Button>
             </TableHead>
             <TableHead className="border-r border-gray-200">Total</TableHead>
+            <TableHead className="border-r border-gray-200">
+              Est. Compra
+            </TableHead>
+            <TableHead className="border-r border-gray-200">
+              Est. Pago
+            </TableHead>
             <TableHead className="border-r border-gray-200">
               <Button
                 variant="ghost"
@@ -242,6 +249,12 @@ export const PurchasesList = ({
                   )}
                 </TableCell>
                 <TableCell className="border-r border-gray-100">
+                  <StatusBadge status={purchase.status} />
+                </TableCell>
+                <TableCell className="border-r border-gray-100">
+                  <StatusBadge payment_status={purchase.payment_status} />
+                </TableCell>
+                <TableCell className="border-r border-gray-100">
                   <div className="text-sm">
                     <div>
                       {purchase.created_at
@@ -302,6 +315,6 @@ export const PurchasesList = ({
           )}
         </TableBody>
       </Table>
-    </div>
+    </>
   )
 }

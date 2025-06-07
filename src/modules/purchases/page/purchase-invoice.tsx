@@ -1,20 +1,28 @@
 'use client'
 
+import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { Download, Printer, Share2 } from 'lucide-react'
-import type { PurchaseItemList, PurchaseList } from '@/types'
+import type { PurchaseList } from '@/types'
+import type { CombinedResultExtended } from '@/apis/app/productc.variants.list'
+import { StatusBadge } from '../components'
+import { StatusModal } from '../components/status-modal'
+import { PaymentStatusModal } from '../components/payment-status-modal'
+import { CreditCard, Info, Package } from 'lucide-react'
 
 interface PurchaseInvoiceProps {
   purchase: PurchaseList
-  items?: PurchaseItemList[]
+  items?: CombinedResultExtended[]
 }
 
 export default function PurchaseInvoice({
   purchase,
   items
 }: PurchaseInvoiceProps) {
+  const [isStatusModalOpen, setIsStatusModalOpen] = useState(false)
+  const [isPaymentStatusModalOpen, setIsPaymentStatusModalOpen] =
+    useState(false)
+
   const formatDate = (date: Date | string | null | undefined) => {
     if (!date) return 'No especificada'
     return new Date(date).toLocaleDateString('es-ES', {
@@ -31,53 +39,61 @@ export default function PurchaseInvoice({
     }).format(amount)
   }
 
-  const handlePrint = () => {
-    window.print()
-  }
-
-  const handleDownload = () => {
-    // Convert to PDF or trigger download
-    window.print()
-  }
-
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `Orden de Compra ${purchase.code}`,
-          text: `Orden de compra de ${purchase.supplier?.name}`,
-          url: window.location.href
-        })
-      } catch (error) {
-        console.log('Error sharing:', error)
-      }
-    } else {
-      // Fallback: copy to clipboard
-      navigator.clipboard.writeText(window.location.href)
-    }
-  }
-
   return (
-    <div className="min-h-screen  print:bg-white">
-      {/* Action Bar - Hidden on print */}
-      <div className="print:hidden sticky top-0 z-10 bg-white border-b border-gray-200 px-6 py-4">
+    <div className="print:bg-white">
+      {/* Action Bar  */}
+      <div className="print:hidden bg-white border border-gray-200 px-6 py-4 rounded-md">
         <div className="w-full flex justify-between items-center">
-          <h1 className="text-lg font-semibold text-gray-900">
-            Orden de Compra #{purchase.code || 'Sin código'}
-          </h1>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={handlePrint}>
-              <Printer className="h-4 w-4 mr-2" />
-              Imprimir
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleShare}>
-              <Share2 className="h-4 w-4 mr-2" />
-              Compartir
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleDownload}>
-              <Download className="h-4 w-4 mr-2" />
-              Descargar
-            </Button>
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <Package className="h-5 w-5 text-gray-500" />
+                <h1 className="text-xl font-semibold text-gray-900">
+                  Orden de Compra #{purchase.code || 'Sin código'}
+                </h1>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              {/* Estado de la Orden */}
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  <Info className="h-3 w-3" />
+                  Estado de Orden
+                </div>
+                {purchase.status !== 'completed' ? (
+                  <div
+                    onClick={() => setIsStatusModalOpen(true)}
+                    className="cursor-pointer hover:scale-105 transition-transform duration-200"
+                    title="Haz clic para cambiar el estado de la orden"
+                  >
+                    <StatusBadge status={purchase.status} />
+                  </div>
+                ) : (
+                  <div title="Orden completada - No se puede modificar">
+                    <StatusBadge status={purchase.status} />
+                  </div>
+                )}
+              </div>
+
+              {/* Separador visual */}
+              <div className="h-6 w-px bg-gray-300"></div>
+
+              {/* Estado del Pago */}
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  <CreditCard className="h-3 w-3" />
+                  Estado de Pago
+                </div>
+                <div
+                  onClick={() => setIsPaymentStatusModalOpen(true)}
+                  className="cursor-pointer hover:scale-105 transition-transform duration-200"
+                  title="Haz clic para actualizar el estado del pago"
+                >
+                  <StatusBadge payment_status={purchase.payment_status} />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -103,7 +119,7 @@ export default function PurchaseInvoice({
                 <div className="bg-gray-900 text-white px-6 py-4 rounded-lg">
                   <h3 className="text-xl font-bold mb-2">ORDEN DE COMPRA</h3>
                   <p className="text-gray-200 text-lg">
-                    #{purchase.code || 'Sin código'}
+                    #{purchase.guide_number || 'Sin código'}
                   </p>
                 </div>
               </div>
@@ -134,25 +150,29 @@ export default function PurchaseInvoice({
                           </span>
                         </div>
                         <div className="flex">
-                          <span className="text-gray-500 w-20">Email:</span>
+                          <span className="text-gray-500 w-20">Email: </span>
                           <span className="text-gray-900">
                             {purchase.supplier.email}
                           </span>
                         </div>
                         <div className="flex">
-                          <span className="text-gray-500 w-20">Teléfono:</span>
+                          <span className="text-gray-500 w-20">Teléfono: </span>
                           <span className="text-gray-900">
                             {purchase.supplier.phone}
                           </span>
                         </div>
                         <div className="flex">
-                          <span className="text-gray-500 w-20">Dirección:</span>
+                          <span className="text-gray-500 w-20">
+                            Dirección:{' '}
+                          </span>
                           <span className="text-gray-900">
                             {purchase.supplier.address}
                           </span>
                         </div>
                         <div className="flex">
-                          <span className="text-gray-500 w-20">Documento:</span>
+                          <span className="text-gray-500 w-20">
+                            Documento:{' '}
+                          </span>
                           <span className="text-gray-900">
                             {purchase.supplier.document_type}:{' '}
                             {purchase.supplier.document_number}
@@ -239,13 +259,13 @@ export default function PurchaseInvoice({
                           Unidad
                         </th>
                         <th className="text-center py-4 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">
-                          Cantidad
-                        </th>
-                        <th className="text-right py-4 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">
-                          Descuento
+                          Cant.
                         </th>
                         <th className="text-right py-4 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">
                           Precio Unit.
+                        </th>
+                        <th className="text-right py-4 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">
+                          Descuento
                         </th>
                         <th className="text-right py-4 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">
                           Subtotal
@@ -254,7 +274,7 @@ export default function PurchaseInvoice({
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-100">
                       {items && items.length > 0 ? (
-                        items.map((item: PurchaseItemList, index) => (
+                        items.map((item: CombinedResultExtended, index) => (
                           <tr key={index} className="hover:bg-gray-50">
                             <td className="py-4 px-4">
                               <Badge
@@ -267,19 +287,28 @@ export default function PurchaseInvoice({
                             <td className="py-4 px-4">
                               <div>
                                 <p className="font-medium text-gray-900 text-sm">
-                                  {item.product?.description ||
-                                    `Producto #${index + 1}`}
+                                  {item.brand?.name || `Producto #${index + 1}`}{' '}
+                                  {item.name || '-'}
+                                  {item.variant_name && (
+                                    <>{item.variant_name}</>
+                                  )}
+                                  {item?.attributes &&
+                                    item?.attributes.length > 0 && (
+                                      <>
+                                        {' '}
+                                        {item.attributes
+                                          .map(
+                                            (attr) => `${attr.attribute_value}`
+                                          )
+                                          .join(', ')}
+                                      </>
+                                    )}
                                 </p>
-                                {item.product && (
-                                  <p className="text-xs text-gray-500">
-                                    {item.product.brand?.name || 'Sin marca'}
-                                  </p>
-                                )}
                               </div>
                             </td>
                             <td className="py-4 px-4 text-center">
-                              <span className="text-sm text-gray-600">
-                                {item.product?.unit || 'N/E'}
+                              <span className="text-sm text-gray-600 uppercase">
+                                {item.unit || 'N/E'}
                               </span>
                             </td>
                             <td className="py-4 px-4 text-center font-medium text-gray-900">
@@ -287,7 +316,7 @@ export default function PurchaseInvoice({
                             </td>
 
                             <td className="py-4 px-4 text-right font-medium text-gray-900">
-                              {formatCurrency(item.price)}
+                              {formatCurrency(item?.price ?? 0)}
                             </td>
                             <td
                               className={`py-4 px-4 text-right font-medium ${
@@ -301,7 +330,9 @@ export default function PurchaseInvoice({
                               )}
                             </td>
                             <td className="py-4 px-4 text-right font-semibold text-gray-900">
-                              {formatCurrency(item.quantity * item.price)}
+                              {formatCurrency(
+                                (item?.quantity ?? 0) * (item?.price ?? 0)
+                              )}
                             </td>
                           </tr>
                         ))
@@ -383,52 +414,24 @@ export default function PurchaseInvoice({
                 </div>
               </div>
             )}
-
-            {/* Terms and Footer */}
-            {/* <div className="border-t border-gray-200 pt-8">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 text-xs text-gray-600">
-                <div>
-                  <h5 className="font-semibold text-gray-800 mb-3 uppercase tracking-wide">
-                    Términos y condiciones:
-                  </h5>
-                  <ul className="space-y-2 leading-relaxed">
-                    <li>
-                      • Los productos deben ser entregados en las condiciones
-                      acordadas
-                    </li>
-                    <li>
-                      • Cualquier discrepancia debe ser reportada dentro de 24
-                      horas
-                    </li>
-                    <li>
-                      • El pago se realizará según los términos acordados con el
-                      proveedor
-                    </li>
-                    <li>
-                      • Esta orden de compra está sujeta a los términos
-                      comerciales establecidos
-                    </li>
-                  </ul>
-                </div>
-                <div className="text-right">
-                  <p className="font-semibold text-gray-800 mb-2">
-                    Documento generado el:
-                  </p>
-                  <p className="text-gray-600">
-                    {new Date().toLocaleDateString('es-ES', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </p>
-                </div>
-              </div>
-            </div> */}
           </div>
         </div>
       </div>
+
+      {/* Modals */}
+      <StatusModal
+        isOpen={isStatusModalOpen}
+        onClose={() => setIsStatusModalOpen(false)}
+        purchaseId={purchase.id}
+        currentStatus={purchase.status || 'pending'}
+      />
+
+      <PaymentStatusModal
+        isOpen={isPaymentStatusModalOpen}
+        onClose={() => setIsPaymentStatusModalOpen(false)}
+        purchaseId={purchase.id}
+        currentPaymentStatus={purchase.payment_status || 'pending'}
+      />
     </div>
   )
 }
