@@ -3,10 +3,11 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { Download, Printer, Share2 } from 'lucide-react'
+import { Download, Share2 } from 'lucide-react'
 import type { PurchaseList } from '@/types'
 import { CombinedResultExtended } from '@/apis/app/productc.variants.list'
 import { StatusBadge } from '../components'
+import { patchPurchaseField, updatePurchaseStatus } from '@/apis/app'
 
 interface PurchaseInvoiceProps {
   purchase: PurchaseList
@@ -31,10 +32,6 @@ export default function PurchaseInvoice({
       style: 'currency',
       currency: 'PEN'
     }).format(amount)
-  }
-
-  const handlePrint = () => {
-    window.print()
   }
 
   const handleDownload = () => {
@@ -74,10 +71,6 @@ export default function PurchaseInvoice({
             </div>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={handlePrint}>
-              <Printer className="h-4 w-4 mr-2" />
-              Imprimir
-            </Button>
             <Button variant="outline" size="sm" onClick={handleShare}>
               <Share2 className="h-4 w-4 mr-2" />
               Compartir

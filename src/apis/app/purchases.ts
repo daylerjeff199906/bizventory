@@ -347,3 +347,41 @@ export async function deletePurchase(id: string): Promise<void> {
 
   revalidatePath(APP_URLS.PURCHASES.LIST)
 }
+
+/**
+ * Actualiza el campo status de una compra y ejecuta lógica adicional si es 'completed'
+ * @param id - UUID de la compra
+ * @param status - nuevo estado ('pending', 'completed', etc.)
+ * @returns Promise<Purchase>
+ */
+export async function updatePurchaseStatus(
+  id: string,
+  status: string
+): Promise<Purchase> {
+  const supabase = await getSupabase()
+  // Actualizar el campo status
+  const { data: purchase, error } = await supabase
+    .from('purchases')
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error || !purchase) throw error || new Error('Status update failed')
+
+  // Si el nuevo status es 'completed', ejecutar la función RPC para actualizar stock
+  if (status === 'completed') {
+    const { error: stockError } = await supabase.rpc(
+      'update_product_stock_after_purchase',
+      {
+        p_movement_type: 'entry',
+        p_purchase_id: purchase.id
+      }
+    )
+    if (stockError) throw stockError
+  }
+
+  revalidatePath(APP_URLS.PURCHASES.LIST)
+  revalidatePath(`${APP_URLS.PURCHASES.EDIT}/${id}`)
+  return purchase
+}

@@ -67,7 +67,7 @@ const navMain = [
     items: [
       { title: 'Nueva Compra', url: APP_URLS.PURCHASES.CREATE },
       { title: 'Lista de Compras', url: APP_URLS.PURCHASES.LIST },
-      { title: 'Comprobantes (PDF)', url: '/purchases/receipts' }
+      { title: 'Comprobantes (PDF)', url: APP_URLS.PURCHASES.RECEIPTS.LIST }
     ]
   },
   {

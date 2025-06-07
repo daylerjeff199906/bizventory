@@ -532,6 +532,27 @@ export const NewPurchasePage = () => {
 
   return (
     <div className="min-h-screen bg-white">
+      <div>
+        {/* Indicaciones para el registro de compras */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h3 className="font-semibold text-blue-800 mb-2">
+            Indicaciones para registrar una compra
+          </h3>
+          <ul className="list-disc pl-6 text-blue-900 space-y-1 text-sm">
+            <li>
+              El <span className="font-medium">número de guía</span> debe
+              corresponder al documento de la compra (guía, boleta, factura,
+              etc).
+            </li>
+            <li>
+              El <span className="font-medium">estado de la compra</span>{' '}
+              controla si afecta el inventario: solo en estado{' '}
+              <span className="font-medium text-green-700">completada</span> se
+              actualiza el stock.
+            </li>
+          </ul>
+        </div>
+      </div>
       <div className="w-full max-w-6xl mx-auto p-6">
         <Form {...form}>
           <form
