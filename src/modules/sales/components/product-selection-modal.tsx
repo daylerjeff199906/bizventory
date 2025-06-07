@@ -173,7 +173,7 @@ export default function ProductSelectionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-6xl w-7xl max-h-[85vh] overflow-hidden flex flex-col md:min-w-6xl">
+      <DialogContent className="max-w-6xl w-7xl max-h-[90vh] overflow-hidden flex flex-col md:min-w-6xl h-full">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />

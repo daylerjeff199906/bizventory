@@ -147,20 +147,20 @@ export default function CreateSaleForm() {
     setIsEditModalOpen(true)
   }
 
-  //   const removeItem = (index: number) => {
-  //     const currentItems = getValues('items')
-  //     setValue(
-  //       'items',
-  //       currentItems.filter((_, i) => i !== index),
-  //       { shouldValidate: true }
-  //     )
-  //   }
+  const removeItem = (index: number) => {
+    const currentItems = getValues('items')
+    setValue(
+      'items',
+      currentItems.filter((_, i) => i !== index),
+      { shouldValidate: true }
+    )
+  }
 
-  //   const handleCloseEditModal = () => {
-  //     setIsEditModalOpen(false)
-  //     setEditingProduct(undefined)
-  //     setEditingIndex(undefined)
-  //   }
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false)
+    setEditingProduct(undefined)
+    setEditingIndex(undefined)
+  }
 
   const onSubmit = async (data: SaleFormValues) => {
     const saleData = {
@@ -518,6 +518,7 @@ export default function CreateSaleForm() {
                                       size="sm"
                                       className="h-7 w-7 p-0 text-gray-400 hover:text-red-600"
                                       title="Eliminar"
+                                      onClick={() => removeItem(index)}
                                     >
                                       <Trash2 className="h-3 w-3" />
                                     </Button>
