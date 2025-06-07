@@ -320,7 +320,7 @@ export async function patchPurchaseField(
 
   if (error || !data) throw error || new Error('Patch failed')
   revalidatePath(APP_URLS.PURCHASES.LIST)
-  revalidatePath(`${APP_URLS.PURCHASES.EDIT}/${id}`)
+  revalidatePath(`${APP_URLS.PURCHASES.VIEW(id)}`)
   return data
 }
 
@@ -382,6 +382,6 @@ export async function updatePurchaseStatus(
   }
 
   revalidatePath(APP_URLS.PURCHASES.LIST)
-  revalidatePath(`${APP_URLS.PURCHASES.EDIT}/${id}`)
+  revalidatePath(`${APP_URLS.PURCHASES.VIEW(id)}`)
   return purchase
 }

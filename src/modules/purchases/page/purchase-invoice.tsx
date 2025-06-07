@@ -1,13 +1,13 @@
 'use client'
 
+import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { Download, Share2 } from 'lucide-react'
 import type { PurchaseList } from '@/types'
-import { CombinedResultExtended } from '@/apis/app/productc.variants.list'
+import type { CombinedResultExtended } from '@/apis/app/productc.variants.list'
 import { StatusBadge } from '../components'
-import { patchPurchaseField, updatePurchaseStatus } from '@/apis/app'
+import { StatusModal } from '../components/status-modal'
+import { PaymentStatusModal } from '../components/payment-status-modal'
 
 interface PurchaseInvoiceProps {
   purchase: PurchaseList
@@ -18,6 +18,10 @@ export default function PurchaseInvoice({
   purchase,
   items
 }: PurchaseInvoiceProps) {
+  const [isStatusModalOpen, setIsStatusModalOpen] = useState(false)
+  const [isPaymentStatusModalOpen, setIsPaymentStatusModalOpen] =
+    useState(false)
+
   const formatDate = (date: Date | string | null | undefined) => {
     if (!date) return 'No especificada'
     return new Date(date).toLocaleDateString('es-ES', {
@@ -34,30 +38,8 @@ export default function PurchaseInvoice({
     }).format(amount)
   }
 
-  const handleDownload = () => {
-    // Convert to PDF or trigger download
-    window.print()
-  }
-
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `Orden de Compra ${purchase.code}`,
-          text: `Orden de compra de ${purchase.supplier?.name}`,
-          url: window.location.href
-        })
-      } catch (error) {
-        console.log('Error sharing:', error)
-      }
-    } else {
-      // Fallback: copy to clipboard
-      navigator.clipboard.writeText(window.location.href)
-    }
-  }
-
   return (
-    <div className="min-h-screen  print:bg-white">
+    <div className="min-h-screen print:bg-white">
       {/* Action Bar - Hidden on print */}
       <div className="print:hidden sticky top-0 z-10 bg-white border-b border-gray-200 px-6 py-4">
         <div className="w-full flex justify-between items-center">
@@ -66,19 +48,23 @@ export default function PurchaseInvoice({
               Orden de Compra #{purchase.code || 'Sin código'}
             </h1>
             <div className="flex items-center gap-2 text-sm text-gray-600">
-              <StatusBadge status={purchase.status} />
-              <StatusBadge payment_status={purchase.payment_status} />
+              {purchase.status !== 'completed' ? (
+                <div
+                  onClick={() => setIsStatusModalOpen(true)}
+                  className="cursor-pointer"
+                >
+                  <StatusBadge status={purchase.status} />
+                </div>
+              ) : (
+                <StatusBadge status={purchase.status} />
+              )}
+              <div
+                onClick={() => setIsPaymentStatusModalOpen(true)}
+                className="cursor-pointer"
+              >
+                <StatusBadge payment_status={purchase.payment_status} />
+              </div>
             </div>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={handleShare}>
-              <Share2 className="h-4 w-4 mr-2" />
-              Compartir
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleDownload}>
-              <Download className="h-4 w-4 mr-2" />
-              Descargar
-            </Button>
           </div>
         </div>
       </div>
@@ -399,52 +385,24 @@ export default function PurchaseInvoice({
                 </div>
               </div>
             )}
-
-            {/* Terms and Footer */}
-            {/* <div className="border-t border-gray-200 pt-8">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 text-xs text-gray-600">
-                <div>
-                  <h5 className="font-semibold text-gray-800 mb-3 uppercase tracking-wide">
-                    Términos y condiciones:
-                  </h5>
-                  <ul className="space-y-2 leading-relaxed">
-                    <li>
-                      • Los productos deben ser entregados en las condiciones
-                      acordadas
-                    </li>
-                    <li>
-                      • Cualquier discrepancia debe ser reportada dentro de 24
-                      horas
-                    </li>
-                    <li>
-                      • El pago se realizará según los términos acordados con el
-                      proveedor
-                    </li>
-                    <li>
-                      • Esta orden de compra está sujeta a los términos
-                      comerciales establecidos
-                    </li>
-                  </ul>
-                </div>
-                <div className="text-right">
-                  <p className="font-semibold text-gray-800 mb-2">
-                    Documento generado el:
-                  </p>
-                  <p className="text-gray-600">
-                    {new Date().toLocaleDateString('es-ES', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </p>
-                </div>
-              </div>
-            </div> */}
           </div>
         </div>
       </div>
+
+      {/* Modals */}
+      <StatusModal
+        isOpen={isStatusModalOpen}
+        onClose={() => setIsStatusModalOpen(false)}
+        purchaseId={purchase.id}
+        currentStatus={purchase.status || 'pending'}
+      />
+
+      <PaymentStatusModal
+        isOpen={isPaymentStatusModalOpen}
+        onClose={() => setIsPaymentStatusModalOpen(false)}
+        purchaseId={purchase.id}
+        currentPaymentStatus={purchase.payment_status || 'pending'}
+      />
     </div>
   )
 }
