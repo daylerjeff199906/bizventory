@@ -135,46 +135,6 @@ export async function updatePurchaseItem({
 }
 
 /**
- * Actualiza un solo campo de un item de compra
- * @param id - UUID del item
- * @param field - nombre del campo
- * @param value - nuevo valor
- * @returns Promise<PurchaseItem>
- */
-// export async function patchPurchaseItemField(
-//   id: string,
-//   field: keyof PurchaseItem,
-//   value: PurchaseItem[keyof PurchaseItem]
-// ): Promise<PurchaseItem> {
-//   const supabase = await getSupabase()
-//   const { data, error } = await supabase
-//     .from('purchase_items')
-//     .update({
-//       [field]: value,
-//       updated_at: new Date().toISOString(),
-//       ...(field === 'quantity' || field === 'price'
-//         ? {
-//             subtotal:
-//               field === 'quantity'
-//                 ? value * (data?.price || 0)
-//                 : (data?.quantity || 0) * value
-//           }
-//         : {})
-//     })
-//     .eq('id', id)
-//     .select()
-//     .single()
-
-//   if (error || !data) throw error || new Error('Purchase item patch failed')
-
-//   // Actualizar el subtotal de la compra relacionada
-//   await updatePurchaseTotal(data.purchase_id)
-
-//   revalidatePath(`${APP_URLS.PURCHASES.EDIT}/${data.purchase_id}`)
-//   return data
-// }
-
-/**
  * Elimina un item de compra por ID
  * @param id - UUID del item
  * @returns Promise<void>

@@ -223,7 +223,7 @@ export default function SuppliersList(props: IProps) {
         <div className="border rounded-lg">
           {filteredAndSortedSuppliers &&
           filteredAndSortedSuppliers?.length > 0 ? (
-            <Table>
+            <Table className="overflow-x-auto">
               <TableHeader>
                 <TableRow>
                   <TableHead>

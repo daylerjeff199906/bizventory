@@ -1,11 +1,15 @@
 // purchases.ts
 'use server'
 import { createClient } from '@/utils/supabase/server'
-import { Purchase, PurchaseItem, PurchaseList, ResApi, Supplier } from '@/types'
+import { Purchase, PurchaseList, ResApi, Supplier } from '@/types'
 import { revalidatePath } from 'next/cache'
 import { APP_URLS } from '@/config/app-urls'
 import { z } from 'zod'
 import { PurchaseSchema } from '@/modules/purchases'
+import {
+  CombinedResult,
+  CombinedResultExtended
+} from './productc.variants.list'
 
 /**
  * Instancia de Supabase en contexto de servidor
@@ -98,7 +102,9 @@ export async function getPurchases({
  */
 export async function getPurchaseById(
   id: string
-): Promise<(Purchase & { items: PurchaseItem[]; supplier: Supplier }) | null> {
+): Promise<
+  (Purchase & { items: CombinedResultExtended[]; supplier: Supplier }) | null
+> {
   const supabase = await getSupabase()
 
   // Obtener la compra con el proveedor
@@ -112,15 +118,63 @@ export async function getPurchaseById(
     throw purchaseError || new Error('Purchase not found')
   }
 
-  // Obtener los items de la compra
   const { data: itemsData, error: itemsError } = await supabase
     .from('purchase_items')
-    .select('*, product:products(*, brand:brands(*))')
+    .select(
+      `
+      *,
+      product:products(*, brand:brands(*)),
+      variant:product_variants(
+        id,
+        name,
+        description,
+        code,
+        attributes:product_variant_attributes(*)
+      )
+    `
+    )
     .eq('purchase_id', id)
 
-  if (itemsError) return null
+  if (itemsError) {
+    console.error(itemsError)
+    return null
+  }
 
-  return { ...purchaseData, items: itemsData || [] }
+  // Mapear los datos a la estructura CombinedResult
+  const items =
+    itemsData?.map((item) => {
+      const baseProduct = item.product
+        ? {
+            ...item.product,
+            brand: item.product.brand || null,
+            images: item.product.images || null
+          }
+        : null
+
+      const variantData = item.variant
+        ? {
+            variant_id: item.variant.id,
+            variant_name: item.variant.name,
+            variant_description: item.variant.description,
+            variant_code: item.variant.code,
+            attributes: item.variant.attributes
+          }
+        : {}
+
+      return {
+        ...baseProduct,
+        ...variantData,
+        // Campos específicos del purchase_item
+        quantity: item.quantity,
+        price: item.price,
+        discount: item.discount,
+        bar_code: item.bar_code,
+        original_variant_name: item.original_variant_name,
+        original_product_name: item.original_product_name
+      } as CombinedResult
+    }) || []
+
+  return { ...purchaseData, items, supplier: purchaseData.supplier || null }
 }
 
 /**
@@ -266,7 +320,7 @@ export async function patchPurchaseField(
 
   if (error || !data) throw error || new Error('Patch failed')
   revalidatePath(APP_URLS.PURCHASES.LIST)
-  revalidatePath(`${APP_URLS.PURCHASES.EDIT}/${id}`)
+  revalidatePath(`${APP_URLS.PURCHASES.VIEW(id)}`)
   return data
 }
 
@@ -292,4 +346,42 @@ export async function deletePurchase(id: string): Promise<void> {
   if (error) throw error
 
   revalidatePath(APP_URLS.PURCHASES.LIST)
+}
+
+/**
+ * Actualiza el campo status de una compra y ejecuta lógica adicional si es 'completed'
+ * @param id - UUID de la compra
+ * @param status - nuevo estado ('pending', 'completed', etc.)
+ * @returns Promise<Purchase>
+ */
+export async function updatePurchaseStatus(
+  id: string,
+  status: string
+): Promise<Purchase> {
+  const supabase = await getSupabase()
+  // Actualizar el campo status
+  const { data: purchase, error } = await supabase
+    .from('purchases')
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error || !purchase) throw error || new Error('Status update failed')
+
+  // Si el nuevo status es 'completed', ejecutar la función RPC para actualizar stock
+  if (status === 'completed') {
+    const { error: stockError } = await supabase.rpc(
+      'update_product_stock_after_purchase',
+      {
+        p_movement_type: 'entry',
+        p_purchase_id: purchase.id
+      }
+    )
+    if (stockError) throw stockError
+  }
+
+  revalidatePath(APP_URLS.PURCHASES.LIST)
+  revalidatePath(`${APP_URLS.PURCHASES.VIEW(id)}`)
+  return purchase
 }

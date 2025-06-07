@@ -113,15 +113,17 @@ export async function getProducts({
  * @param id - UUID del producto
  * @returns Promise<Product>
  */
-export async function getProductById(id: string): Promise<Product> {
+export async function getProductById(
+  id: string
+): Promise<ProductDetails | null> {
   const supabase = await getSupabase()
   const { data, error } = await supabase
     .from('products')
-    .select('*')
+    .select('*, brand:brands(*)')
     .eq('id', id)
     .single()
 
-  if (error || !data) throw error || new Error('Product not found')
+  if (error || !data) return null
   return data
 }
 

@@ -57,9 +57,22 @@ export async function getInventoryMovements({
 
   let query = supabase
     .from('inventory_movements')
-    .select('*, product:products(name, code, description,  brand:brands(*))')
+    .select(
+      '*, product:products(name, code, description, brand:brands(*)), variant:product_variants(*)'
+    )
     .range(from, to)
     .order(sortColumn, { ascending: sortDirection === 'asc' })
+
+  // traer los atributos de los productos desde product_variant_attributes
+  let queryWithAttributes = query.select(
+    `
+        *,
+        variant:product_variants(
+          *,
+          attributes:product_variant_attributes(attribute_type, attribute_value)
+        )
+      `
+  )
 
   if (filters) {
     Object.entries(filters).forEach(([key, value]) => {
@@ -92,8 +105,22 @@ export async function getInventoryMovements({
       total_pages: 0
     }
 
+  // Mapeamos los datos para agregar los detalles del producto
+  const mappedData: InventoryMovementWithProduct[] = data.map(
+    (item: InventoryMovementWithProduct) => ({
+      ...item,
+      product: item.product || {}, // Garantizamos que el producto exista
+      variant: item.variant || null, // Aseguramos que el variant esté presente
+      reference_type: item.reference_type || null,
+      movement_date: item.movement_date || item.date, // Usamos 'movement_date' si está presente, si no, usamos 'date'
+      movement_status: item.movement_status || 'completed', // Definimos un valor predeterminado para el estado
+      movement_type: item.movement_type || null,
+      
+    }),
+  )
+
   return {
-    data: data || [],
+    data: mappedData,
     page: currentPage,
     page_size: currentPageSize,
     total: count || 0,

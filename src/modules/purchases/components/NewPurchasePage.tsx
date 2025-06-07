@@ -43,19 +43,6 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
-import { useSuppliers } from '@/hooks/use-suppliers'
-import {
-  PurchaseSchema,
-  type CreatePurchaseData,
-  type PurchaseItem
-} from '../schemas'
-import { generatePurchaseCode } from './generate-code'
-import type { ProductDetails } from '@/types'
-import { ProductSelectorModal } from './product-selector-modal'
-import { toast } from 'react-toastify'
-import { ToastCustom } from '@/components/app/toast-custom'
-import { APP_URLS } from '@/config/app-urls'
-import { createPurchaseWithItems } from '@/apis/app'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -66,6 +53,22 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
+
+import { useSuppliers } from '@/hooks/use-suppliers'
+import {
+  PurchaseFormSchema,
+  PurchaseSchema,
+  type PurchaseFormData,
+  type CreatePurchaseData,
+  type PurchaseItem
+} from '@/modules/purchases/schemas'
+import { generatePurchaseCode } from './generate-code'
+import { ProductSelectorModal } from './product-selector-modal'
+import { toast } from 'react-toastify'
+import { ToastCustom } from '@/components/app/toast-custom'
+import { APP_URLS } from '@/config/app-urls'
+import { createPurchaseWithItems } from '@/apis/app'
+import type { CombinedResult } from '@/apis/app/productc.variants.list'
 
 // Función para generar código de barras aleatorio
 const generateBarCode = (): string => {
@@ -323,25 +326,29 @@ export const NewPurchasePage = () => {
   const [confirmOpen, setConfirmOpen] = useState(false)
 
   const router = useRouter()
-
   const { suppliers } = useSuppliers()
 
   const filteredSuppliers = suppliers.filter((supplier) =>
     supplier.name.toLowerCase().includes(searchSupplier.toLowerCase())
   )
 
-  const form = useForm<CreatePurchaseData>({
-    resolver: zodResolver(PurchaseSchema),
+  const form = useForm<PurchaseFormData>({
+    resolver: zodResolver(PurchaseFormSchema),
     defaultValues: {
       date: new Date().toISOString().split('T')[0],
       supplier_id: '',
       guide_number: '',
+      reference_number: '',
       code: '',
       subtotal: 0,
       discount: 0,
-      tax_rate: 18, // IGV por defecto 18%
+      tax_rate: 18,
       tax_amount: 0,
       total_amount: 0,
+      status: 'draft',
+      payment_status: 'pending',
+      notes: '',
+      inventory_updated: false,
       items: []
     }
   })
@@ -377,54 +384,59 @@ export const NewPurchasePage = () => {
     form.setValue('items', purchaseItems)
   }
 
-  const handleAddProduct = (product: ProductDetails) => {
-    const existingItem = purchaseItems.find(
-      (item) => item.product_id === product.id
-    )
-
-    if (existingItem) {
-      toast.error(
-        <ToastCustom
-          title="Producto ya agregado"
-          message="Este producto ya está en la lista de compra."
-        />
-      )
-      return
-    }
+  const handleAddProduct = (product: CombinedResult) => {
+    // Generar un ID único temporal para cada item
+    const tempId = `${product.id}-${
+      product.variant_id || 'no-variant'
+    }-${Date.now()}`
 
     const newItem: PurchaseItem = {
       product_id: product.id,
+      product_variant_id: product.has_variants ? product.variant_id : null,
       quantity: 1,
       price: 0,
       discount: 0,
       purchase_id: null,
-      code: generateProductCode(), // Generar código único para el producto
+      code: generateProductCode(),
+      _temp_id: tempId, // ID temporal único
       product: {
         id: product.id,
         name: product.name,
         unit: product.unit,
         brand: product.brand?.name || 'Sin marca',
         description: product.description || null
+      },
+      original_product_name: product.description,
+      original_variant_name: product.variant_name,
+      variant_attributes: product.attributes || [],
+      variant: {
+        id: product.variant_id || '',
+        name: product?.variant_name || '',
+        attributes: product.attributes || []
       }
     }
 
     setPurchaseItems([...purchaseItems, newItem])
   }
 
-  const handleEditItem = (item: PurchaseItem) => {
-    setEditingItem(item)
+  const handleEditItem = (item: PurchaseItem, index: number) => {
+    setEditingItem({ ...item, _index: index }) // Agregar índice temporal
     setEditDialogOpen(true)
   }
 
   const handleSaveEditedItem = (updatedItem: PurchaseItem) => {
-    const updatedItems = purchaseItems.map((item) =>
-      item.product_id === updatedItem.product_id ? updatedItem : item
-    )
+    const updatedItems = purchaseItems.map((item) => {
+      // Usar el ID temporal único para identificar el item exacto
+      return item._temp_id === editingItem?._temp_id ? updatedItem : item
+    })
     setPurchaseItems(updatedItems)
   }
 
-  const handleRemoveItem = (index: number) => {
-    const updatedItems = purchaseItems.filter((_, i) => i !== index)
+  const handleRemoveItem = (itemToRemove: PurchaseItem, index: number) => {
+    // Usar tanto el índice como el ID temporal para mayor seguridad
+    const updatedItems = purchaseItems.filter(
+      (item, i) => !(i === index && item._temp_id === itemToRemove._temp_id)
+    )
     setPurchaseItems(updatedItems)
   }
 
@@ -438,6 +450,22 @@ export const NewPurchasePage = () => {
       )
       return
     }
+
+    // Validar con el esquema final que requiere items
+    const formData = form.getValues()
+    const dataWithItems = { ...formData, items: purchaseItems }
+
+    const validation = PurchaseSchema.safeParse(dataWithItems)
+    if (!validation.success) {
+      toast.error(
+        <ToastCustom
+          title="Error de validación"
+          message="Por favor revisa los datos del formulario."
+        />
+      )
+      return
+    }
+
     setConfirmOpen(true)
   }
 
@@ -447,14 +475,17 @@ export const NewPurchasePage = () => {
     setConfirmOpen(false)
 
     try {
+      const purchaseData: CreatePurchaseData = {
+        ...data,
+        items: purchaseItems,
+        date: new Date(data.date).toISOString(),
+        code: data.code || generatePurchaseCode(),
+        subtotal: form.getValues('subtotal')
+      }
+
       const response = await createPurchaseWithItems({
         itemsData: purchaseItems,
-        purchaseData: {
-          ...data,
-          date: new Date(data.date).toISOString(),
-          code: data.code || generatePurchaseCode(),
-          subtotal: form.getValues('subtotal')
-        }
+        purchaseData
       })
 
       if (response.status === 'error') {
@@ -491,10 +522,37 @@ export const NewPurchasePage = () => {
     }
   }
 
-  const selectedProductIds = purchaseItems.map((item) => item.product_id)
+  const selectedProductIds = purchaseItems.map((item) => ({
+    productId: typeof item.product_id === 'string' ? item.product_id : null,
+    variantId:
+      typeof item.product_variant_id === 'string'
+        ? item.product_variant_id
+        : null
+  }))
 
   return (
     <div className="min-h-screen bg-white">
+      <div>
+        {/* Indicaciones para el registro de compras */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h3 className="font-semibold text-blue-800 mb-2">
+            Indicaciones para registrar una compra
+          </h3>
+          <ul className="list-disc pl-6 text-blue-900 space-y-1 text-sm">
+            <li>
+              El <span className="font-medium">número de guía</span> debe
+              corresponder al documento de la compra (guía, boleta, factura,
+              etc).
+            </li>
+            <li>
+              El <span className="font-medium">estado de la compra</span>{' '}
+              controla si afecta el inventario: solo en estado{' '}
+              <span className="font-medium text-green-700">completada</span> se
+              actualiza el stock.
+            </li>
+          </ul>
+        </div>
+      </div>
       <div className="w-full max-w-6xl mx-auto p-6">
         <Form {...form}>
           <form
@@ -512,7 +570,7 @@ export const NewPurchasePage = () => {
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2  gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <FormField
                   control={form.control}
                   name="code"
@@ -539,7 +597,8 @@ export const NewPurchasePage = () => {
                       <FormMessage />
                     </FormItem>
                   )}
-                />{' '}
+                />
+
                 <FormField
                   control={form.control}
                   name="supplier_id"
@@ -554,7 +613,7 @@ export const NewPurchasePage = () => {
                         value={field.value}
                       >
                         <FormControl>
-                          <SelectTrigger className="w-full">
+                          <SelectTrigger className="w-full max-w-[350px]">
                             <SelectValue
                               placeholder="Seleccionar proveedor"
                               className="w-full"
@@ -576,7 +635,7 @@ export const NewPurchasePage = () => {
                           {filteredSuppliers.length > 0 ? (
                             filteredSuppliers.map((supplier) => (
                               <SelectItem key={supplier.id} value={supplier.id}>
-                                {supplier.name} ( {supplier.document_type}{' '}
+                                {supplier.name} ({supplier.document_type}{' '}
                                 {supplier.document_number ||
                                   'Sin # de documento'}
                                 )
@@ -596,6 +655,7 @@ export const NewPurchasePage = () => {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
                   name="date"
@@ -607,7 +667,7 @@ export const NewPurchasePage = () => {
                       <FormControl>
                         <Input
                           type="date"
-                          //   value={field.value.toISOString().split('T')[0]}
+                          value={field.value}
                           onChange={(e) => field.onChange(e.target.value)}
                           max={new Date().toISOString().split('T')[0]}
                         />
@@ -619,6 +679,7 @@ export const NewPurchasePage = () => {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
                   name="guide_number"
@@ -632,6 +693,69 @@ export const NewPurchasePage = () => {
                       </FormControl>
                       <FormDescription>
                         Número de guía de remisión (O boleta de compras)
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base font-medium">
+                        Estado de la compra
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Seleccionar estado" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="draft">Borrador</SelectItem>
+                          <SelectItem value="pending">Pendiente</SelectItem>
+                          <SelectItem value="completed">Completada</SelectItem>
+                          <SelectItem value="cancelled">Cancelada</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Estado actual de la compra
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="payment_status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base font-medium">
+                        Estado del pago
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Seleccionar estado de pago" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="pending">Pendiente</SelectItem>
+                          <SelectItem value="partial">Parcial</SelectItem>
+                          <SelectItem value="paid">Pagado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Estado del pago de la compra
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -679,12 +803,23 @@ export const NewPurchasePage = () => {
                       {purchaseItems.map((item, index) => (
                         <TableRow key={index}>
                           <TableCell className="font-medium">
-                            {item.product?.brand} {item.product?.description}
+                            {item.product?.brand || ''}{' '}
+                            {item.product?.description && (
+                              <> {item.product.description}</>
+                            )}
+                            {item?.variant?.name && <>{item.variant.name}</>}
+                            {item?.variant_attributes &&
+                              item?.variant_attributes?.length > 0 && (
+                                <>
+                                  {' '}
+                                  {item?.variant_attributes
+                                    .map((attr) => ` ${attr.attribute_value}`)
+                                    .join(', ')}
+                                </>
+                              )}
                           </TableCell>
                           <TableCell>{item.code}</TableCell>
-                          <TableCell>
-                            {item.product?.brand || 'Sin marca'}
-                          </TableCell>
+
                           <TableCell>{item.product?.unit}</TableCell>
                           <TableCell className="font-medium">
                             {item.quantity}
@@ -721,7 +856,7 @@ export const NewPurchasePage = () => {
                                 type="button"
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleEditItem(item)}
+                                onClick={() => handleEditItem(item, index)}
                               >
                                 <Edit2 className="h-4 w-4 text-blue-500" />
                               </Button>
@@ -729,7 +864,7 @@ export const NewPurchasePage = () => {
                                 type="button"
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleRemoveItem(index)}
+                                onClick={() => handleRemoveItem(item, index)}
                               >
                                 <Trash2 className="h-4 w-4 text-red-500" />
                               </Button>
@@ -781,7 +916,7 @@ export const NewPurchasePage = () => {
                             min="0"
                             step="0.01"
                             placeholder="0.00"
-                            {...field}
+                            value={field.value || ''}
                             onChange={(e) =>
                               field.onChange(Number(e.target.value) || 0)
                             }
@@ -810,7 +945,7 @@ export const NewPurchasePage = () => {
                             min="0"
                             max="100"
                             step="0.01"
-                            {...field}
+                            value={field.value || ''}
                             onChange={(e) =>
                               field.onChange(Number(e.target.value) || 0)
                             }
@@ -829,29 +964,31 @@ export const NewPurchasePage = () => {
                   <div className="flex justify-between">
                     <span>Subtotal (con descuentos por producto):</span>
                     <span className="font-medium">
-                      S/ {form.watch('subtotal').toFixed(2)}
+                      S/ {(form.watch('subtotal') || 0).toFixed(2)}
                     </span>
                   </div>
-                  {(form.watch('discount') ?? 0) > 0 && (
+                  {(form.watch('discount') || 0) > 0 && (
                     <div className="flex justify-between text-red-600">
                       <span>Descuento general:</span>
                       <span>
-                        -S/ {(form.watch('discount') ?? 0).toFixed(2)}
+                        -S/ {(form.watch('discount') || 0).toFixed(2)}
                       </span>
                     </div>
                   )}
-                  {(form.watch('tax_amount') ?? 0) > 0 && (
+                  {(form.watch('tax_amount') || 0) > 0 && (
                     <div className="flex justify-between">
-                      <span>IGV ({form.watch('tax_rate') ?? 0}%):</span>
+                      <span>IGV ({form.watch('tax_rate') || 0}%):</span>
                       <span>
-                        S/ {(form.watch('tax_amount') ?? 0).toFixed(2)}
+                        S/ {(form.watch('tax_amount') || 0).toFixed(2)}
                       </span>
                     </div>
                   )}
                   <div className="border-t pt-3">
                     <div className="flex justify-between text-lg font-bold">
                       <span>Total:</span>
-                      <span>S/ {form.watch('total_amount').toFixed(2)}</span>
+                      <span>
+                        S/ {(form.watch('total_amount') || 0).toFixed(2)}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -886,7 +1023,6 @@ export const NewPurchasePage = () => {
           </form>
         </Form>
 
-        {/* Modal de selección de productos */}
         <ProductSelectorModal
           open={productModalOpen}
           onOpenChange={setProductModalOpen}
@@ -894,7 +1030,6 @@ export const NewPurchasePage = () => {
           selectedProductIds={selectedProductIds}
         />
 
-        {/* Modal de edición de productos */}
         <EditItemDialog
           item={editingItem}
           open={editDialogOpen}
@@ -902,14 +1037,13 @@ export const NewPurchasePage = () => {
           onSave={handleSaveEditedItem}
         />
 
-        {/* Dialogo de confirmación */}
         <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Confirmar compra</AlertDialogTitle>
               <AlertDialogDescription>
                 ¿Estás seguro que deseas registrar esta compra por un total de
-                S/ {form.watch('total_amount').toFixed(2)}?
+                S/ {(form.watch('total_amount') || 0).toFixed(2)}?
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
