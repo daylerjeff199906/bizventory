@@ -44,5 +44,8 @@ export const APP_URLS = {
     CREATE: `${URL_PREFIX}/customers/create`,
     EDIT: (id: string) => `${URL_PREFIX}/customers/${id}/edit`,
     VIEW: (id: string) => `${URL_PREFIX}/customers/${id}`
+  },
+  SETTINGS: {
+    GENERAL: `${URL_PREFIX}/settings`
   }
 }

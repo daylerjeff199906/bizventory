@@ -103,7 +103,8 @@ const navMain = [
     icon: Users,
     items: [
       { title: 'Gestión de Usuarios', url: '/users' },
-      { title: 'Roles y Permisos', url: '/roles' }
+      { title: 'Roles y Permisos', url: '/roles' },
+      { title: 'Configuración', url: APP_URLS.SETTINGS.GENERAL }
     ]
   }
 ]
