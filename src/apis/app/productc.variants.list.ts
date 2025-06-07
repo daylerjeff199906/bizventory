@@ -32,6 +32,11 @@ export interface CombinedResult extends ProductDetails {
   attributes?: VariantAttribute[]
 }
 
+export interface CombinedResultPrice extends CombinedResult {
+  price?: number
+  discount?: number
+}
+
 export interface CombinedResultExtended extends CombinedResult {
   quantity?: number
   price?: number
