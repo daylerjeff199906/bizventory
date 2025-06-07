@@ -7,7 +7,7 @@ export const APP_URLS = {
     CREATE_VARIANT: (id: string) =>
       `${URL_PREFIX}/products/${id}/create-variant`,
     MULTIMEDIA: (id: string) => `${URL_PREFIX}/products/${id}/media`,
-    EDIT: (id: string) => `${URL_PREFIX}/products/${id}/edit`,
+    EDIT: (id: string) => `${URL_PREFIX}/products/${id}`,
     VIEW: (id: string) => `${URL_PREFIX}/products/${id}`,
     PRODUCTS_STOCK: `${URL_PREFIX}/products-stock`,
     DETAIL: (id: string) => `${URL_PREFIX}/products/${id}/details`

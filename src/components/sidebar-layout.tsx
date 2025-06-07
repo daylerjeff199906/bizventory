@@ -56,8 +56,7 @@ const navMain = [
     icon: Warehouse,
     items: [
       { title: 'Estado de Stock', url: APP_URLS.PRODUCTS.PRODUCTS_STOCK },
-      { title: 'Historial de Movimientos', url: APP_URLS.PURCHASES.INVENTORY },
-      { title: 'Alertas de Stock', url: '/inventory/alerts' }
+      { title: 'Historial de Movimientos', url: APP_URLS.PURCHASES.INVENTORY }
     ]
   },
   {
@@ -96,8 +95,7 @@ const navMain = [
     icon: Contact2,
     items: [
       { title: 'Clientes', url: '/clients' },
-      { title: 'Proveedores', url: APP_URLS.SUPPLIERS.LIST },
-      { title: 'Relaciones', url: '/relationships' }
+      { title: 'Proveedores', url: APP_URLS.SUPPLIERS.LIST }
     ]
   },
   {

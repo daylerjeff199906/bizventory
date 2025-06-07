@@ -115,9 +115,9 @@ export const ProductSelectorModal = ({
                 )}
                 {!loading &&
                   items.map((product) => {
-                    const isVariant = product.has_variants || false
+                    const isVariant = product.variant_id !== undefined
                     const uuid = isVariant ? product.variant_id : product.id
-                    const isSelected = product.has_variants
+                    const isSelected = product.variant_id
                       ? selectedProductIds.some(
                           (sel) =>
                             String(product.id) === sel.productId &&
