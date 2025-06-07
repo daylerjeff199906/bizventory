@@ -51,14 +51,6 @@ export default function DemoPage(props: PurchaseInvoiceProps) {
 
   return (
     <div className="container mx-auto p-4 max-w-5xl">
-      {/* Header minimalista */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          Boleta de Compra
-        </h1>
-        <p className="text-gray-600">Genera y descarga el documento PDF</p>
-      </div>
-
       {/* Alert informativo */}
       <Alert className="mb-6">
         <Info className="h-4 w-4" />
@@ -165,15 +157,13 @@ export default function DemoPage(props: PurchaseInvoiceProps) {
                         {item.code || 'N/A'}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline" className="text-xs">
-                          {item?.brand?.name || ''} {item.description}{' '}
-                          {item?.variant_name}{' '}
-                          {item?.attributes &&
-                            item?.attributes?.length > 0 &&
-                            item.attributes
-                              .map((attr) => ` ${attr.attribute_value}`)
-                              .join(', ')}
-                        </Badge>
+                        {item?.brand?.name || ''} {item.description}{' '}
+                        {item?.variant_name}{' '}
+                        {item?.attributes &&
+                          item?.attributes?.length > 0 &&
+                          item.attributes
+                            .map((attr) => ` ${attr.attribute_value}`)
+                            .join(', ')}
                       </TableCell>
 
                       <TableCell className="text-center font-semibold">
@@ -269,7 +259,7 @@ export default function DemoPage(props: PurchaseInvoiceProps) {
       </Card>
 
       {/* Botón de descarga */}
-      <div className="flex justify-center">
+      <div className="flex justify-center fixed bottom-4 right-4 leading-4 left-1/2 transform -translate-x-1/3 p-4 bg-white shadow-lg rounded-lg z-10">
         <PurchasePDFGenerator
           purchase={purchase}
           items={items}

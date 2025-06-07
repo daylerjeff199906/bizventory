@@ -26,7 +26,7 @@ export default async function Page(props: Props) {
 
   return (
     <>
-      <PurchasesList purchasesData={purchases.data} />
+      <PurchasesList isReceiptPage purchasesData={purchases.data} />
     </>
   )
 }
