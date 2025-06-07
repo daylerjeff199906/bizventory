@@ -52,9 +52,12 @@ export default function ProductSelectionModal({
 
   const { items: products, loading, fetchItems } = useProductsPrices()
 
+  // Ensure each product has a stable unique temp_id based on product and variant
   const productsWithUniqueIds = products.map((product) => ({
     ...product,
-    temp_id: generateTempId()
+    temp_id: `temp_${product.id}${
+      product.variant_id ? `_${product.variant_id}` : ''
+    }`
   }))
 
   useEffect(() => {
@@ -207,7 +210,8 @@ export default function ProductSelectionModal({
                   {!loading &&
                     productsWithUniqueIds.map((product) => {
                       const isAdded = isProductAdded(product.temp_id)
-                      const isSelected = selectedProduct?.id === product.id
+                      const isSelected =
+                        selectedProduct?.temp_id === product.temp_id
 
                       const hasVariants = product.variant_id !== undefined
                       return (

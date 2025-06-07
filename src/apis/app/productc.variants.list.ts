@@ -35,6 +35,7 @@ export interface CombinedResult extends ProductDetails {
 export interface CombinedResultPrice extends CombinedResult {
   price?: number
   discount?: number
+  temp_id?: string // ID temporal para gestión local
 }
 
 export interface CombinedResultExtended extends CombinedResult {
