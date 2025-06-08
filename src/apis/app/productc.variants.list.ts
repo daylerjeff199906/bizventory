@@ -44,6 +44,12 @@ export interface CombinedResultExtended extends CombinedResult {
   bar_code?: string
   discount?: number
 }
+export interface CombinedResultExtendedSales extends CombinedResult {
+  quantity?: number
+  unit_price?: number
+  discount_amount?: number
+  total_price?: number
+}
 
 export async function getProductsAndVariantsForPurchase(
   searchTerm: string,
