@@ -178,18 +178,19 @@ export default function CreateSaleForm() {
   //   }
 
   const onSubmit = async (data: SaleFormValues) => {
+    console.log('Datos del formulario:', data)
     const saleData = {
       reference_number: data.reference_number,
-      //   total_amount: total,
       customer_id: null, // Cliente "otros" como solicitado
       payment_method: data.payment_method,
       shipping_address: data.shipping_address,
+      status: 'pending',
+      currency: data.currency
+      //   total_amount: total,
       //   tax_amount: taxAmount,
       //   tax_exempt: data.tax_exempt,
       //   discount_amount: totalDiscount,
       //   total_items: data.items.reduce((sum, item) => sum + item.quantity, 0),
-      status: 'pending',
-      currency: data.currency
     }
 
     console.log('Datos de venta:', saleData)

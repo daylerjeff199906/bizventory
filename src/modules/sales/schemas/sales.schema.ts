@@ -30,9 +30,6 @@ export const saleItemSchema = z.object({
 })
 
 export const saleFormSchema = z.object({
-  // currency: z.enum(['PEN', 'USD'], {
-  //   required_error: 'Selecciona una moneda'
-  // }),
   currency: z.string().min(1, 'Selecciona una moneda').optional(),
   reference_number: z.string().min(1, 'El número de referencia es requerido'),
   payment_method: z.string().min(1, 'Selecciona un método de pago'),
@@ -40,7 +37,6 @@ export const saleFormSchema = z.object({
   tax_rate: z.number().min(0).max(1, 'La tasa de IGV debe estar entre 0 y 1'),
   date: z.string().min(1, 'La fecha es requerida'),
   items: z.array(saleItemSchema).optional()
-  // tax_exempt: z.boolean(),
 })
 
 export type SaleFormValues = z.infer<typeof saleFormSchema>
