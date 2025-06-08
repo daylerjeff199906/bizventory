@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { APP_URLS } from '@/config/app-urls'
 import { z } from 'zod'
 import { ItemValues, SaleSchema } from '@/modules/sales'
+import { CombinedResultExtendedSales } from './productc.variants.list'
 // import { CombinedResult, CombinedResultExtended } from './product.variants.list'
 
 // Type definitions
@@ -39,7 +40,7 @@ export type SaleItem = {
 }
 
 export type SaleWithItems = Sale & {
-  //   items: CombinedResultExtended[]
+  items: CombinedResultExtendedSales[]
   customer: Customer | null
 }
 
@@ -156,77 +157,77 @@ export async function getSales({
  * @param id - UUID of the sale
  * @returns Promise<SaleWithItems | null>
  */
-// export async function getSaleById(id: string): Promise<SaleWithItems | null> {
-//   const supabase = await getSupabase()
+export async function getSaleById(id: string): Promise<SaleWithItems | null> {
+  const supabase = await getSupabase()
 
-//   // Get the sale with customer
-//   const { data: saleData, error: saleError } = await supabase
-//     .from('sales')
-//     .select('*, customer:customers(*)')
-//     .eq('id', id)
-//     .single()
+  // Get the sale with customer
+  const { data: saleData, error: saleError } = await supabase
+    .from('sales')
+    .select('*, customer:customers(*)')
+    .eq('id', id)
+    .single()
 
-//   if (saleError || !saleData) {
-//     throw saleError || new Error('Sale not found')
-//   }
+  if (saleError || !saleData) {
+    throw saleError || new Error('Sale not found')
+  }
 
-//   // Get sale items with product and variant details
-//   const { data: itemsData, error: itemsError } = await supabase
-//     .from('sale_items')
-//     .select(
-//       `
-//       *,
-//       product:products(*, brand:brands(*)),
-//       variant:product_variants(
-//         id,
-//         name,
-//         description,
-//         code,
-//         attributes:product_variant_attributes(*)
-//       )
-//     `
-//     )
-//     .eq('sale_id', id)
+  // Get sale items with product and variant details
+  const { data: itemsData, error: itemsError } = await supabase
+    .from('sale_items')
+    .select(
+      `
+      *,
+      product:products(*, brand:brands(*)),
+      variant:product_variants(
+        id,
+        name,
+        description,
+        code,
+        attributes:product_variant_attributes(*)
+      )
+    `
+    )
+    .eq('sale_id', id)
 
-//   if (itemsError) {
-//     console.error(itemsError)
-//     return null
-//   }
+  if (itemsError) {
+    console.error(itemsError)
+    return null
+  }
 
-//   // Map data to CombinedResult structure
-//   const items =
-//     itemsData?.map((item) => {
-//       const baseProduct = item.product
-//         ? {
-//             ...item.product,
-//             brand: item.product.brand || null,
-//             images: item.product.images || null
-//           }
-//         : null
+  // Map data to CombinedResult structure
+  const items =
+    itemsData?.map((item) => {
+      const baseProduct = item.product
+        ? {
+            ...item.product,
+            brand: item.product.brand || null,
+            images: item.product.images || null
+          }
+        : null
 
-//       const variantData = item.variant
-//         ? {
-//             variant_id: item.variant.id,
-//             variant_name: item.variant.name,
-//             variant_description: item.variant.description,
-//             variant_code: item.variant.code,
-//             attributes: item.variant.attributes
-//           }
-//         : {}
+      const variantData = item.variant
+        ? {
+            variant_id: item.variant.id,
+            variant_name: item.variant.name,
+            variant_description: item.variant.description,
+            variant_code: item.variant.code,
+            attributes: item.variant.attributes
+          }
+        : {}
 
-//       return {
-//         ...baseProduct,
-//         ...variantData,
-//         // Specific fields from sale_item
-//         quantity: item.quantity,
-//         unit_price: item.unit_price,
-//         discount_amount: item.discount_amount,
-//         total_price: item.total_price
-//       } as CombinedResultExtended
-//     }) || []
+      return {
+        ...baseProduct,
+        ...variantData,
+        // Specific fields from sale_item
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        discount_amount: item.discount_amount,
+        total_price: item.total_price
+      } as CombinedResultExtendedSales
+    }) || []
 
-//   return { ...saleData, items, customer: saleData.customer || null }
-// }
+  return { ...saleData, items, customer: saleData.customer || null }
+}
 
 /**
  * Create a new sale with its items

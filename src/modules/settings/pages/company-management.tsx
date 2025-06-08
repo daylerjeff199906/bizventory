@@ -49,7 +49,7 @@ import {
 import { updateCompanyInfo } from '@/apis/app'
 import { toast } from 'react-toastify'
 import { ToastCustom } from '@/components/app/toast-custom'
-
+import { useRouter } from 'next/navigation'
 interface CompanyManagementProps {
   company?: CompanyInfo | null
 }
@@ -64,6 +64,8 @@ export const CompanyManagement = (props: CompanyManagementProps) => {
   const [isUploadingLogo, setIsUploadingLogo] = useState(false)
   const [apiError, setApiError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+
+  const router = useRouter()
 
   // Configurar react-hook-form con valores por defecto
   const form = useForm<CompanyFormData>({
@@ -83,10 +85,8 @@ export const CompanyManagement = (props: CompanyManagementProps) => {
   const {
     watch,
     reset,
-    formState: { isDirty, errors }
+    formState: { isDirty }
   } = form
-
-  console.log('Form errors:', errors)
 
   // Observar el logo_url para mostrar la imagen actualizada
   const currentLogoUrl = watch('logo_url')
@@ -154,6 +154,7 @@ export const CompanyManagement = (props: CompanyManagementProps) => {
             message="La información de la empresa se ha actualizado correctamente."
           />
         )
+        router.refresh() // Refrescar la página para mostrar los cambios
       }
     } catch (error) {
       const errorMessage =
