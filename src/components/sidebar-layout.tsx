@@ -101,11 +101,18 @@ const navMain = [
 interface SidebarContentProps {
   isCollapsed?: boolean
   onNavigate?: () => void
+  user?: {
+    name?: string | null
+    email?: string | null
+    role?: string | null
+    avatarUrl?: string | null
+  }
 }
 
 function SidebarContent({
   isCollapsed = false,
-  onNavigate
+  onNavigate,
+  user
 }: SidebarContentProps) {
   const [openItems, setOpenItems] = useState<string[]>([])
 
@@ -192,16 +199,23 @@ function SidebarContent({
 
       {/* User Section */}
       <div className="border-t p-4">
-        <UserSection isCollapsed={isCollapsed} />
+        <UserSection isCollapsed={isCollapsed} user={user} />
       </div>
     </div>
   )
 }
 
 export default function SidebarLayout({
-  children
+  children,
+  user
 }: {
   children: React.ReactNode
+  user: {
+    name: string
+    email: string
+    role: string
+    avatarUrl?: string
+  }
 }) {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
@@ -216,7 +230,7 @@ export default function SidebarLayout({
           isCollapsed ? 'w-16' : 'w-64'
         )}
       >
-        <SidebarContent isCollapsed={isCollapsed} />
+        <SidebarContent isCollapsed={isCollapsed} user={user} />
 
         {/* Collapse Toggle */}
         <div className="border-t p-2">
@@ -247,7 +261,10 @@ export default function SidebarLayout({
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="p-0 w-64">
-          <SidebarContent onNavigate={() => setIsMobileOpen(false)} />
+          <SidebarContent
+            onNavigate={() => setIsMobileOpen(false)}
+            user={user}
+          />
         </SheetContent>
       </Sheet>
 
