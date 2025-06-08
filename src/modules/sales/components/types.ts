@@ -132,12 +132,11 @@ export interface ProductCombinedSelection {
   }
   stock?: number
   _temp_id?: string // ID temporal para gestión local
-  price?: number
+  price_unit?: number
 }
 
 export interface SelectedProductItem extends ProductCombinedSelection {
   quantity?: number
   discount?: number
-  price?: number
-  _temp_id?: string // ID temporal para gestión local
+  subtotal?: number
 }

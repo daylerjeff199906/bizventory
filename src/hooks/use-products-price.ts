@@ -22,6 +22,7 @@ export const useProductsPrices = () => {
       setError(null)
 
       const results = await getProductsWithVariantsAndStock(props)
+
       setItems(results)
     } catch (err) {
       setError(

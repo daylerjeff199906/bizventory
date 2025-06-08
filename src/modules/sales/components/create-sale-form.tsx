@@ -37,10 +37,10 @@ import {
   DollarSign,
   Pencil
 } from 'lucide-react'
-import { saleFormSchema, SaleFormValues, SaleItemValues } from '../schemas'
+import { saleFormSchema, SaleFormValues } from '../schemas'
 import { Currency } from '@/types'
 import ProductSelectionModal from './product-selection-modal'
-import { CombinedResultPrice, SaleItemInput } from './types'
+import { SelectedProductItem } from './types'
 // import ProductSelectionModal from './product-selection-modal'
 // import EditProductModal from './edit-product-modal'
 
@@ -61,9 +61,9 @@ export default function CreateSaleForm() {
     defaultValues: {
       currency: 'PEN',
       reference_number: '',
-      payment_method: '',
+      payment_method: 'efectivo',
       shipping_address: '',
-      tax_rate: 0.18,
+      tax_rate: 0,
       date: new Date().toISOString().split('T')[0], // Fecha actual en formato YYYY-MM-DD
       items: []
     }
@@ -72,7 +72,9 @@ export default function CreateSaleForm() {
   const { watch, setValue, getValues } = form
 
   // Watch para cambios en tiempo real
+  // const watchedItems: SelectedProductItem[] = watch('items')
   const watchedItems = watch('items')
+  console.log('Watched Items:', watchedItems)
   const watchedCurrency = watch('currency') as Currency
   //   const watchedTaxExempt = watch('tax_exempt') ?? false
   const watchedTaxExempt = 0
@@ -99,39 +101,48 @@ export default function CreateSaleForm() {
   // Calcular totales
   const { subtotal, totalDiscount, taxAmount, total } = useMemo(() => {
     const subtotal =
-      watchedItems?.reduce((sum, item) => sum + item.total_price, 0) ?? 0
+      watchedItems?.reduce((sum, item) => sum + (item?.price_unit ?? 0), 0) ?? 0
     const totalDiscount =
-      watchedItems?.reduce((sum, item) => sum + item.discount_amount, 0) ?? 0
+      watchedItems?.reduce((sum, item) => sum + (item?.discount ?? 0), 0) ?? 0
     const taxAmount = watchedTaxExempt ? 0 : subtotal * watchedTaxRate
     const total = subtotal + taxAmount
 
     return { subtotal, totalDiscount, taxAmount, total }
   }, [watchedItems, watchedTaxExempt, watchedTaxRate])
 
-  const addedProductIds = watchedItems?.map((item) => item.product_id)
+  const addedProductIds: string[] =
+    watchedItems?.map((item) => item._temp_id || '') || []
+  console.log('Added Product IDs:', addedProductIds)
 
   // Función para convertir CombinedResultPrice a SaleItemInput
-  const convertToSaleItem = (product: CombinedResultPrice): SaleItemInput => {
-    const isVariant = !!product.variant_id
+  // const convertToSaleItem = (product: SelectedProductItem): SaleItemInput => {
+  //   const isVariant = !!product.variant_id
 
-    return {
-      temp_id:
-        product.temp_id ||
-        `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      product_id: isVariant ? product.variant_id ?? '' : product.id ?? '',
-      product_name: [
-        product.brand?.name,
-        product.name || product.description,
-        isVariant && `- ${product.variant_name || product.variant_description}`
-      ]
-        .filter(Boolean)
-        .join(' '),
-      quantity: 1,
-      unit_price: product.price || 0,
-      discount_amount: product.discount || 0,
-      total_price: (product.price || 0) - (product.discount || 0)
-    }
-  }
+  //   return {
+  //     temp_id:
+  //       product._temp_id ||
+  //       `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+  //     product_id: isVariant
+  //       ? product.variant_id ?? ''
+  //       : product.product_id ?? '',
+  //     product_name: [
+  //       product.brand?.name,
+  //       product.product_description,
+  //       isVariant && `${product.variant_name}`,
+  //       isVariant && product.attributes && product.attributes.length > 0
+  //         ? product.attributes
+  //             .map((attr) => `${attr.attribute_value}`)
+  //             .join(', ')
+  //         : ''
+  //     ]
+  //       .filter(Boolean)
+  //       .join(' '),
+  //     quantity: 1,
+  //     unit_price: product.price || 0,
+  //     discount_amount: product.discount || 0,
+  //     total_price: (product.price || 0) - (product.discount || 0)
+  //   }
+  // }
 
   //   const handleUpdateProduct = (index: number, updatedItem: SaleItemValues) => {
   //     const currentItems = getValues('items')
@@ -155,7 +166,7 @@ export default function CreateSaleForm() {
     const currentItems = getValues('items')
     setValue(
       'items',
-      currentItems?.filter((item) => item.temp_id !== tempId),
+      currentItems?.filter((item) => item._temp_id !== tempId),
       { shouldValidate: true }
     )
   }
@@ -186,7 +197,7 @@ export default function CreateSaleForm() {
   }
 
   // Handler principal que recibe SaleItemInput
-  const handleAddProduct = (item: SaleItemInput) => {
+  const handleAddProduct = (item: SelectedProductItem) => {
     const currentItems = getValues('items')
     setValue('items', [...(currentItems || []), item], {
       shouldValidate: true
@@ -195,10 +206,6 @@ export default function CreateSaleForm() {
   }
 
   // Adaptador para el modal que convierte CombinedResultPrice a SaleItemInput
-  const handleProductSelection = (product: CombinedResultPrice) => {
-    const saleItem = convertToSaleItem(product)
-    handleAddProduct(saleItem)
-  }
 
   return (
     <div className="container mx-auto p-6 max-w-6xl">
@@ -458,7 +465,11 @@ export default function CreateSaleForm() {
                                 Cant.
                               </th>
                               <th className="text-right py-3 px-2 text-sm font-medium text-gray-700">
-                                Precio
+                                P.Unit.
+                              </th>
+
+                              <th className="text-right py-3 px-2 text-sm font-medium text-gray-700">
+                                Subtotal
                               </th>
                               <th className="text-right py-3 px-2 text-sm font-medium text-gray-700">
                                 Desc.
@@ -482,7 +493,22 @@ export default function CreateSaleForm() {
                                 </td>
                                 <td className="py-3 px-2">
                                   <div className="text-sm font-medium text-gray-900">
-                                    {item.product_name}
+                                    {item.brand?.name}{' '}
+                                    {item.product_description}
+                                    {item.variant_name && (
+                                      <>{item.variant_name}</>
+                                    )}{' '}
+                                    {item.attributes &&
+                                      item.attributes.length > 0 && (
+                                        <>
+                                          {item.attributes
+                                            .map(
+                                              (attr) =>
+                                                `${attr.attribute_value}`
+                                            )
+                                            .join(', ')}
+                                        </>
+                                      )}
                                   </div>
                                 </td>
                                 <td className="py-3 px-2 text-center">
@@ -492,19 +518,27 @@ export default function CreateSaleForm() {
                                 </td>
                                 <td className="py-3 px-2 text-right text-sm">
                                   {currencySymbol}
-                                  {item.unit_price.toFixed(2)}
+                                  {item?.price_unit?.toFixed(2)}
+                                </td>
+                                <td className="py-3 px-2 text-right text-sm font-semibold">
+                                  {currencySymbol}
+                                  {(
+                                    (item?.price_unit ?? 0) *
+                                    (item?.quantity ?? 0)
+                                  ).toFixed(2)}
                                 </td>
                                 <td className="py-3 px-2 text-right">
-                                  {item.discount_amount > 0 ? (
+                                  {item?.discount && item?.discount > 0 ? (
                                     <div>
-                                      <div className="text-sm text-green-600">
+                                      <div className="text-sm text-red-600 truncate">
                                         -{currencySymbol}
-                                        {item.discount_amount.toFixed(2)}
+                                        {item?.discount?.toFixed(2)}
                                       </div>
                                       <div className="text-xs text-green-500">
                                         {(
-                                          (item.discount_amount /
-                                            (item.unit_price * item.quantity)) *
+                                          (item.discount /
+                                            ((item?.price_unit ?? 0) *
+                                              (item?.quantity ?? 0) || 1)) *
                                           100
                                         ).toFixed(1)}
                                         %
@@ -518,7 +552,7 @@ export default function CreateSaleForm() {
                                 </td>
                                 <td className="py-3 px-2 text-right text-sm font-semibold">
                                   {currencySymbol}
-                                  {item.total_price.toFixed(2)}
+                                  {item?.subtotal?.toFixed(2)}
                                 </td>
                                 <td className="py-3 px-2">
                                   <div className="flex justify-center gap-1">
@@ -538,7 +572,7 @@ export default function CreateSaleForm() {
                                       className="h-7 w-7 p-0 text-gray-400 hover:text-red-600"
                                       title="Eliminar"
                                       onClick={() =>
-                                        removeItem(item.temp_id || '')
+                                        removeItem(item._temp_id || '')
                                       }
                                     >
                                       <Trash2 className="h-3 w-3" />
@@ -548,41 +582,6 @@ export default function CreateSaleForm() {
                               </tr>
                             ))}
                           </tbody>
-                          <tfoot>
-                            <tr className="border-t border-gray-200">
-                              <td
-                                colSpan={2}
-                                className="py-3 px-2 text-sm font-semibold text-gray-900"
-                              >
-                                Totales
-                              </td>
-                              <td className="py-3 px-2 text-center text-sm font-medium">
-                                {watchedItems.reduce(
-                                  (sum, item) => sum + item.quantity,
-                                  0
-                                )}
-                              </td>
-                              <td className="py-3 px-2 text-right text-sm text-gray-500">
-                                {watchedItems.length} producto
-                                {watchedItems.length !== 1 ? 's' : ''}
-                              </td>
-                              <td className="py-3 px-2 text-right text-sm">
-                                {totalDiscount > 0 ? (
-                                  <span className="text-green-600 font-medium">
-                                    -{currencySymbol}
-                                    {totalDiscount.toFixed(2)}
-                                  </span>
-                                ) : (
-                                  <span className="text-gray-300">-</span>
-                                )}
-                              </td>
-                              <td className="py-3 px-2 text-right text-sm font-bold">
-                                {currencySymbol}
-                                {subtotal.toFixed(2)}
-                              </td>
-                              <td className="py-3 px-2"></td>
-                            </tr>
-                          </tfoot>
                         </table>
                       </div>
                     </div>
@@ -674,7 +673,7 @@ export default function CreateSaleForm() {
                       <div>
                         Cantidad total:{' '}
                         {watchedItems?.reduce(
-                          (sum, item) => sum + item.quantity,
+                          (sum, item) => sum + (item.quantity ?? 0),
                           0
                         )}
                       </div>
@@ -703,7 +702,7 @@ export default function CreateSaleForm() {
       <ProductSelectionModal
         isOpen={isProductModalOpen}
         onClose={() => setIsProductModalOpen(false)}
-        onAddProduct={handleProductSelection} // ← Ahora los tipos coinciden
+        onAddProduct={handleAddProduct} // ← Ahora los tipos coinciden
         addedProductIds={addedProductIds || []}
         currency={watchedCurrency}
       />

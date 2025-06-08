@@ -1,14 +1,32 @@
 import { z } from 'zod'
-
 export const saleItemSchema = z.object({
-  temp_id: z.string().optional(),
+  code: z.string().optional(),
   product_id: z.string().min(1, 'ID del producto es requerido'),
   variant_id: z.string().optional(),
-  product_name: z.string().min(1, 'Nombre del producto es requerido'),
-  quantity: z.number().min(1, 'La cantidad debe ser mayor a 0'),
-  unit_price: z.number().min(0, 'El precio debe ser mayor o igual a 0'),
-  discount_amount: z.number().min(0, 'El descuento debe ser mayor o igual a 0'),
-  total_price: z.number().min(0, 'El total debe ser mayor o igual a 0')
+  product_name: z.string().optional(),
+  product_description: z.string().nullable(),
+  variant_name: z.string().optional(),
+  attributes: z
+    .array(
+      z.object({
+        attribute_type: z.string(),
+        attribute_value: z.string()
+      })
+    )
+    .optional(),
+  unit: z.string().optional(),
+  brand: z
+    .object({
+      id: z.string(),
+      name: z.string()
+    })
+    .optional(),
+  stock: z.number().optional(),
+  _temp_id: z.string().optional(),
+  price_unit: z.number().optional(),
+  subtotal: z.number().optional(),
+  quantity: z.number().optional(),
+  discount: z.number().optional()
 })
 
 export const saleFormSchema = z.object({

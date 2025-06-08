@@ -11,7 +11,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import {
@@ -20,7 +19,6 @@ import {
   Plus,
   ShoppingCart,
   AlertCircle,
-  Tag,
   Box,
   Settings,
   X
@@ -52,7 +50,7 @@ function ProductConfigPanel({
   onCancel: () => void
 }) {
   const [quantity, setQuantity] = useState(1)
-  const [basePrice, setBasePrice] = useState(product.price || 0)
+  const [basePrice, setBasePrice] = useState(product.price_unit || 0)
   const [discountAmount, setDiscountAmount] = useState(0)
 
   const maxDiscount = basePrice * quantity
@@ -62,7 +60,8 @@ function ProductConfigPanel({
     const selectedItem: SelectedProductItem = {
       ...product,
       quantity,
-      price: basePrice,
+      price_unit: basePrice,
+      subtotal: finalPrice,
       discount: discountAmount,
       _temp_id: `temp-${product.product_id}-${product.variant_id || ''}`,
       attributes: product.attributes || [],
@@ -91,160 +90,151 @@ function ProductConfigPanel({
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex items-center justify-between px-4 py-2 border-b">
-        <div className="flex items-center gap-2">
-          <Settings className="h-4 w-4" />
-          <h3 className="font-medium text-sm">Detalles del Producto</h3>
-        </div>
-        <Button variant="ghost" size="sm" onClick={onCancel}>
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
-
-      <div className="flex-1 p-4 space-y-4">
-        <div className="p-3 bg-muted rounded-md">
+      <ScrollArea className="flex-1 p-4 h-full max-h-[calc(100vh-200px)]">
+        <div className="flex items-center justify-between px-4 py-2 border-b">
           <div className="flex items-center gap-2">
-            <p className="text-xs text-muted-foreground">{product.code}</p>
+            <Settings className="h-4 w-4" />
+            <h3 className="font-medium text-sm">Detalles del Producto</h3>
           </div>
-          <h4 className="font-medium text-sm">
-            {product?.brand?.name || ''}
-            {product.product_description}
-            {product?.variant_id && product.variant_name
-              ? ` - ${product.variant_name}`
-              : ''}
-            {product?.attributes && product.attributes.length > 0
-              ? ` ${product.attributes
-                  .map((attr) => `${attr.attribute_value}`)
-                  .join(', ')}`
-              : ''}
-          </h4>
-
-          <p className="text-xs text-muted-foreground mt-2">
-            Stock disponible: {product.stock} {product.unit}
-          </p>
+          <Button variant="ghost" size="sm" onClick={onCancel}>
+            <X className="h-4 w-4" />
+          </Button>
         </div>
 
-        {product.attributes && product.attributes.length > 0 && (
-          <div className="space-y-2">
-            <Label className="text-xs font-medium">Atributos</Label>
-            <div className="flex flex-wrap gap-1">
-              {product.attributes.map((attr, index) => (
-                <Badge key={index} variant="secondary" className="text-xs">
-                  <Tag className="h-3 w-3 mr-1" />
-                  {attr.attribute_type}: {attr.attribute_value}
-                </Badge>
-              ))}
+        <div className="flex-1 p-4 space-y-4">
+          <div className="p-3 bg-muted rounded-md">
+            <div className="flex items-center gap-2">
+              <p className="text-xs text-muted-foreground">{product.code}</p>
             </div>
-          </div>
-        )}
+            <h4 className="font-medium text-sm">
+              {product?.brand?.name || ''}
+              {product.product_description}
+              {product?.variant_id && product.variant_name
+                ? ` - ${product.variant_name}`
+                : ''}
+              {product?.attributes && product.attributes.length > 0
+                ? ` ${product.attributes
+                    .map((attr) => `${attr.attribute_value}`)
+                    .join(', ')}`
+                : ''}
+            </h4>
 
-        <div className="grid grid-cols-1 gap-4">
-          <div>
-            <Label htmlFor="quantity" className="text-sm">
-              Cantidad
-            </Label>
-            <Input
-              id="quantity"
-              type="number"
-              min="1"
-              max={product.stock || 0}
-              value={quantity}
-              onChange={(e) =>
-                setQuantity(Math.max(1, Number.parseInt(e.target.value) || 1))
-              }
-              className="mt-1"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="price" className="text-sm">
-              Precio Unitario
-            </Label>
-            <Input
-              id="price"
-              type="number"
-              min="0"
-              step="0.01"
-              value={basePrice}
-              onChange={(e) =>
-                setBasePrice(Number.parseFloat(e.target.value) || 0)
-              }
-              className="mt-1"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="discount" className="text-sm">
-              Descuento Total
-            </Label>
-            <Input
-              id="discount"
-              type="number"
-              min="0"
-              max={maxDiscount}
-              step="0.01"
-              value={discountAmount}
-              disabled={
-                basePrice <= 0 ||
-                quantity <= 0 ||
-                !product.stock ||
-                product.stock <= 0 ||
-                maxDiscount <= 0
-              }
-              onChange={(e) =>
-                setDiscountAmount(
-                  Math.min(maxDiscount, Number.parseFloat(e.target.value) || 0)
-                )
-              }
-              className="mt-1"
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              Máximo: {currency}
-              {maxDiscount.toFixed(2)}
+            <p className="text-xs text-muted-foreground mt-2">
+              Stock disponible: {product.stock} {product.unit}
             </p>
           </div>
-        </div>
 
-        <div className="p-3 bg-primary/5 rounded-md text-sm">
-          <div className="flex justify-between items-center">
-            <span className="font-medium">Total:</span>
-            <span className="text-sm  font-bold">
-              {currency}
-              {finalPrice.toFixed(2)}
-            </span>
+          <div className="grid grid-cols-1 gap-4">
+            <div>
+              <Label htmlFor="quantity" className="text-sm">
+                Cantidad
+              </Label>
+              <Input
+                id="quantity"
+                type="number"
+                min="1"
+                max={product.stock || 0}
+                value={quantity}
+                onChange={(e) =>
+                  setQuantity(Math.max(1, Number.parseInt(e.target.value) || 1))
+                }
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="price" className="text-sm">
+                Precio Unitario
+              </Label>
+              <Input
+                id="price"
+                type="number"
+                min="0"
+                step="0.01"
+                value={basePrice}
+                onChange={(e) =>
+                  setBasePrice(Number.parseFloat(e.target.value) || 0)
+                }
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="discount" className="text-sm">
+                Descuento Total
+              </Label>
+              <Input
+                id="discount"
+                type="number"
+                min="0"
+                max={maxDiscount}
+                step="0.01"
+                value={discountAmount}
+                disabled={
+                  basePrice <= 0 ||
+                  quantity <= 0 ||
+                  !product.stock ||
+                  product.stock <= 0 ||
+                  maxDiscount <= 0
+                }
+                onChange={(e) =>
+                  setDiscountAmount(
+                    Math.min(
+                      maxDiscount,
+                      Number.parseFloat(e.target.value) || 0
+                    )
+                  )
+                }
+                className="mt-1"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Máximo: {currency}
+                {maxDiscount.toFixed(2)}
+              </p>
+            </div>
           </div>
-          {discountAmount > 0 && (
-            <div className="flex justify-between items-center text-xs mt-1 text-red-600">
-              <span>Descuento aplicado:</span>
-              <span>
-                -{currency}
-                {discountAmount.toFixed(2)}
+
+          <div className="p-3 bg-primary/5 rounded-md text-sm">
+            <div className="flex justify-between items-center">
+              <span className="font-medium">Total:</span>
+              <span className="text-sm  font-bold">
+                {currency}
+                {finalPrice.toFixed(2)}
               </span>
             </div>
-          )}
+            {discountAmount > 0 && (
+              <div className="flex justify-between items-center text-xs mt-1 text-red-600">
+                <span>Descuento aplicado:</span>
+                <span>
+                  -{currency}
+                  {discountAmount.toFixed(2)}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
 
-      <div className="p-4 border-t">
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={onCancel}
-            className="flex-1"
-            size="sm"
-          >
-            Cancelar
-          </Button>
-          <Button
-            onClick={handleConfirm}
-            disabled={!isValidConfiguration()}
-            className="flex-1"
-            size="sm"
-          >
-            Agregar Producto
-          </Button>
+        <div className="p-4 border-t sticky bottom-0 bg-background">
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={onCancel}
+              className="flex-1"
+              size="sm"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleConfirm}
+              disabled={!isValidConfiguration()}
+              className="flex-1"
+              size="sm"
+            >
+              Agregar Producto
+            </Button>
+          </div>
         </div>
-      </div>
+      </ScrollArea>
     </div>
   )
 }
@@ -268,7 +258,7 @@ function ProductItem({
   return (
     <div
       className={`
-      p-3 border rounded-md transition-all hover:shadow-sm cursor-pointer
+      p-3 border shadow-none rounded-md transition-all hover:shadow-sm cursor-pointer
       ${isOutOfStock ? 'opacity-50 bg-muted/30' : 'hover:border-primary/20'}
       ${isSelected ? 'border-primary bg-primary/5' : ''}
       ${isConfiguring ? 'border-primary bg-primary/10' : ''}
@@ -281,18 +271,14 @@ function ProductItem({
             <Box className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
             <div className="flex-1">
               <h4 className="font-medium text-sm leading-tight">
-                {product.brand?.name || ''}
-                {''}
-                {product.product_description || ''}
-                {product?.variant_id && product.variant_name}
+                {product.brand?.name || ''} {product.product_description || ''}
+                {product?.variant_id && product.variant_name}{' '}
                 {product?.attributes && product.attributes.length > 0 && (
-                  <span className="text-xs text-muted-foreground ml-1">
-                    (
+                  <>
                     {product.attributes
                       .map((attr) => `${attr.attribute_value}`)
                       .join(', ')}
-                    )
-                  </span>
+                  </>
                 )}
               </h4>
             </div>
@@ -310,10 +296,10 @@ function ProductItem({
                 </div>
               )}
             </div>
-            {product.price && (
+            {product.price_unit && (
               <span className="text-sm font-medium">
                 {currency}
-                {product.price.toFixed(2)}
+                {product.price_unit.toFixed(2)}
               </span>
             )}
           </div>
@@ -372,7 +358,8 @@ export const transformProductsToCombinedSelection = (
           unit: product.unit,
           brand: product.brand,
           stock: variant.stock,
-          price: variant.price,
+          price_unit: variant.price_unit,
+          attributes: variant.attributes || [],
           _temp_id: `temp-${product.id}-${variant.id}`
         })
       })
@@ -385,7 +372,7 @@ export const transformProductsToCombinedSelection = (
         unit: product.unit,
         brand: product.brand,
         stock: product.stock,
-        price: product.price,
+        price_unit: product.price_unit,
         _temp_id: `temp-${product.id}`
       })
     }

@@ -14,7 +14,8 @@ export interface ProductVariant {
   updated_at: string | null
   attributes?: VariantAttributeType[]
   stock?: number // Calculado dinámicamente
-  price?: number
+  price_unit?: number
+  subtotal?: number // Para manejo de UI
 }
 
 // Tipos para productos principales
@@ -34,7 +35,8 @@ export interface Product {
   updated_at: string | null
   variants?: ProductVariant[] // Solo si has_variants = true
   stock?: number // Calculado dinámicamente (solo si no tiene variantes)
-  price?: number
+  price_unit?: number
+  subtotal?: number // Para manejo de UI
 }
 
 // Tipos para la respuesta
