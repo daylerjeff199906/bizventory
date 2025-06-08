@@ -93,7 +93,7 @@ export default function CompanyManagement() {
 
       setCompany(updatedCompany)
       setIsEditing(false)
-    } catch (error) {
+    } catch {
     } finally {
       setIsLoading(false)
     }
@@ -130,7 +130,7 @@ export default function CompanyManagement() {
       //     description: 'El logo se ha subido correctamente.',
       //     duration: 3000
       //   })
-    } catch (error) {
+    } catch {
       //   toast({
       //     title: '❌ Error al subir logo',
       //     description: 'No se pudo subir el logo. Inténtalo nuevamente.',
