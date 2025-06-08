@@ -115,7 +115,8 @@ export async function getSales({
 
   let query = supabase
     .from('sales')
-    .select('*, customer:customers(*)')
+    // .select('*, customer:customers(*)')
+    .select('*')
     .range(from, to)
     .order(sortColumn, { ascending: sortDirection === 'asc' })
 
