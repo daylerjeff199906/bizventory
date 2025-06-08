@@ -37,10 +37,14 @@ import {
   DollarSign,
   Pencil
 } from 'lucide-react'
-import { saleFormSchema, SaleFormValues } from '../schemas'
+import { saleFormSchema, SaleFormValues, SaleItemValues } from '../schemas'
 import { Currency } from '@/types'
 import ProductSelectionModal from './product-selection-modal'
 import { SelectedProductItem } from './types'
+import { SaleValues, ItemValues } from '../schemas'
+import { createSale } from '@/apis/app/sales'
+import { toast } from 'react-toastify'
+import { ToastCustom } from '@/components/app/toast-custom'
 // import ProductSelectionModal from './product-selection-modal'
 // import EditProductModal from './edit-product-modal'
 
@@ -73,7 +77,7 @@ export default function CreateSaleForm() {
 
   // Watch para cambios en tiempo real
   // const watchedItems: SelectedProductItem[] = watch('items')
-  const watchedItems = watch('items')
+  const watchedItems = getValues('items') as SaleItemValues[] | undefined
   console.log('Watched Items:', watchedItems)
   const watchedCurrency = watch('currency') as Currency
   //   const watchedTaxExempt = watch('tax_exempt') ?? false
@@ -179,22 +183,52 @@ export default function CreateSaleForm() {
 
   const onSubmit = async (data: SaleFormValues) => {
     console.log('Datos del formulario:', data)
-    const saleData = {
+    const saleData: SaleValues = {
+      customer_id: null, // Aquí puedes agregar el ID del cliente si es necesario
       reference_number: data.reference_number,
-      customer_id: null, // Cliente "otros" como solicitado
+      date: data.date,
       payment_method: data.payment_method,
-      shipping_address: data.shipping_address,
-      status: 'pending',
-      currency: data.currency
-      //   total_amount: total,
-      //   tax_amount: taxAmount,
-      //   tax_exempt: data.tax_exempt,
-      //   discount_amount: totalDiscount,
-      //   total_items: data.items.reduce((sum, item) => sum + item.quantity, 0),
+      shipping_address: data.shipping_address || '',
+      discount_amount: totalDiscount,
+      tax_amount: taxAmount,
+      total_items: watchedItems?.length || 0,
+      total_amount: total,
+      salesperson_id: null, // Aquí puedes agregar el ID del vendedor si es necesario
+      status: 'completed' // O el estado que desees
     }
 
-    console.log('Datos de venta:', saleData)
-    alert('Venta creada exitosamente!')
+    const items: ItemValues[] =
+      watchedItems?.map((item: SaleItemValues) => ({
+        product_id: item.product_id,
+        product_variant_id: item.variant_id || null,
+        quantity: item.quantity || 1,
+        unit_price: item.price_unit || 0,
+        discount_amount: item.discount || 0,
+        total_price:
+          (item.price_unit || 0) * (item.quantity || 1) - (item.discount || 0)
+      })) || []
+
+    const response = await createSale({
+      items: items,
+      saleData: saleData
+    })
+
+    if (response) {
+      toast.success(
+        <ToastCustom
+          title="Venta creada exitosamente"
+          message={`La venta con número de referencia ${data.reference_number} ha sido creada.`}
+        />
+      )
+      // Aquí puedes manejar la respuesta, como redirigir o mostrar un mensaje de éxito
+    } else {
+      toast.error(
+        <ToastCustom
+          title="Error al crear la venta"
+          message="Hubo un problema al crear la venta. Por favor, inténtalo de nuevo."
+        />
+      )
+    }
   }
 
   // Handler principal que recibe SaleItemInput

@@ -4,6 +4,7 @@ import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { APP_URLS } from '@/config/app-urls'
 import { z } from 'zod'
+import { ItemValues, SaleSchema } from '@/modules/sales'
 // import { CombinedResult, CombinedResultExtended } from './product.variants.list'
 
 // Type definitions
@@ -63,31 +64,6 @@ export type ResApi<T> = {
   total: number
   total_pages: number
 }
-
-// Schema for validation
-export const SaleSchema = z.object({
-  reference_number: z.string().min(1, 'Reference number is required'),
-  date: z.string().min(1, 'Date is required'),
-  customer_id: z.string().nullable(),
-  status: z.string().default('pending'),
-  payment_method: z.string().nullable(),
-  shipping_address: z.string().nullable(),
-  tax_amount: z.number().min(0).default(0),
-  discount_amount: z.number().min(0).default(0),
-  total_items: z.number().min(1).default(1),
-  total_amount: z.number().min(0),
-  salesperson_id: z.string().nullable(),
-  items: z.array(
-    z.object({
-      product_id: z.string().nullable(),
-      product_variant_id: z.string().nullable(),
-      quantity: z.number().min(1),
-      unit_price: z.number().min(0),
-      discount_amount: z.number().min(0).default(0),
-      total_price: z.number().min(0)
-    })
-  )
-})
 
 /**
  * Instancia de Supabase en contexto de servidor
@@ -258,10 +234,12 @@ export async function getSales({
  * @returns Promise<Sale>
  */
 export async function createSale({
-  saleData
+  saleData,
+  items
 }: {
   saleData: z.infer<typeof SaleSchema>
-}): Promise<Sale> {
+  items: ItemValues[]
+}): Promise<Sale | null> {
   const supabase = await getSupabase()
 
   // Validate data with schema
@@ -280,19 +258,19 @@ export async function createSale({
       tax_amount: validatedData.tax_amount,
       discount_amount: validatedData.discount_amount,
       total_items: validatedData.total_items,
-      total_amount: validatedData.total_amount,
-      salesperson_id: validatedData.salesperson_id
+      total_amount: validatedData.total_amount
+      //   salesperson_id: validatedData.salesperson_id
     })
     .select()
     .single()
 
   if (saleError || !sale) {
-    throw saleError || new Error('Sale creation failed')
+    return null
   }
 
   // Insert sale items
   const { error: itemsError } = await supabase.from('sale_items').insert(
-    validatedData.items.map((item) => ({
+    items.map((item) => ({
       sale_id: sale.id,
       product_id: item.product_id,
       product_variant_id: item.product_variant_id,
@@ -321,10 +299,12 @@ export async function createSale({
  */
 export async function updateSale({
   id,
-  updated
+  updated,
+  items
 }: {
   id: string
   updated: z.infer<typeof SaleSchema>
+  items: ItemValues[]
 }): Promise<Sale> {
   const supabase = await getSupabase()
   const validatedData = SaleSchema.parse(updated)
@@ -363,7 +343,7 @@ export async function updateSale({
   if (deleteError) throw deleteError
 
   const { error: itemsError } = await supabase.from('sale_items').insert(
-    validatedData.items.map((item) => ({
+    items.map((item) => ({
       sale_id: id,
       product_id: item.product_id,
       product_variant_id: item.product_variant_id,

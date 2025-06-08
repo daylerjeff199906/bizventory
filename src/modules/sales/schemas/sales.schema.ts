@@ -39,5 +39,32 @@ export const saleFormSchema = z.object({
   items: z.array(saleItemSchema).optional()
 })
 
+// Schema for validation
+export const SaleSchema = z.object({
+  reference_number: z.string().min(1, 'Reference number is required'),
+  date: z.string().min(1, 'Date is required'),
+  customer_id: z.string().nullable(),
+  status: z.string().default('pending'),
+  payment_method: z.string().nullable(),
+  shipping_address: z.string().nullable(),
+  tax_amount: z.number().min(0).default(0),
+  discount_amount: z.number().min(0).default(0),
+  total_items: z.number().min(1).default(1),
+  total_amount: z.number().min(0),
+  salesperson_id: z.string().nullable()
+})
+
+export const itemSchema = z.object({
+  product_id: z.string().min(1, 'Product ID is required'),
+  product_variant_id: z.string().nullable(),
+  quantity: z.number().min(1, 'Quantity must be at least 1'),
+  unit_price: z.number().min(0, 'Unit price must be at least 0'),
+  discount_amount: z.number().min(0, 'Discount amount must be at least 0'),
+  total_price: z.number().min(0, 'Total price must be at least 0')
+})
+
 export type SaleFormValues = z.infer<typeof saleFormSchema>
 export type SaleItemValues = z.infer<typeof saleItemSchema>
+
+export type SaleValues = z.infer<typeof SaleSchema>
+export type ItemValues = z.infer<typeof itemSchema>
