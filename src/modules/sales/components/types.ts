@@ -113,3 +113,31 @@ export interface CombinedResultPrice {
   discount?: number
   temp_id?: string // ID temporal para gestión local
 }
+
+export interface ProductCombinedSelection {
+  code?: string
+  product_id: string
+  variant_id?: string
+  product_name?: string
+  product_description: string | null
+  variant_name?: string
+  attributes?: {
+    attribute_type: string
+    attribute_value: string
+  }[]
+  unit?: string
+  brand?: {
+    id: string
+    name: string
+  }
+  stock?: number
+  _temp_id?: string // ID temporal para gestión local
+  price?: number
+}
+
+export interface SelectedProductItem extends ProductCombinedSelection {
+  quantity?: number
+  discount?: number
+  price?: number
+  _temp_id?: string // ID temporal para gestión local
+}
