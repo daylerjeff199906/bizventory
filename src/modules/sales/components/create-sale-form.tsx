@@ -47,6 +47,8 @@ import { toast } from 'react-toastify'
 import { ToastCustom } from '@/components/app/toast-custom'
 import { useRouter } from 'next/navigation'
 import { APP_URLS } from '@/config/app-urls'
+import ConfirmationDialog from './confirmation-dialog'
+import EditProductModal from './edit-product-modal'
 // import ProductSelectionModal from './product-selection-modal'
 // import EditProductModal from './edit-product-modal'
 
@@ -54,14 +56,14 @@ import { APP_URLS } from '@/config/app-urls'
 
 export default function CreateSaleForm() {
   const [isProductModalOpen, setIsProductModalOpen] = useState(false)
+  const [isConfirmationDialogOpen, setIsConfirmationDialogOpen] =
+    useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [editingProduct, setEditingProduct] = useState<{
+    item: SaleItemValues | null
+    index: number | null
+  }>({ item: null, index: null })
   const router = useRouter()
-  //   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  //   const [editingProduct, setEditingProduct] = useState<
-  //     SaleItemValues | undefined
-  //   >(undefined)
-  //   const [editingIndex, setEditingIndex] = useState<number | undefined>(
-  //     undefined
-  //   )
 
   const form = useForm<SaleFormValues>({
     resolver: zodResolver(saleFormSchema),
@@ -81,7 +83,7 @@ export default function CreateSaleForm() {
   // Watch para cambios en tiempo real
   // const watchedItems: SelectedProductItem[] = watch('items')
   const watchedItems = getValues('items') as SaleItemValues[] | undefined
-  console.log('Watched Items:', watchedItems)
+
   const watchedCurrency = watch('currency') as Currency
   //   const watchedTaxExempt = watch('tax_exempt') ?? false
   const watchedTaxExempt = 0
@@ -125,54 +127,6 @@ export default function CreateSaleForm() {
   const addedProductIds: string[] =
     watchedItems?.map((item) => item._temp_id || '') || []
 
-  // Función para convertir CombinedResultPrice a SaleItemInput
-  // const convertToSaleItem = (product: SelectedProductItem): SaleItemInput => {
-  //   const isVariant = !!product.variant_id
-
-  //   return {
-  //     temp_id:
-  //       product._temp_id ||
-  //       `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-  //     product_id: isVariant
-  //       ? product.variant_id ?? ''
-  //       : product.product_id ?? '',
-  //     product_name: [
-  //       product.brand?.name,
-  //       product.product_description,
-  //       isVariant && `${product.variant_name}`,
-  //       isVariant && product.attributes && product.attributes.length > 0
-  //         ? product.attributes
-  //             .map((attr) => `${attr.attribute_value}`)
-  //             .join(', ')
-  //         : ''
-  //     ]
-  //       .filter(Boolean)
-  //       .join(' '),
-  //     quantity: 1,
-  //     unit_price: product.price || 0,
-  //     discount_amount: product.discount || 0,
-  //     total_price: (product.price || 0) - (product.discount || 0)
-  //   }
-  // }
-
-  //   const handleUpdateProduct = (index: number, updatedItem: SaleItemValues) => {
-  //     const currentItems = getValues('items')
-  //     const newItems = currentItems.map((item, i) =>
-  //       i === index ? updatedItem : item
-  //     )
-  //     setValue('items', newItems, { shouldValidate: true })
-  //     setIsEditModalOpen(false)
-  //     setEditingProduct(undefined)
-  //     setEditingIndex(undefined)
-  //   }
-
-  //   const handleEditProduct = (index: number) => {
-  //     const productToEdit = watchedItems[index]
-  //     setEditingProduct(productToEdit)
-  //     setEditingIndex(index)
-  //     setIsEditModalOpen(true)
-  //   }
-
   const removeItem = (tempId: string) => {
     const currentItems = getValues('items')
     setValue(
@@ -182,16 +136,16 @@ export default function CreateSaleForm() {
     )
   }
 
-  //   const handleCloseEditModal = () => {
-  //     setIsEditModalOpen(false)
-  //     setEditingProduct(undefined)
-  //     setEditingIndex(undefined)
-  //   }
+  const handleSubmitForm = async () => {
+    setIsConfirmationDialogOpen(true)
+  }
 
-  const onSubmit = async (data: SaleFormValues) => {
+  const confirmSale = async () => {
+    const data = getValues()
     console.log('Datos del formulario:', data)
+
     const saleData: SaleValues = {
-      customer_id: null, // Aquí puedes agregar el ID del cliente si es necesario
+      customer_id: null,
       reference_number: data.reference_number,
       date: data.date,
       payment_method: data.payment_method,
@@ -200,8 +154,8 @@ export default function CreateSaleForm() {
       tax_amount: taxAmount,
       total_items: watchedItems?.length || 0,
       total_amount: total,
-      salesperson_id: null, // Aquí puedes agregar el ID del vendedor si es necesario
-      status: 'completed' // O el estado que desees
+      salesperson_id: null,
+      status: 'completed'
     }
 
     const items: ItemValues[] =
@@ -215,27 +169,30 @@ export default function CreateSaleForm() {
           (item.price_unit || 0) * (item.quantity || 1) - (item.discount || 0)
       })) || []
 
-    const response = await createSale({
-      items: items,
-      saleData: saleData
-    })
+    try {
+      const response = await createSale({
+        items: items,
+        saleData: saleData
+      })
 
-    if (response) {
-      toast.success(
-        <ToastCustom
-          title="Venta creada exitosamente"
-          message={`La venta con número de referencia ${data.reference_number} ha sido creada.`}
-        />
-      )
-      // Redirigir a la página de ventas o a donde sea necesario
-      router.push(APP_URLS.SALES.VIEW(response.id))
-    } else {
+      if (response) {
+        toast.success(
+          <ToastCustom
+            title="Venta creada exitosamente"
+            message={`La venta con número de referencia ${data.reference_number} ha sido creada.`}
+          />
+        )
+        router.push(APP_URLS.SALES.VIEW(response.id))
+      }
+    } catch {
       toast.error(
         <ToastCustom
           title="Error al crear la venta"
           message="Hubo un problema al crear la venta. Por favor, inténtalo de nuevo."
         />
       )
+    } finally {
+      setIsConfirmationDialogOpen(false)
     }
   }
 
@@ -248,12 +205,25 @@ export default function CreateSaleForm() {
     setIsProductModalOpen(false)
   }
 
-  // Adaptador para el modal que convierte CombinedResultPrice a SaleItemInput
+  const handleUpdateProduct = (updatedItem: SaleItemValues) => {
+    if (editingProduct.index !== null) {
+      const currentItems = getValues('items')
+      const newItems = currentItems?.map((item, i) =>
+        i === editingProduct.index ? updatedItem : item
+      )
+      setValue('items', newItems, { shouldValidate: true })
+    }
+    setIsEditModalOpen(false)
+    setEditingProduct({ item: null, index: null })
+  }
 
   return (
     <div className="container mx-auto p-6 max-w-6xl">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <form
+          onSubmit={form.handleSubmit(handleSubmitForm)}
+          className="space-y-8"
+        >
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Información de la venta */}
             <div className="lg:col-span-2 space-y-6">
@@ -605,6 +575,13 @@ export default function CreateSaleForm() {
                                       size="sm"
                                       className="h-7 w-7 p-0 text-gray-400 hover:text-blue-600"
                                       title="Editar"
+                                      onClick={() => {
+                                        setEditingProduct({
+                                          item: item,
+                                          index: index
+                                        })
+                                        setIsEditModalOpen(true)
+                                      }}
                                     >
                                       <Pencil className="h-3 w-3" />
                                     </Button>
@@ -745,20 +722,31 @@ export default function CreateSaleForm() {
       <ProductSelectionModal
         isOpen={isProductModalOpen}
         onClose={() => setIsProductModalOpen(false)}
-        onAddProduct={handleAddProduct} // ← Ahora los tipos coinciden
+        onAddProduct={handleAddProduct}
         addedProductIds={addedProductIds || []}
         currency={watchedCurrency}
       />
 
-      {/* Modal para editar productos */}
-      {/* <EditProductModal
+      <EditProductModal
         isOpen={isEditModalOpen}
-        onClose={handleCloseEditModal}
-        onUpdateProduct={handleUpdateProduct}
-        editingProduct={editingProduct}
-        editingIndex={editingIndex}
+        onClose={() => {
+          setIsEditModalOpen(false)
+          setEditingProduct({ item: null, index: null })
+        }}
         currency={watchedCurrency}
-      /> */}
+        onUpdateProduct={handleUpdateProduct}
+        product={editingProduct.item}
+      />
+
+      <ConfirmationDialog
+        isOpen={isConfirmationDialogOpen}
+        onClose={() => setIsConfirmationDialogOpen(false)}
+        currency={watchedCurrency}
+        onConfirm={confirmSale}
+        saleData={getValues() as SaleFormValues}
+        totals={{ subtotal, totalDiscount, taxAmount, total }}
+        isSubmitting={form.formState.isSubmitting}
+      />
     </div>
   )
 }
