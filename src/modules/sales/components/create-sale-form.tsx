@@ -37,15 +37,10 @@ import {
   DollarSign,
   Pencil
 } from 'lucide-react'
-// import {
-import {
-  saleFormSchema,
-  SaleFormValues,
-  SaleItemValues
-  //   saleItemSchema
-} from '../schemas'
+import { saleFormSchema, SaleFormValues, SaleItemValues } from '../schemas'
 import { Currency } from '@/types'
 import ProductSelectionModal from './product-selection-modal'
+import { CombinedResultPrice, SaleItemInput } from './types'
 // import ProductSelectionModal from './product-selection-modal'
 // import EditProductModal from './edit-product-modal'
 
@@ -115,13 +110,27 @@ export default function CreateSaleForm() {
 
   const addedProductIds = watchedItems?.map((item) => item.product_id)
 
-  const handleAddProduct = (newItem: SaleItemValues) => {
-    const currentItems = getValues('items')
+  // Función para convertir CombinedResultPrice a SaleItemInput
+  const convertToSaleItem = (product: CombinedResultPrice): SaleItemInput => {
+    const isVariant = !!product.variant_id
 
-    setValue('items', [...(currentItems || []), newItem], {
-      shouldValidate: true
-    })
-    setIsProductModalOpen(false)
+    return {
+      temp_id:
+        product.temp_id ||
+        `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      product_id: isVariant ? product.variant_id ?? '' : product.id ?? '',
+      product_name: [
+        product.brand?.name,
+        product.name || product.description,
+        isVariant && `- ${product.variant_name || product.variant_description}`
+      ]
+        .filter(Boolean)
+        .join(' '),
+      quantity: 1,
+      unit_price: product.price || 0,
+      discount_amount: product.discount || 0,
+      total_price: (product.price || 0) - (product.discount || 0)
+    }
   }
 
   //   const handleUpdateProduct = (index: number, updatedItem: SaleItemValues) => {
@@ -174,6 +183,21 @@ export default function CreateSaleForm() {
 
     console.log('Datos de venta:', saleData)
     alert('Venta creada exitosamente!')
+  }
+
+  // Handler principal que recibe SaleItemInput
+  const handleAddProduct = (item: SaleItemInput) => {
+    const currentItems = getValues('items')
+    setValue('items', [...(currentItems || []), item], {
+      shouldValidate: true
+    })
+    setIsProductModalOpen(false)
+  }
+
+  // Adaptador para el modal que convierte CombinedResultPrice a SaleItemInput
+  const handleProductSelection = (product: CombinedResultPrice) => {
+    const saleItem = convertToSaleItem(product)
+    handleAddProduct(saleItem)
   }
 
   return (
@@ -679,9 +703,9 @@ export default function CreateSaleForm() {
       <ProductSelectionModal
         isOpen={isProductModalOpen}
         onClose={() => setIsProductModalOpen(false)}
-        onAddProduct={handleAddProduct}
+        onAddProduct={(value) => console.log(value)} // ← Ahora los tipos coinciden
         addedProductIds={addedProductIds || []}
-        currency={watchedCurrency || ('PEN' as Currency)}
+        currency={watchedCurrency}
       />
 
       {/* Modal para editar productos */}

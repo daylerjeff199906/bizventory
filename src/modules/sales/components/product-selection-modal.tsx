@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Package, Check, Plus, ChevronDown, ChevronUp } from 'lucide-react'
-import type { Currency, SaleItemInput } from '@/types'
+import type { Currency } from '@/types'
 import { useProductsPrices } from '@/hooks/use-products-price'
 import { Product, ProductVariant } from '@/apis/app'
 import { SearchInput } from '@/components/app/search-input'
@@ -24,12 +24,12 @@ import { ScrollArea } from '@radix-ui/react-scroll-area'
 interface ProductSelectionModalProps {
   isOpen: boolean
   onClose: () => void
-  onAddProduct: (item: SaleItemInput) => void
-  onUpdateProduct?: (tempId: string, item: SaleItemInput) => void
+  onAddProduct: (item: CombinedResultPrice) => void
+  onUpdateProduct?: (tempId: string, item: CombinedResultPrice) => void
   addedProductIds: string[]
   currency: Currency
   editMode?: boolean
-  editingProduct?: SaleItemInput
+  editingProduct?: CombinedResultPrice
   editingTempId?: string
 }
 
@@ -105,20 +105,6 @@ export default function ProductSelectionModal({
       'product_id' in selectedProduct &&
       selectedProduct.product_id !== undefined
 
-    const productItem: SaleItemInput = {
-      temp_id: editMode && editingTempId ? editingTempId : generateTempId(),
-      product_id: String(
-        isVariant ? selectedProduct?.product_id : selectedProduct?.id
-      ),
-      product_name: `${selectedProduct.brand?.name || ''} ${
-        selectedProduct.name || selectedProduct.description || ''
-      }${isVariant ? ` - ${selectedProduct.name || ''}` : ''}`,
-      quantity,
-      unit_price: unitPrice,
-      discount_amount: discount,
-      total_price: totalPrice
-    }
-
     if (editMode && onUpdateProduct && editingTempId) {
       onUpdateProduct(editingTempId, productItem)
     } else {
@@ -129,7 +115,7 @@ export default function ProductSelectionModal({
   }
 
   const isProductAdded = (productId: string) => {
-    if (editMode && editingProduct && editingProduct.product_id === productId) {
+    if (editMode && editingProduct && editingProduct.id === productId) {
       return false
     }
     return addedProductIds.includes(productId)
