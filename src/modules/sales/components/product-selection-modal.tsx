@@ -13,42 +13,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import {
-  Package,
-  Check,
-  Plus,
-  Save,
-  ChevronDown,
-  ChevronUp
-} from 'lucide-react'
+import { Package, Check, Plus, ChevronDown, ChevronUp } from 'lucide-react'
 import type { Currency, SaleItemInput } from '@/types'
 import { useProductsPrices } from '@/hooks/use-products-price'
 import { Product, ProductVariant } from '@/apis/app'
 import { SearchInput } from '@/components/app/search-input'
-
-export interface CombinedResultPrice {
-  id: string
-  name: string
-  description?: string | null
-  code?: string
-  brand_id?: string
-  brand?: {
-    id: string
-    name: string
-  }
-  stock?: number
-  variant_id?: string
-  variant_name?: string
-  variant_code?: string
-  variant_description?: string | null
-  attributes?: {
-    attribute_type: string
-    attribute_value: string
-  }[]
-  price?: number
-  discount?: number
-  temp_id?: string // ID temporal para gestión local
-}
+import { CombinedResultPrice } from './types'
+import { ScrollArea } from '@radix-ui/react-scroll-area'
 
 interface ProductSelectionModalProps {
   isOpen: boolean
@@ -97,6 +68,17 @@ export default function ProductSelectionModal({
       })
     }
   }, [isOpen, searchTerm])
+
+  useEffect(() => {
+    if (isOpen === false) {
+      setSearchTerm('')
+      setSelectedProduct(null)
+      setQuantity(1)
+      setUnitPrice(0)
+      setDiscount(0)
+      setExpandedProducts([])
+    }
+  }, [isOpen])
 
   const handleProductSelect = (product: Product | ProductVariant) => {
     // Solo permitir selección si tiene stock
@@ -163,6 +145,25 @@ export default function ProductSelectionModal({
         ? prev.filter((id) => id !== productId)
         : [...prev, productId]
     )
+  }
+
+  const getFullProductName = (product: CombinedResultPrice): string => {
+    const brandName = product.brand?.name || ''
+    const productName = product.name || product.description || ''
+    const variantName = product.variant_name ? ` - ${product.variant_name}` : ''
+
+    let attributesText = ''
+    if (
+      product.variant_id &&
+      product.attributes &&
+      product.attributes.length > 0
+    ) {
+      attributesText = ` (${product.attributes
+        .map((attr) => attr.attribute_value)
+        .join(', ')})`
+    }
+
+    return `${brandName} ${productName}${variantName}${attributesText}`.trim()
   }
 
   return (
@@ -455,164 +456,142 @@ export default function ProductSelectionModal({
               </div>
             </div>
 
-            <div
-              className={`${editMode ? 'lg:col-span-3' : 'lg:col-span-1'} ${
-                editMode ? '' : 'border-l'
-              } pl-6`}
-            >
-              {selectedProduct ? (
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-lg">
-                    {editMode ? 'Editar Producto' : 'Configurar Producto'}
-                  </h3>
+            {/* Product selection and configuration area */}
+            <div className="lg:col-span-1 pl-6 border-l">
+              <ScrollArea className="h-full overflow-y-auto max-h-[calc(100vh-240px)]">
+                {selectedProduct ? (
+                  <div className="space-y-4 ">
+                    <h3 className="font-semibold text-sm">
+                      Configurar Producto
+                    </h3>
+                    <div className="p-4 bg-gray-50 border rounded-md">
+                      <h4 className="font-bold text-sm">
+                        {getFullProductName(selectedProduct)}
+                      </h4>
+                      <p className="text-xs text-green-600 mt-1">
+                        Precio base: {currencySymbol}
+                        {selectedProduct?.price?.toFixed(2)}
+                      </p>
+                    </div>
 
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <h4 className="font-medium">{selectedProduct.name}</h4>
-                    <p className="text-sm text-green-600 mt-1">
-                      Precio base: {currencySymbol}
-                      {selectedProduct?.price?.toFixed(2)}
-                    </p>
-                    {editMode && (
-                      <div className="flex items-center gap-2 mt-2">
-                        <Badge variant="outline">Modo Edición</Badge>
-                        {editingTempId && (
-                          <Badge variant="secondary" className="text-xs">
-                            ID: {editingTempId.slice(-8)}
-                          </Badge>
+                    <div className="space-y-4">
+                      <div className="flex flex-col gap-1">
+                        <Label htmlFor="modal-quantity" className="text-xs">
+                          Cantidad
+                        </Label>
+                        <Input
+                          id="modal-quantity"
+                          type="number"
+                          min="1"
+                          max={selectedProduct?.stock}
+                          value={quantity}
+                          onChange={(e) =>
+                            setQuantity(
+                              Math.min(
+                                Number.parseInt(e.target.value),
+                                selectedProduct?.stock ?? 1
+                              )
+                            )
+                          }
+                        />
+                        {selectedProduct?.stock !== undefined && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            {selectedProduct.stock > 0
+                              ? `Máximo disponible: ${selectedProduct.stock}`
+                              : 'Sin stock disponible'}
+                          </p>
                         )}
                       </div>
-                    )}
-                  </div>
 
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="modal-quantity">Cantidad</Label>
-                      <Input
-                        id="modal-quantity"
-                        type="number"
-                        min="1"
-                        max={
-                          selectedProduct?.stock !== undefined
-                            ? selectedProduct.stock
-                            : undefined
-                        }
-                        value={quantity}
-                        onChange={(e) => {
-                          const newQuantity =
-                            Number.parseInt(e.target.value) || 1
-                          if (selectedProduct?.stock !== undefined) {
-                            setQuantity(
-                              Math.min(newQuantity, selectedProduct.stock)
-                            )
-                          } else {
-                            setQuantity(newQuantity)
+                      <div className="flex flex-col gap-1">
+                        <Label htmlFor="modal-price" className="text-xs">
+                          Precio Unitario ({currencySymbol})
+                        </Label>
+                        <Input
+                          id="modal-price"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={unitPrice}
+                          onChange={(e) =>
+                            setUnitPrice(Number.parseFloat(e.target.value) || 0)
                           }
-                        }}
-                      />
-                      {selectedProduct?.stock !== undefined && (
-                        <p className="text-xs text-gray-500 mt-1">
-                          {selectedProduct.stock > 0
-                            ? `Máximo disponible: ${selectedProduct.stock}`
-                            : 'Sin stock disponible'}
-                        </p>
-                      )}
-                    </div>
-
-                    <div>
-                      <Label htmlFor="modal-price">
-                        Precio Unitario ({currencySymbol})
-                      </Label>
-                      <Input
-                        id="modal-price"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={unitPrice}
-                        onChange={(e) =>
-                          setUnitPrice(Number.parseFloat(e.target.value) || 0)
-                        }
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="modal-discount">
-                        Descuento ({currencySymbol})
-                      </Label>
-                      <Input
-                        id="modal-discount"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        max={unitPrice * quantity}
-                        value={discount}
-                        onChange={(e) =>
-                          setDiscount(Number.parseFloat(e.target.value) || 0)
-                        }
-                      />
-                    </div>
-
-                    <div className="p-4 bg-blue-50 rounded-lg space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>Subtotal:</span>
-                        <span>
-                          {currencySymbol}
-                          {(unitPrice * quantity).toFixed(2)}
-                        </span>
+                        />
                       </div>
-                      {discount > 0 && (
-                        <div className="flex justify-between text-sm text-green-600">
-                          <span>Descuento:</span>
+
+                      <div className="flex flex-col gap-1">
+                        <Label htmlFor="modal-discount" className="text-xs">
+                          Descuento ({currencySymbol})
+                        </Label>
+                        <Input
+                          id="modal-discount"
+                          type="number"
+                          step="0.01"
+                          min={0}
+                          max={unitPrice * quantity}
+                          value={discount}
+                          onChange={(e) => {
+                            const value = Number.parseFloat(e.target.value) || 0
+                            setDiscount(
+                              Math.max(0, Math.min(value, unitPrice * quantity))
+                            )
+                          }}
+                        />
+                      </div>
+                      <div className="p-2 bg-blue-50 rounded-md text-xs">
+                        <div className="flex justify-between">
+                          <span>Subtotal:</span>
                           <span>
-                            -{currencySymbol}
-                            {discount.toFixed(2)}
+                            {currencySymbol}
+                            {(unitPrice * quantity).toFixed(2)}
                           </span>
                         </div>
-                      )}
-                      <div className="flex justify-between text-lg font-semibold border-t pt-2">
-                        <span>Total:</span>
-                        <span>
-                          {currencySymbol}
-                          {(unitPrice * quantity - discount).toFixed(2)}
-                        </span>
+                        {discount > 0 && (
+                          <div className="flex justify-between text-red-600">
+                            <span>Descuento:</span>
+                            <span>
+                              -{currencySymbol}
+                              {discount.toFixed(2)}
+                            </span>
+                          </div>
+                        )}
+                        <div className="flex justify-between font-semibold border-t pt-1 mt-1">
+                          <span>Total:</span>
+                          <span>
+                            {currencySymbol}
+                            {(unitPrice * quantity - discount).toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="sticky bottom-0 left-0 right-0 bg-white p-4 border-t">
+                        <Button
+                          onClick={handleAddOrUpdateProduct}
+                          className="w-full"
+                          size="lg"
+                          disabled={unitPrice <= 0 || quantity <= 0}
+                        >
+                          <>
+                            <Plus className="h-4 w-4 mr-2" />
+                            Agregar a la Venta
+                          </>
+                        </Button>
                       </div>
                     </div>
-
-                    <Button
-                      onClick={handleAddOrUpdateProduct}
-                      className="w-full"
-                      size="lg"
-                      disabled={unitPrice <= 0 || quantity <= 0}
-                    >
-                      {editMode ? (
-                        <>
-                          <Save className="h-4 w-4 mr-2" />
-                          Guardar Cambios
-                        </>
-                      ) : (
-                        <>
-                          <Plus className="h-4 w-4 mr-2" />
-                          Agregar a la Venta
-                        </>
-                      )}
-                    </Button>
                   </div>
-                </div>
-              ) : (
-                <div className="text-center py-12 text-gray-500">
-                  <Package className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                  <p className="font-medium mb-2">
-                    {editMode
-                      ? 'Cargando producto...'
-                      : 'Selecciona un producto'}
-                  </p>
-                  <p className="text-sm">
-                    {editMode
-                      ? 'Espera mientras cargamos la información'
-                      : 'Haz clic en un producto de la lista para configurarlo'}
-                  </p>
-                </div>
-              )}
+                ) : (
+                  <div className="text-center py-12 text-gray-500">
+                    <Package className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                    <p className="font-medium mb-2">Selecciona un producto</p>
+                    <p className="text-sm">
+                      Haz clic en un producto de la lista para configurarlo
+                    </p>
+                  </div>
+                )}
+              </ScrollArea>
             </div>
+
+            {/* End of product selection and configuration area */}
           </div>
         </div>
 
@@ -620,7 +599,8 @@ export default function ProductSelectionModal({
           <div className="text-sm text-gray-500">
             {selectedProduct ? (
               <span>
-                {editMode ? 'Editando' : 'Configurando'}: {selectedProduct.name}
+                {editMode ? 'Editando' : 'Configurando'}:{' '}
+                {getFullProductName(selectedProduct)}
                 {editMode && (
                   <span className="ml-2 text-blue-600 font-medium">
                     (Cantidad: {quantity}, Precio: {currencySymbol}

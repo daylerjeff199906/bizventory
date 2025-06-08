@@ -89,10 +89,27 @@ export interface SaleItemInput {
   unit?: string
 }
 
-// Tipo para el resultado combinado de productos con precios
-export interface CombinedResultPrice extends Product {
+//new type for extended sale item with additional fields
+export interface CombinedResultPrice {
+  id: string
+  name: string
+  description?: string | null
+  code?: string
+  brand_id?: string
+  brand?: {
+    id: string
+    name: string
+  }
+  stock?: number
   variant_id?: string
   variant_name?: string
   variant_code?: string
   variant_description?: string | null
+  attributes?: {
+    attribute_type: string
+    attribute_value: string
+  }[]
+  price?: number
+  discount?: number
+  temp_id?: string // ID temporal para gestión local
 }
