@@ -36,7 +36,8 @@ export const saleFormSchema = z.object({
   shipping_address: z.string().optional(),
   tax_rate: z.number().min(0).max(1, 'La tasa de IGV debe estar entre 0 y 1'),
   date: z.string().min(1, 'La fecha es requerida'),
-  items: z.array(saleItemSchema).optional()
+  items: z.array(saleItemSchema).optional(),
+  status: z.string().optional()
 })
 
 // Schema for validation

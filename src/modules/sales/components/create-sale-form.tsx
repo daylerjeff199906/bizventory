@@ -105,11 +105,16 @@ export default function CreateSaleForm() {
   // Calcular totales
   const { subtotal, totalDiscount, taxAmount, total } = useMemo(() => {
     const subtotal =
-      watchedItems?.reduce((sum, item) => sum + (item?.price_unit ?? 0), 0) ?? 0
+      watchedItems?.reduce(
+        (sum, item) => sum + (item?.price_unit ?? 0) * (item?.quantity ?? 0),
+        0
+      ) ?? 0
     const totalDiscount =
       watchedItems?.reduce((sum, item) => sum + (item?.discount ?? 0), 0) ?? 0
-    const taxAmount = watchedTaxExempt ? 0 : subtotal * watchedTaxRate
-    const total = subtotal + taxAmount
+    const taxAmount = watchedTaxExempt
+      ? 0
+      : (subtotal - totalDiscount) * watchedTaxRate
+    const total = subtotal - totalDiscount + taxAmount
 
     return { subtotal, totalDiscount, taxAmount, total }
   }, [watchedItems, watchedTaxExempt, watchedTaxRate])

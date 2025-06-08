@@ -259,7 +259,7 @@ export async function createSale({
       discount_amount: validatedData.discount_amount,
       total_items: validatedData.total_items,
       total_amount: validatedData.total_amount
-      //   salesperson_id: validatedData.salesperson_id
+      // salesperson_id: validatedData.salesperson_id
     })
     .select()
     .single()
@@ -285,6 +285,28 @@ export async function createSale({
     // If item insertion fails, delete the created sale
     await supabase.from('sales').delete().eq('id', sale.id)
     throw itemsError
+  }
+
+  // If sale is created as completed, update stock immediately
+  if (validatedData.status === 'completed') {
+    const { error: stockError } = await supabase.rpc(
+      'update_product_stock_after_sale_items',
+      {
+        p_sale_id: sale.id,
+        p_movement_type: 'exit'
+      }
+    )
+    console.log('Stock update error:', stockError)
+
+    if (stockError) {
+      // Revert the sale status if stock update fails
+      await supabase
+        .from('sales')
+        .update({ status: 'pending', updated_at: new Date().toISOString() })
+        .eq('id', sale.id)
+
+      throw stockError
+    }
   }
 
   revalidatePath(APP_URLS.SALES.LIST)
