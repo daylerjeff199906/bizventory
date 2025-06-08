@@ -5,9 +5,7 @@ import {
   TrendingDown,
   AlertTriangle,
   FileText,
-  Eye,
-  Edit,
-  Trash2
+  Eye
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -27,14 +25,11 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
 import Link from 'next/link'
 import { APP_URLS } from '@/config/app-urls'
+import { InventoryMovementWithProduct } from '@/types'
+import { format } from 'date-fns'
+import { cn } from '@/lib/utils'
 
 // Datos de ejemplo
 const inventoryStats = {
@@ -43,49 +38,6 @@ const inventoryStats = {
   lowStock: 23,
   outOfStock: 5
 }
-
-const recentMovements = [
-  {
-    id: 1,
-    product: 'Laptop Dell XPS 13',
-    type: 'entrada',
-    quantity: 15,
-    date: '2024-01-15',
-    user: 'Ana García'
-  },
-  {
-    id: 2,
-    product: 'Mouse Logitech MX',
-    type: 'salida',
-    quantity: 8,
-    date: '2024-01-15',
-    user: 'Carlos López'
-  },
-  {
-    id: 3,
-    product: 'Teclado Mecánico',
-    type: 'entrada',
-    quantity: 25,
-    date: '2024-01-14',
-    user: 'María Rodríguez'
-  },
-  {
-    id: 4,
-    product: 'Monitor Samsung 24"',
-    type: 'salida',
-    quantity: 3,
-    date: '2024-01-14',
-    user: 'Juan Pérez'
-  },
-  {
-    id: 5,
-    product: 'Auriculares Sony',
-    type: 'entrada',
-    quantity: 30,
-    date: '2024-01-13',
-    user: 'Ana García'
-  }
-]
 
 const lowStockProducts = [
   {
@@ -112,7 +64,13 @@ const lowStockProducts = [
   }
 ]
 
-export default function InventoryDashboard() {
+interface InventoryDashboardProps {
+  movements?: InventoryMovementWithProduct[]
+}
+
+export default function InventoryDashboard({
+  movements
+}: InventoryDashboardProps) {
   return (
     <main className="flex-1 space-y-6 p-6">
       {/* Stats Cards */}
@@ -199,63 +157,67 @@ export default function InventoryDashboard() {
                   <TableHead>Tipo</TableHead>
                   <TableHead>Cantidad</TableHead>
                   <TableHead>Fecha</TableHead>
-                  <TableHead>Usuario</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {recentMovements.map((movement) => (
-                  <TableRow key={movement.id}>
-                    <TableCell className="font-medium">
-                      {movement.product}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          movement.type === 'entrada' ? 'default' : 'secondary'
-                        }
-                        className={
-                          movement.type === 'entrada'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
-                        }
-                      >
-                        {movement.type === 'entrada' ? (
-                          <TrendingUp className="mr-1 h-3 w-3" />
-                        ) : (
-                          <TrendingDown className="mr-1 h-3 w-3" />
-                        )}
-                        {movement.type}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{movement.quantity}</TableCell>
-                    <TableCell>{movement.date}</TableCell>
-                    <TableCell>{movement.user}</TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
-                            <Eye className="mr-2 h-4 w-4" />
-                            Ver Detalles
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-600">
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Eliminar
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                {movements &&
+                  movements.length > 0 &&
+                  movements?.map((movement) => (
+                    <TableRow key={movement.id}>
+                      <TableCell className="font-medium text-sm">
+                        {movement.product?.brand?.name}{' '}
+                        {movement.product?.description}{' '}
+                        {movement?.variant?.name || ' '}{' '}
+                        {movement?.variant?.attributes &&
+                          movement?.variant?.attributes
+                            ?.map((attr) => `${attr.attribute_value}`)
+                            .join(', ')}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            movement.movement_type === 'entry'
+                              ? 'default'
+                              : 'secondary'
+                          }
+                          className={cn(
+                            'rounded-full',
+                            movement.movement_type === 'entry'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                          )}
+                        >
+                          {movement.movement_type === 'entry' ? (
+                            <TrendingUp className="mr-1 h-3 w-3" />
+                          ) : (
+                            <TrendingDown className="mr-1 h-3 w-3" />
+                          )}
+                          {movement.movement_type === 'entry'
+                            ? 'Entrada'
+                            : 'Salida'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{movement.quantity}</TableCell>
+                      <TableCell>
+                        {movement.date &&
+                          format(new Date(movement.date), 'dd/MM/yyyy HH:mm')}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="sm">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+
+                {(!movements || movements.length === 0) && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center">
+                      No hay movimientos recientes
                     </TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
             </Table>
           </CardContent>
