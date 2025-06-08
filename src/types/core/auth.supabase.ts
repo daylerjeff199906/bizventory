@@ -50,7 +50,7 @@ export interface AuthResponse {
 }
 
 // Tipo para la sesión (puedes expandirlo según necesites)
-interface Session {
+export interface Session {
   access_token: string
   token_type: string
   expires_in: number

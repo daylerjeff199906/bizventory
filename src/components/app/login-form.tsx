@@ -8,6 +8,7 @@ import { toast } from 'react-toastify'
 import { ToastCustom } from './toast-custom'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { SupabaseUser } from '@/types'
 
 export function LoginForm({
   className,
@@ -31,15 +32,18 @@ export function LoginForm({
         body: JSON.stringify({ email, password })
       })
 
-      console.log('Response:', response)
       const data = await response.json()
-      console.log('Data:', data)
       if (!response.ok) {
         throw new Error(data.error || 'Error de autenticación')
       }
 
+      const dataResponse: SupabaseUser = data.user
+
       toast.success(
-        <ToastCustom title="¡Bienvenido!" message="Login exitoso" />
+        <ToastCustom
+          title="¡Bienvenido!"
+          message={`Hola ${dataResponse.email}, has iniciado sesión correctamente.`}
+        />
       )
       router.refresh() // Refresca para que los componentes de autenticación se actualicen
       router.push('/dashboard') // Redirige al dashboard o página principal
@@ -65,7 +69,7 @@ export function LoginForm({
               <div className="flex flex-col items-center text-center">
                 <h1 className="text-2xl font-bold">Welcome back</h1>
                 <p className="text-muted-foreground text-balance">
-                  Login to your Acme Inc account
+                  Login to your System Inc account
                 </p>
               </div>
               <div className="grid gap-3">
