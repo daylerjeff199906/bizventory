@@ -41,6 +41,7 @@ import { saleFormSchema, SaleFormValues, SaleItemValues } from '../schemas'
 import { Currency } from '@/types'
 import ProductSelectionModal from './product-selection-modal'
 import { CombinedResultPrice, SaleItemInput } from './types'
+import { StringToBoolean } from 'class-variance-authority/types'
 // import ProductSelectionModal from './product-selection-modal'
 // import EditProductModal from './edit-product-modal'
 
@@ -48,13 +49,9 @@ import { CombinedResultPrice, SaleItemInput } from './types'
 
 export default function CreateSaleForm() {
   const [isProductModalOpen, setIsProductModalOpen] = useState(false)
-  //   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  //   const [editingProduct, setEditingProduct] = useState<
-  //     SaleItemValues | undefined
-  //   >(undefined)
-  //   const [editingIndex, setEditingIndex] = useState<number | undefined>(
-  //     undefined
-  //   )
+
+  const [addedProductIds, setAddedProductIds] = useState<string[]>([])
+  const [currencyName, setCurrencyName] = useState<StringToBoolean>('PEN')
 
   const form = useForm<SaleFormValues>({
     resolver: zodResolver(saleFormSchema),
@@ -64,22 +61,17 @@ export default function CreateSaleForm() {
       payment_method: '',
       shipping_address: '',
       tax_rate: 0.18,
-      date: new Date().toISOString().split('T')[0], // Fecha actual en formato YYYY-MM-DD
+      date: new Date().toISOString().split('T')[0],
       items: []
     }
   })
 
   const { watch, setValue, getValues } = form
 
-  // Watch para cambios en tiempo real
+  // Estado observado
   const watchedItems = watch('items')
-  const watchedCurrency = watch('currency') as Currency
-  //   const watchedTaxExempt = watch('tax_exempt') ?? false
-  const watchedTaxExempt = 0
-  const watchedTaxRate = watch('tax_rate')
-
+  const watchedCurrency = watch('currency')
   const currencySymbol = watchedCurrency === 'PEN' ? 'S/' : '$'
-  const currencyName = watchedCurrency === 'PEN' ? 'Soles' : 'Dólares'
 
   // Generar número de referencia automáticamente
   useEffect(() => {
@@ -102,55 +94,28 @@ export default function CreateSaleForm() {
       watchedItems?.reduce((sum, item) => sum + item.total_price, 0) ?? 0
     const totalDiscount =
       watchedItems?.reduce((sum, item) => sum + item.discount_amount, 0) ?? 0
-    const taxAmount = watchedTaxExempt ? 0 : subtotal * watchedTaxRate
+    const taxAmount = subtotal * (watch('tax_rate') || 0)
     const total = subtotal + taxAmount
 
     return { subtotal, totalDiscount, taxAmount, total }
-  }, [watchedItems, watchedTaxExempt, watchedTaxRate])
+  }, [watchedItems, watch])
 
-  const addedProductIds = watchedItems?.map((item) => item.product_id)
-
-  // Función para convertir CombinedResultPrice a SaleItemInput
-  const convertToSaleItem = (product: CombinedResultPrice): SaleItemInput => {
-    const isVariant = !!product.variant_id
-
-    return {
-      temp_id:
-        product.temp_id ||
-        `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      product_id: isVariant ? product.variant_id ?? '' : product.id ?? '',
-      product_name: [
-        product.brand?.name,
-        product.name || product.description,
-        isVariant && `- ${product.variant_name || product.variant_description}`
-      ]
-        .filter(Boolean)
-        .join(' '),
-      quantity: 1,
-      unit_price: product.price || 0,
-      discount_amount: product.discount || 0,
-      total_price: (product.price || 0) - (product.discount || 0)
+  // Función para agregar productos al carrito
+  const handleAddProduct = (item: SaleItemInput) => {
+    const currentItems = getValues('items')
+    if (
+      currentItems?.some(
+        (existingItem) => existingItem?.product_id === item?.product_id
+      )
+    ) {
+      alert('Este producto ya ha sido agregado')
+      return
     }
+    setValue('items', [...(currentItems || []), item], { shouldValidate: true })
+    setIsProductModalOpen(false)
   }
 
-  //   const handleUpdateProduct = (index: number, updatedItem: SaleItemValues) => {
-  //     const currentItems = getValues('items')
-  //     const newItems = currentItems.map((item, i) =>
-  //       i === index ? updatedItem : item
-  //     )
-  //     setValue('items', newItems, { shouldValidate: true })
-  //     setIsEditModalOpen(false)
-  //     setEditingProduct(undefined)
-  //     setEditingIndex(undefined)
-  //   }
-
-  //   const handleEditProduct = (index: number) => {
-  //     const productToEdit = watchedItems[index]
-  //     setEditingProduct(productToEdit)
-  //     setEditingIndex(index)
-  //     setIsEditModalOpen(true)
-  //   }
-
+  // Función para eliminar un producto
   const removeItem = (tempId: string) => {
     const currentItems = getValues('items')
     setValue(
@@ -160,45 +125,21 @@ export default function CreateSaleForm() {
     )
   }
 
-  //   const handleCloseEditModal = () => {
-  //     setIsEditModalOpen(false)
-  //     setEditingProduct(undefined)
-  //     setEditingIndex(undefined)
-  //   }
-
-  const onSubmit = async (data: SaleFormValues) => {
+  const onSubmit = (data: SaleFormValues) => {
     const saleData = {
       reference_number: data.reference_number,
-      //   total_amount: total,
-      customer_id: null, // Cliente "otros" como solicitado
+      customer_id: null,
       payment_method: data.payment_method,
       shipping_address: data.shipping_address,
-      //   tax_amount: taxAmount,
-      //   tax_exempt: data.tax_exempt,
-      //   discount_amount: totalDiscount,
-      //   total_items: data.items.reduce((sum, item) => sum + item.quantity, 0),
       status: 'pending',
       currency: data.currency
     }
-
     console.log('Datos de venta:', saleData)
     alert('Venta creada exitosamente!')
   }
 
-  // Handler principal que recibe SaleItemInput
-  const handleAddProduct = (item: SaleItemInput) => {
-    const currentItems = getValues('items')
-    setValue('items', [...(currentItems || []), item], {
-      shouldValidate: true
-    })
-    setIsProductModalOpen(false)
-  }
-
   // Adaptador para el modal que convierte CombinedResultPrice a SaleItemInput
-  const handleProductSelection = (product: CombinedResultPrice) => {
-    const saleItem = convertToSaleItem(product)
-    handleAddProduct(saleItem)
-  }
+  // (Eliminado handleProductSelection porque no se usa y falta convertToSaleItem)
 
   return (
     <div className="container mx-auto p-6 max-w-6xl">
@@ -639,7 +580,7 @@ export default function CreateSaleForm() {
                         </span>
                       </div>
                     )}
-                    {watchedTaxRate > 0 && (
+                    {/* {watchedTaxRate > 0 && (
                       <div className="flex justify-between text-sm">
                         <span
                           className={watchedTaxExempt ? 'text-gray-400' : ''}
@@ -657,7 +598,7 @@ export default function CreateSaleForm() {
                           {taxAmount.toFixed(2)}
                         </span>
                       </div>
-                    )}
+                    )} */}
                     <Separator />
                     <div className="flex justify-between font-semibold text-lg">
                       <span>Total:</span>
