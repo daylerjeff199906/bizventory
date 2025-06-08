@@ -13,9 +13,6 @@ import {
   Menu,
   ChevronDown,
   ChevronRight,
-  User,
-  Settings,
-  LogOut,
   PanelLeftClose,
   PanelLeft
 } from 'lucide-react'
@@ -27,17 +24,9 @@ import {
   CollapsibleContent,
   CollapsibleTrigger
 } from '@/components/ui/collapsible'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
 import { APP_URLS } from '@/config/app-urls'
+import { UserSection } from './user-section'
 
 const navMain = [
   {
@@ -112,11 +101,18 @@ const navMain = [
 interface SidebarContentProps {
   isCollapsed?: boolean
   onNavigate?: () => void
+  user?: {
+    name?: string | null
+    email?: string | null
+    role?: string | null
+    avatarUrl?: string | null
+  }
 }
 
 function SidebarContent({
   isCollapsed = false,
-  onNavigate
+  onNavigate,
+  user
 }: SidebarContentProps) {
   const [openItems, setOpenItems] = useState<string[]>([])
 
@@ -203,56 +199,23 @@ function SidebarContent({
 
       {/* User Section */}
       <div className="border-t p-4">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className={cn(
-                'w-full justify-start gap-2 h-auto p-2',
-                isCollapsed && 'justify-center'
-              )}
-            >
-              <Avatar className="h-8 w-8">
-                <AvatarImage src="/placeholder-user.jpg" alt="Usuario" />
-                <AvatarFallback>JD</AvatarFallback>
-              </Avatar>
-              {!isCollapsed && (
-                <div className="flex flex-col items-start text-left">
-                  <span className="text-sm font-medium">Juan Pérez</span>
-                  <span className="text-xs text-muted-foreground">
-                    Administrador
-                  </span>
-                </div>
-              )}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <User className="mr-2 h-4 w-4" />
-              <span>Perfil</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Configuración</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-red-600">
-              <LogOut className="mr-2 h-4 w-4" />
-              <span>Cerrar Sesión</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <UserSection isCollapsed={isCollapsed} user={user} />
       </div>
     </div>
   )
 }
 
 export default function SidebarLayout({
-  children
+  children,
+  user
 }: {
   children: React.ReactNode
+  user: {
+    name: string
+    email: string
+    role: string
+    avatarUrl?: string
+  }
 }) {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
@@ -267,7 +230,7 @@ export default function SidebarLayout({
           isCollapsed ? 'w-16' : 'w-64'
         )}
       >
-        <SidebarContent isCollapsed={isCollapsed} />
+        <SidebarContent isCollapsed={isCollapsed} user={user} />
 
         {/* Collapse Toggle */}
         <div className="border-t p-2">
@@ -298,7 +261,10 @@ export default function SidebarLayout({
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="p-0 w-64">
-          <SidebarContent onNavigate={() => setIsMobileOpen(false)} />
+          <SidebarContent
+            onNavigate={() => setIsMobileOpen(false)}
+            user={user}
+          />
         </SheetContent>
       </Sheet>
 
