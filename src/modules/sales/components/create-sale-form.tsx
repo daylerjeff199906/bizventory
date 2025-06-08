@@ -45,6 +45,8 @@ import { SaleValues, ItemValues } from '../schemas'
 import { createSale } from '@/apis/app/sales'
 import { toast } from 'react-toastify'
 import { ToastCustom } from '@/components/app/toast-custom'
+import { useRouter } from 'next/navigation'
+import { APP_URLS } from '@/config/app-urls'
 // import ProductSelectionModal from './product-selection-modal'
 // import EditProductModal from './edit-product-modal'
 
@@ -52,6 +54,7 @@ import { ToastCustom } from '@/components/app/toast-custom'
 
 export default function CreateSaleForm() {
   const [isProductModalOpen, setIsProductModalOpen] = useState(false)
+  const router = useRouter()
   //   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   //   const [editingProduct, setEditingProduct] = useState<
   //     SaleItemValues | undefined
@@ -121,7 +124,6 @@ export default function CreateSaleForm() {
 
   const addedProductIds: string[] =
     watchedItems?.map((item) => item._temp_id || '') || []
-  console.log('Added Product IDs:', addedProductIds)
 
   // Función para convertir CombinedResultPrice a SaleItemInput
   // const convertToSaleItem = (product: SelectedProductItem): SaleItemInput => {
@@ -225,7 +227,8 @@ export default function CreateSaleForm() {
           message={`La venta con número de referencia ${data.reference_number} ha sido creada.`}
         />
       )
-      // Aquí puedes manejar la respuesta, como redirigir o mostrar un mensaje de éxito
+      // Redirigir a la página de ventas o a donde sea necesario
+      router.push(APP_URLS.SALES.VIEW(response.id))
     } else {
       toast.error(
         <ToastCustom
