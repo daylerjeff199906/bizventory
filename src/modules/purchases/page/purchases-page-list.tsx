@@ -31,11 +31,13 @@ type SortDirection = 'asc' | 'desc'
 interface PurchasesListProps {
   purchasesData: PurchaseList[]
   searchQuery?: string
+  isReceiptPage?: boolean
 }
 
 export const PurchasesList = ({
   purchasesData = [],
-  searchQuery = ''
+  searchQuery = '',
+  isReceiptPage = false
 }: PurchasesListProps) => {
   const router = useRouter()
   const pathname = usePathname()
@@ -305,7 +307,13 @@ export const PurchasesList = ({
                     size="sm"
                     className="h-8 w-8 p-0"
                   >
-                    <Link href={APP_URLS.PURCHASES.VIEW(purchase.id)}>
+                    <Link
+                      href={
+                        isReceiptPage
+                          ? APP_URLS.PURCHASES.RECEIPTS.DETAIL(purchase.id)
+                          : APP_URLS.PURCHASES.VIEW(purchase.id)
+                      }
+                    >
                       <Eye className="h-4 w-4" />
                     </Link>
                   </Button>

@@ -45,9 +45,8 @@ const navMain = [
     url: '#',
     icon: PackageCheck,
     items: [
-      { title: 'Lista de productos', url: APP_URLS.PRODUCTS.LIST },
-      { title: 'Categorías', url: '/products/categories' },
-      { title: 'Stock Mínimo', url: '/products/min-stock' }
+      { title: 'Lista de productos', url: APP_URLS.PRODUCTS.LIST }
+      // { title: 'Categorías', url: '/products/categories' },
     ]
   },
   {
@@ -56,8 +55,7 @@ const navMain = [
     icon: Warehouse,
     items: [
       { title: 'Estado de Stock', url: APP_URLS.PRODUCTS.PRODUCTS_STOCK },
-      { title: 'Historial de Movimientos', url: APP_URLS.PURCHASES.INVENTORY },
-      { title: 'Alertas de Stock', url: '/inventory/alerts' }
+      { title: 'Historial de Movimientos', url: APP_URLS.PURCHASES.INVENTORY }
     ]
   },
   {
@@ -75,9 +73,9 @@ const navMain = [
     url: '#',
     icon: FileUp,
     items: [
-      { title: 'Nueva Venta', url: '/sales/new' },
-      { title: 'Lista de Ventas', url: '/sales' },
-      { title: 'Tickets (PDF)', url: '/sales/tickets' }
+      { title: 'Nueva Venta', url: APP_URLS.SALES.CREATE },
+      { title: 'Lista de Ventas', url: APP_URLS.SALES.LIST },
+      { title: 'Tickets (PDF)', url: APP_URLS.SALES.TICKETS.LIST }
     ]
   },
   {
@@ -96,8 +94,7 @@ const navMain = [
     icon: Contact2,
     items: [
       { title: 'Clientes', url: '/clients' },
-      { title: 'Proveedores', url: APP_URLS.SUPPLIERS.LIST },
-      { title: 'Relaciones', url: '/relationships' }
+      { title: 'Proveedores', url: APP_URLS.SUPPLIERS.LIST }
     ]
   },
   {
@@ -106,7 +103,8 @@ const navMain = [
     icon: Users,
     items: [
       { title: 'Gestión de Usuarios', url: '/users' },
-      { title: 'Roles y Permisos', url: '/roles' }
+      { title: 'Roles y Permisos', url: '/roles' },
+      { title: 'Configuración', url: APP_URLS.SETTINGS.GENERAL }
     ]
   }
 ]
@@ -265,7 +263,7 @@ export default function SidebarLayout({
       {/* Desktop Sidebar */}
       <aside
         className={cn(
-          'hidden lg:flex flex-col border-r bg-muted/40 transition-all duration-300 sticky top-0 h-screen max-h-[calc(100vh-4rem)]',
+          'hidden lg:flex flex-col border-r bg-muted/40 transition-all duration-300 sticky top-0 h-screen',
           isCollapsed ? 'w-16' : 'w-64'
         )}
       >
@@ -305,9 +303,7 @@ export default function SidebarLayout({
       </Sheet>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto">
-        <div className="h-full p-6 lg:p-8">{children}</div>
-      </main>
+      <div className="h-fit p-6 w-full">{children}</div>
     </div>
   )
 }

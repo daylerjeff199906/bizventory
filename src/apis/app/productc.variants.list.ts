@@ -32,6 +32,12 @@ export interface CombinedResult extends ProductDetails {
   attributes?: VariantAttribute[]
 }
 
+export interface CombinedResultPrice extends CombinedResult {
+  price?: number
+  discount?: number
+  temp_id?: string // ID temporal para gestión local
+}
+
 export interface CombinedResultExtended extends CombinedResult {
   quantity?: number
   price?: number
@@ -94,7 +100,6 @@ export async function getProductsAndVariantsForPurchase(
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     )
     .slice(0, limit)
-
   return combinedResults
 }
 

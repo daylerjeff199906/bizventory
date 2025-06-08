@@ -7,7 +7,7 @@ export const APP_URLS = {
     CREATE_VARIANT: (id: string) =>
       `${URL_PREFIX}/products/${id}/create-variant`,
     MULTIMEDIA: (id: string) => `${URL_PREFIX}/products/${id}/media`,
-    EDIT: (id: string) => `${URL_PREFIX}/products/${id}/edit`,
+    EDIT: (id: string) => `${URL_PREFIX}/products/${id}`,
     VIEW: (id: string) => `${URL_PREFIX}/products/${id}`,
     PRODUCTS_STOCK: `${URL_PREFIX}/products-stock`,
     DETAIL: (id: string) => `${URL_PREFIX}/products/${id}/details`
@@ -24,8 +24,28 @@ export const APP_URLS = {
     EDIT: (id: string) => `${URL_PREFIX}/purchases/${id}/edit`,
     VIEW: (id: string) => `${URL_PREFIX}/purchases/${id}`,
     RECEIPTS: {
-      LIST: `${URL_PREFIX}/purchases/receipts`
+      LIST: `${URL_PREFIX}/purchases/receipts`,
+      DETAIL: (uuid: string) => `${URL_PREFIX}/purchases/receipts/${uuid}`
     },
     INVENTORY: `${URL_PREFIX}/inventory`
+  },
+  SALES: {
+    LIST: `${URL_PREFIX}/sales`,
+    CREATE: `${URL_PREFIX}/sales/create`,
+    EDIT: (id: string) => `${URL_PREFIX}/sales/${id}/edit`,
+    VIEW: (id: string) => `${URL_PREFIX}/sales/${id}`,
+    TICKETS: {
+      LIST: `${URL_PREFIX}/sales/tickets`,
+      DETAIL: (uuid: string) => `${URL_PREFIX}/sales/tickets/${uuid}`
+    }
+  },
+  CUSTOMERS: {
+    LIST: `${URL_PREFIX}/customers`,
+    CREATE: `${URL_PREFIX}/customers/create`,
+    EDIT: (id: string) => `${URL_PREFIX}/customers/${id}/edit`,
+    VIEW: (id: string) => `${URL_PREFIX}/customers/${id}`
+  },
+  SETTINGS: {
+    GENERAL: `${URL_PREFIX}/settings`
   }
 }
