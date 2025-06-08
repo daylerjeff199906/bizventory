@@ -4,7 +4,7 @@ import { Plus } from 'lucide-react'
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-4 p-4 bg-white dark:bg-gray-800">
+    <div className="flex flex-col gap-4 md:p-4 bg-white dark:bg-gray-800">
       <PageHeader
         title="Lista de Productos"
         description="Aquí puedes ver y gestionar todos los productos disponibles."

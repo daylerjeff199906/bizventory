@@ -276,7 +276,7 @@ export default function SidebarLayout({
           'w-[calc(100vw-64px)] lg:w-[calc(100vw-256px)]'
         )}
       >
-        <div className="h-fit p-6 w-full">{children}</div>
+        <div className="h-fit md:p-6 w-full">{children}</div>
       </main>
     </div>
   )

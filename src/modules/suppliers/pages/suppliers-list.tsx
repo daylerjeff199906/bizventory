@@ -191,7 +191,7 @@ export default function SuppliersList(props: IProps) {
 
   return (
     <>
-      <div className="flex flex-col space-y-6 p-6">
+      <div className="flex flex-col space-y-6 p-2">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
