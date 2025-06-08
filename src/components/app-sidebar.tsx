@@ -1,9 +1,7 @@
 'use client'
 
-import * as React from 'react'
+import type * as React from 'react'
 import {
-  AudioWaveform,
-  Command,
   GalleryVerticalEnd,
   Users,
   PackageCheck,
@@ -14,37 +12,31 @@ import {
   Contact2
 } from 'lucide-react'
 
-import { NavMain } from '@/components/nav-main'
-import { NavProjects } from '@/components/nav-projects'
 import { NavUser } from '@/components/nav-user'
-import { TeamSwitcher } from '@/components/team-switcher'
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarGroup,
   SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarRail
 } from '@/components/ui/sidebar'
+import { APP_URLS } from '@/config/app-urls'
 
 const navMain = [
-  // {
-  //   title: 'Empresas',
-  //   url: '#',
-  //   icon: Building2,
-  //   items: [
-  //     { title: 'Lista de Empresas', url: '/companies' },
-  //     { title: 'Asignar Usuarios', url: '/companies/assign-users' },
-  //     { title: 'Configuración General', url: '/companies/settings' }
-  //   ]
-  // },
   {
     title: 'Productos',
     url: '#',
     icon: PackageCheck,
     items: [
-      { title: 'Catálogo de Productos', url: '/products' },
+      { title: 'Lista de productos', url: APP_URLS.PRODUCTS.LIST },
       { title: 'Categorías', url: '/products/categories' },
-      { title: 'Códigos de Barras / QR', url: '/products/codes' },
       { title: 'Stock Mínimo', url: '/products/min-stock' }
     ]
   },
@@ -53,8 +45,8 @@ const navMain = [
     url: '#',
     icon: Warehouse,
     items: [
-      { title: 'Estado de Stock', url: '/inventory' },
-      { title: 'Historial de Movimientos', url: '/inventory/history' },
+      { title: 'Estado de Stock', url: APP_URLS.PRODUCTS.PRODUCTS_STOCK },
+      { title: 'Historial de Movimientos', url: APP_URLS.PURCHASES.INVENTORY },
       { title: 'Alertas de Stock', url: '/inventory/alerts' }
     ]
   },
@@ -63,8 +55,8 @@ const navMain = [
     url: '#',
     icon: FileDown,
     items: [
-      { title: 'Nueva Compra', url: '/purchases/new' },
-      { title: 'Lista de Compras', url: '/purchases' },
+      { title: 'Nueva Compra', url: APP_URLS.PURCHASES.CREATE },
+      { title: 'Lista de Compras', url: APP_URLS.PURCHASES.LIST },
       { title: 'Comprobantes (PDF)', url: '/purchases/receipts' }
     ]
   },
@@ -94,55 +86,76 @@ const navMain = [
     icon: Contact2,
     items: [
       { title: 'Clientes', url: '/clients' },
-      { title: 'Proveedores', url: '/suppliers' },
+      { title: 'Proveedores', url: APP_URLS.SUPPLIERS.LIST },
       { title: 'Relaciones', url: '/relationships' }
+    ]
+  },
+  {
+    title: 'Usuarios y Roles',
+    url: '#',
+    icon: Users,
+    items: [
+      { title: 'Gestión de Usuarios', url: '/users' },
+      { title: 'Roles y Permisos', url: '/roles' }
     ]
   }
 ]
 
-// This is sample data.
+// Datos del usuario (mantener los originales)
 const data = {
   user: {
     name: 'shadcn',
     email: 'm@example.com',
     avatar: '/avatars/shadcn.jpg'
-  },
-  teams: [
-    {
-      name: 'Acme Inc',
-      logo: GalleryVerticalEnd,
-      plan: 'Enterprise'
-    },
-    {
-      name: 'Acme Corp.',
-      logo: AudioWaveform,
-      plan: 'Startup'
-    },
-    {
-      name: 'Evil Corp.',
-      logo: Command,
-      plan: 'Free'
-    }
-  ],
-  navMain: navMain,
-  projects: [
-    {
-      name: 'Usuarios y Roles',
-      url: '#',
-      icon: Users
-    }
-  ]
+  }
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="lg" asChild>
+              <a href="#">
+                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+                  <GalleryVerticalEnd className="size-4" />
+                </div>
+                <div className="flex flex-col gap-0.5 leading-none">
+                  <span className="font-medium">Sistema de Inventario</span>
+                  <span className="">v1.0.0</span>
+                </div>
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+        <SidebarGroup>
+          <SidebarMenu>
+            {navMain.map((item) => (
+              <SidebarMenuItem key={item.title}>
+                <SidebarMenuButton asChild>
+                  <a href={item.url} className="font-medium">
+                    <item.icon className="size-4" />
+                    {item.title}
+                  </a>
+                </SidebarMenuButton>
+                {item.items?.length ? (
+                  <SidebarMenuSub>
+                    {item.items.map((subItem) => (
+                      <SidebarMenuSubItem key={subItem.title}>
+                        <SidebarMenuSubButton asChild>
+                          <a href={subItem.url}>{subItem.title}</a>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    ))}
+                  </SidebarMenuSub>
+                ) : null}
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />
