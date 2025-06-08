@@ -1,11 +1,22 @@
 // // companyInfo.ts
 // // Servicio de funciones CRUD para la tabla 'company_info' usando Supabase en Server Components
-// 'use server'
-// import { createClient } from '@/utils/supabase/server'
-// import { CompanyInfo } from '@/types'
+'use server'
+import { createClient } from '@/utils/supabase/server'
+import { CompanyInfo } from '@/types/core/company-info'
+import { revalidatePath } from 'next/cache'
+import { APP_URLS } from '@/config/app-urls'
+import { UpdateCompanyInput } from '@/modules/settings'
 // import { revalidatePath } from 'next/cache'
 // import { APP_URLS } from '@/config/app-urls'
 // import { CreateCompanyInfoData } from '@/modules/companyInfo'
+
+// /**
+//  * Instancia de Supabase en contexto de servidor
+//  */
+async function getSupabase() {
+  const supabase = createClient()
+  return supabase
+}
 
 // export interface ResApi<T> {
 //   data: T[]
@@ -13,14 +24,6 @@
 //   page_size: number
 //   total: number
 //   total_pages: number
-// }
-
-// /**
-//  * Instancia de Supabase en contexto de servidor
-//  */
-// async function getSupabase() {
-//   const supabase = createClient()
-//   return supabase
 // }
 
 // /**
@@ -109,25 +112,6 @@
 // }
 
 // /**
-//  * Obtiene la información de la empresa por su ID
-//  * @param id - UUID de la empresa
-//  * @returns Promise<CompanyInfo>
-//  */
-// export async function getCompanyInfoById(
-//   id: string
-// ): Promise<CompanyInfo | null> {
-//   const supabase = await getSupabase()
-//   const { data, error } = await supabase
-//     .from('company_info')
-//     .select('*')
-//     .eq('id', id)
-//     .single()
-
-//   if (error || !data) return null
-//   return data
-// }
-
-// /**
 //  * Crea una nueva información de la empresa
 //  * @param newCompanyInfo - datos para creación
 //  * @returns Promise<CompanyInfo>
@@ -147,29 +131,6 @@
 //   if (error || !data) {
 //     return null
 //   }
-//   revalidatePath(APP_URLS.COMPANY_INFO.LIST)
-//   return data
-// }
-
-// /**
-//  * Actualiza la información completa de la empresa
-//  * @param id - UUID de la empresa
-//  * @param updated - campos a actualizar
-//  * @returns Promise<CompanyInfo>
-//  */
-// export async function updateCompanyInfo(
-//   id: string,
-//   updated: Partial<CompanyInfo>
-// ): Promise<CompanyInfo | null> {
-//   const supabase = await getSupabase()
-//   const { data, error } = await supabase
-//     .from('company_info')
-//     .update(updated)
-//     .eq('id', id)
-//     .select()
-//     .single()
-
-//   if (error || !data) return null
 //   revalidatePath(APP_URLS.COMPANY_INFO.LIST)
 //   return data
 // }
@@ -211,3 +172,45 @@
 //   if (error) throw error
 //   revalidatePath(APP_URLS.COMPANY_INFO.LIST)
 // }
+
+// /**
+//  * Obtiene la información de la empresa por su ID
+//  * @param id - UUID de la empresa
+//  * @returns Promise<CompanyInfo>
+//  */
+export async function getCompanyInfoById(
+  id: string
+): Promise<CompanyInfo | null> {
+  const supabase = await getSupabase()
+  const { data, error } = await supabase
+    .from('company_info')
+    .select('*')
+    .eq('id', id)
+    .single()
+
+  if (error || !data) return null
+  return data
+}
+
+// /**
+//  * Actualiza la información completa de la empresa
+//  * @param id - UUID de la empresa
+//  * @param updated - campos a actualizar
+//  * @returns Promise<CompanyInfo>
+//  */
+export async function updateCompanyInfo(
+  id: string,
+  updated: Partial<UpdateCompanyInput>
+): Promise<CompanyInfo | null> {
+  const supabase = await getSupabase()
+  const { data, error } = await supabase
+    .from('company_info')
+    .update(updated)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error || !data) return null
+  revalidatePath(APP_URLS.SETTINGS.GENERAL)
+  return data
+}
