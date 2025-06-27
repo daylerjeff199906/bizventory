@@ -21,6 +21,9 @@ export default async function Page(props: Props) {
   }
 
   const products = await getProducts({
+    filters: {
+      name: searchParams.name
+    },
     sortBy: sortField,
     sortDirection: sortOrder
   })

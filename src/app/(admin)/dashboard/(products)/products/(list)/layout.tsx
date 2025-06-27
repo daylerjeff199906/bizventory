@@ -1,5 +1,6 @@
 import { PageHeader } from '@/components/app/header-section'
 import { APP_URLS } from '@/config/app-urls'
+import { FiltersProducts } from '@/modules/products'
 import { Plus } from 'lucide-react'
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -14,10 +15,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           icon: <Plus className="h-4 w-4 mr-2" />
         }}
       />
+      <FiltersProducts />
       <div className="flex flex-col gap-4 container mx-auto">{children}</div>
-      <div className="mt-4">
-        {/* Footer or additional content can go here */}
-      </div>
     </div>
   )
 }
