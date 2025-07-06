@@ -28,6 +28,10 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { Brand } from '@/types'
+import { BrandModal } from '../components'
+import { updateBrand } from '@/apis/app'
+import { toast } from 'react-toastify'
+import { ToastCustom } from '@/components/app/toast-custom'
 
 type SortField = 'name' | 'updated_at' | 'created_at' | 'status'
 type SortDirection = 'asc' | 'desc'
@@ -39,6 +43,9 @@ interface BrandListProps {
 export const BrandList = ({ brandslist = [] }: BrandListProps) => {
   const [sortField, setSortField] = useState<SortField | null>(null)
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'N/A'
@@ -80,23 +87,45 @@ export const BrandList = ({ brandslist = [] }: BrandListProps) => {
     )
   }
 
-  // Ordenar las marcas si hay un campo de ordenación seleccionado
-  const sortedBrands = [...brandslist].sort((a, b) => {
-    if (!sortField) return 0
+  const handleEditBrand = (brand: Brand) => {
+    setSelectedBrand(brand)
+    setIsEditMode(true)
+    setIsModalOpen(true)
+  }
 
-    const aValue = a[sortField] || ''
-    const bValue = b[sortField] || ''
+  const handleEditSubmit = async (brand: Brand) => {
+    setIsLoading(true)
+    try {
+      const updatedBrand = await updateBrand(brand)
+      if (updatedBrand) {
+        toast.success(
+          <ToastCustom
+            title="Marca actualizada"
+            message="Los cambios se han guardado correctamente."
+          />
+        )
 
-    if (sortField === 'created_at' || sortField === 'updated_at') {
-      const aDate = aValue ? new Date(aValue).getTime() : 0
-      const bDate = bValue ? new Date(bValue).getTime() : 0
-      return sortDirection === 'asc' ? aDate - bDate : bDate - aDate
+        setIsModalOpen(false)
+      } else {
+        toast.error(
+          <ToastCustom
+            title="Error al actualizar la marca"
+            message="No se pudo actualizar la marca. Por favor, inténtalo de nuevo más tarde."
+          />
+        )
+      }
+    } catch (error) {
+      console.error('Error updating brand:', error)
+      toast.error(
+        <ToastCustom
+          title="Error al actualizar la marca"
+          message="Ocurrió un error al intentar actualizar la marca. Por favor, inténtalo de nuevo más tarde."
+        />
+      )
+    } finally {
+      setIsLoading(false)
     }
-
-    return sortDirection === 'asc'
-      ? String(aValue).localeCompare(String(bValue))
-      : String(bValue).localeCompare(String(aValue))
-  })
+  }
 
   return (
     <div className="rounded-md border bg-white shadow-none overflow-hidden">
@@ -150,14 +179,14 @@ export const BrandList = ({ brandslist = [] }: BrandListProps) => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {sortedBrands.length === 0 ? (
+          {brandslist.length === 0 ? (
             <TableRow>
               <TableCell colSpan={6} className="py-12 text-center">
                 No hay marcas registradas
               </TableCell>
             </TableRow>
           ) : (
-            sortedBrands.map((brand) => (
+            brandslist.map((brand) => (
               <TableRow key={brand.id} className="hover:bg-gray-50">
                 <TableCell className="font-medium border-r border-gray-100">
                   {brand.name || 'Sin nombre'}
@@ -219,7 +248,11 @@ export const BrandList = ({ brandslist = [] }: BrandListProps) => {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-blue-600 focus:text-blue-600"
+                        onClick={() => handleEditBrand(brand)}
+                        disabled={isLoading}
+                      >
                         <Edit className="h-4 w-4 mr-2" />
                         Editar
                       </DropdownMenuItem>
@@ -235,6 +268,19 @@ export const BrandList = ({ brandslist = [] }: BrandListProps) => {
           )}
         </TableBody>
       </Table>
+
+      <BrandModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        brand={selectedBrand}
+        onSave={async (data) => {
+          if (!selectedBrand) return
+          await handleEditSubmit({
+            ...selectedBrand,
+            ...data
+          })
+        }}
+      />
     </div>
   )
 }
