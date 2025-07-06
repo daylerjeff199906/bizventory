@@ -3,8 +3,8 @@
 'use server'
 import { createClient } from '@/utils/supabase/server'
 import { Brand, ResApi } from '@/types'
-// import { revalidatePath } from 'next/cache'
-// import { APP_URLS } from '@/config/app-urls'
+import { revalidatePath } from 'next/cache'
+import { APP_URLS } from '@/config/app-urls'
 
 /**
  * Instancia de Supabase en contexto de servidor
@@ -96,4 +96,55 @@ export async function getBrands({
     total,
     total_pages
   }
+}
+
+export async function createBrand(brand: Brand): Promise<Brand | null> {
+  const supabase = await getSupabase()
+  const { data, error } = await supabase
+    .from('brands')
+    .insert([brand])
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error al crear la marca:', error)
+    return null
+  }
+
+  revalidatePath(APP_URLS.BRANDS.LIST)
+
+  return data as Brand
+}
+
+export async function updateBrand(brand: Brand): Promise<Brand | null> {
+  const supabase = await getSupabase()
+  const { data, error } = await supabase
+    .from('brands')
+    .update(brand)
+    .eq('id', brand.id)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error al actualizar la marca:', error)
+    return null
+  }
+
+  revalidatePath(APP_URLS.BRANDS.LIST)
+
+  return data as Brand
+}
+
+export async function deleteBrand(id: string): Promise<boolean> {
+  const supabase = await getSupabase()
+  const { error } = await supabase.from('brands').delete().eq('id', id)
+
+  if (error) {
+    console.error('Error al eliminar la marca:', error)
+    return false
+  }
+
+  revalidatePath(APP_URLS.BRANDS.LIST)
+
+  return true
 }
