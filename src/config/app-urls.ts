@@ -48,5 +48,8 @@ export const APP_URLS = {
   },
   SETTINGS: {
     GENERAL: `${URL_PREFIX}/settings`
+  },
+  BRANDS: {
+    LIST: `${URL_PREFIX}/brands`
   }
 }
