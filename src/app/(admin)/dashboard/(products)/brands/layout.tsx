@@ -1,4 +1,5 @@
 import { PageHeader } from '@/components/app/header-section'
+import { FiltersProducts } from '@/modules/products'
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -7,6 +8,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         title="Lista de Marcas"
         description="Aquí puedes ver y gestionar todas las marcas disponibles."
       />
+      <FiltersProducts placeholder="Buscar marcas por nombre..." />
       <div className="flex flex-col gap-4 container mx-auto">{children}</div>
     </div>
   )
