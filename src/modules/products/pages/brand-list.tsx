@@ -30,6 +30,7 @@ import { cn } from '@/lib/utils'
 import { Brand } from '@/types'
 import { BrandModal } from '../components'
 import { format } from 'date-fns'
+import { DeleteBrandDialog } from '../components'
 
 type SortField = 'name' | 'updated_at' | 'created_at' | 'status'
 type SortDirection = 'asc' | 'desc'
@@ -43,6 +44,8 @@ export const BrandList = ({ brandslist = [] }: BrandListProps) => {
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [brandToDelete, setBrandToDelete] = useState<Brand | null>(null)
 
   const handleSort = (field: SortField) => {
     let newDirection: SortDirection = 'asc'
@@ -68,6 +71,11 @@ export const BrandList = ({ brandslist = [] }: BrandListProps) => {
   const handleEditBrand = (brand: Brand) => {
     setSelectedBrand(brand)
     setIsModalOpen(true)
+  }
+
+  const handleDeleteBrand = (brand: Brand) => {
+    setBrandToDelete(brand)
+    setIsDeleteDialogOpen(true)
   }
 
   return (
@@ -193,7 +201,10 @@ export const BrandList = ({ brandslist = [] }: BrandListProps) => {
                         <Edit className="h-4 w-4 mr-2" />
                         Editar
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="text-red-600 focus:text-red-600">
+                      <DropdownMenuItem
+                        className="text-red-600 focus:text-red-600"
+                        onClick={() => handleDeleteBrand(brand)}
+                      >
                         <Trash2 className="h-4 w-4 mr-2" />
                         Eliminar
                       </DropdownMenuItem>
@@ -210,6 +221,17 @@ export const BrandList = ({ brandslist = [] }: BrandListProps) => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         brand={selectedBrand}
+      />
+
+      <DeleteBrandDialog
+        isOpen={isDeleteDialogOpen}
+        brandName={brandToDelete?.name || ''}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        brandId={brandToDelete?.id || ''}
+        onSuccess={() => {
+          setIsDeleteDialogOpen(false)
+        }}
+        key={brandToDelete?.id || 'delete-brand-dialog'}
       />
     </div>
   )
