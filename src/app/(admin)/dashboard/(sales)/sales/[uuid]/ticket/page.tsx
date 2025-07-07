@@ -1,6 +1,6 @@
 import { getCompanyInfoById } from '@/apis/app'
 import { getSaleById } from '@/apis/app/sales'
-import { InvoiceDetail } from '@/modules/sales/pages'
+import { InvoiceDetailPrint } from '@/modules/sales/pages'
 import { Params } from '@/types'
 
 interface Props {
@@ -22,7 +22,7 @@ export default async function Page(props: Props) {
 
   return (
     <>
-      <InvoiceDetail company={companyInfo} sale={sale} />
+      <InvoiceDetailPrint company={companyInfo} sale={sale} />
     </>
   )
 }

@@ -2,16 +2,22 @@
 import { SearchInput } from '@/components/app/search-input'
 import { useFilterFromUrl } from '@/hooks/use-filter-from-url'
 
-export const FiltersProducts = () => {
+interface FiltersProductsProps {
+  query?: string
+  placeholder?: string
+}
+
+export const FiltersProducts = (props: FiltersProductsProps) => {
+  const { query = 'name', placeholder } = props
   const { getParams, updateFilters } = useFilterFromUrl()
 
-  const nameValue = getParams('name', '')
+  const nameValue = getParams(`${query}`, '')
 
   const handleSearch = (value: string) => {
     if (value !== '') {
-      updateFilters({ name: value })
+      updateFilters({ [query]: value })
     } else {
-      updateFilters({ name: '' })
+      updateFilters({ [query]: '' })
     }
   }
 
@@ -19,7 +25,7 @@ export const FiltersProducts = () => {
     <div className="w-full">
       <div className="max-w-md">
         <SearchInput
-          placeholder="Buscar productos por nombre"
+          placeholder={placeholder || 'Buscar productos por nombre...'}
           onChange={handleSearch}
           value={nameValue}
         />

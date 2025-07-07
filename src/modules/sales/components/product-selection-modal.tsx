@@ -356,7 +356,10 @@ export const transformProductsToCombinedSelection = (
           product_description: product.description,
           variant_name: variant.name,
           unit: product.unit,
-          brand: product.brand,
+          brand: {
+            id: product.brand?.id ?? '',
+            name: product.brand?.name ?? ''
+          },
           stock: variant.stock,
           price_unit: variant.price_unit,
           attributes: variant.attributes || [],
@@ -370,7 +373,10 @@ export const transformProductsToCombinedSelection = (
         product_name: product.name,
         product_description: product.description,
         unit: product.unit,
-        brand: product.brand,
+        brand: {
+          id: String(product?.brand.id),
+          name: product?.brand.name
+        },
         stock: product.stock,
         price_unit: product.price_unit,
         _temp_id: `temp-${product.id}`
