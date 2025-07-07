@@ -66,16 +66,6 @@ export async function getBrands({
   }
 
   const { data, error, count } = await query
-  console.log('getBrands', {
-    page,
-    pageSize,
-    filters,
-    sortBy,
-    sortDirection,
-    data,
-    error,
-    count
-  })
 
   if (error)
     return {
@@ -124,17 +114,14 @@ export async function updateBrand(brand: Brand): Promise<Brand | null> {
     .eq('id', brand.id)
     .select()
     .single()
-    
-    console.log('updateBrand', { brand, data, error })
 
   if (error) {
     console.error('Error al actualizar la marca:', error)
     return null
+  } else {
+    revalidatePath(APP_URLS.BRANDS.LIST)
+    return data
   }
-
-  revalidatePath(APP_URLS.BRANDS.LIST)
-
-  return data
 }
 
 export async function deleteBrand(id: string): Promise<boolean> {

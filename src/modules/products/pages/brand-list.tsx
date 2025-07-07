@@ -29,6 +29,7 @@ import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { Brand } from '@/types'
 import { BrandModal } from '../components'
+import { format } from 'date-fns'
 
 type SortField = 'name' | 'updated_at' | 'created_at' | 'status'
 type SortDirection = 'asc' | 'desc'
@@ -42,15 +43,6 @@ export const BrandList = ({ brandslist = [] }: BrandListProps) => {
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null)
-
-  const formatTime = (dateString: string | null) => {
-    if (!dateString) return ''
-    const date = new Date(dateString)
-    return date.toLocaleTimeString('es-ES', {
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
 
   const handleSort = (field: SortField) => {
     let newDirection: SortDirection = 'asc'
@@ -174,7 +166,7 @@ export const BrandList = ({ brandslist = [] }: BrandListProps) => {
                   <div className="text-sm">
                     {brand.created_at && (
                       <div className="text-gray-500 text-xs">
-                        {formatTime(brand.created_at)}
+                        {format(new Date(brand.created_at), 'dd/MM/yyyy HH:mm')}
                       </div>
                     )}
                   </div>
@@ -183,7 +175,7 @@ export const BrandList = ({ brandslist = [] }: BrandListProps) => {
                   <div className="text-sm">
                     {brand.updated_at && (
                       <div className="text-gray-500 text-xs">
-                        {formatTime(brand.updated_at)}
+                        {format(new Date(brand.updated_at), 'dd/MM/yyyy HH:mm')}
                       </div>
                     )}
                   </div>
@@ -197,10 +189,7 @@ export const BrandList = ({ brandslist = [] }: BrandListProps) => {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        className="text-blue-600 focus:text-blue-600"
-                        onClick={() => handleEditBrand(brand)}
-                      >
+                      <DropdownMenuItem onClick={() => handleEditBrand(brand)}>
                         <Edit className="h-4 w-4 mr-2" />
                         Editar
                       </DropdownMenuItem>

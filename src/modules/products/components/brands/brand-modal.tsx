@@ -12,8 +12,15 @@ import {
   DialogFooter
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage
+} from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -21,11 +28,12 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
-import { CreateBrandSchema, CreateBrand } from '../../schemas'
+import { CreateBrandSchema, type CreateBrand } from '../../schemas'
 import { toast } from 'react-toastify'
 import { ToastCustom } from '@/components/app/toast-custom'
-import { Brand, StatusItems } from '@/types'
+import { type Brand, StatusItems } from '@/types'
 import { updateBrand, createBrand } from '@/apis/app'
+import { Label } from '@/components/ui/label'
 
 interface BrandModalProps {
   isOpen: boolean
@@ -44,14 +52,7 @@ export function BrandModal({
   const [isLoading, setIsLoading] = useState(false)
   const isEditing = !!brand
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-    setValue,
-    watch
-  } = useForm<CreateBrand>({
+  const form = useForm<CreateBrand>({
     resolver: zodResolver(CreateBrandSchema),
     defaultValues: {
       name: '',
@@ -60,25 +61,25 @@ export function BrandModal({
     }
   })
 
-  const watchedLogoUrl = watch('logo_url')
+  const watchedLogoUrl = form.watch('logo_url')
 
   useEffect(() => {
     if (brand) {
-      reset({
+      form.reset({
         name: brand.name || '',
         logo_url: brand.logo_url || '',
         status: brand.status || StatusItems.ACTIVE
       })
       setLogoPreview(brand.logo_url || '')
     } else {
-      reset({
+      form.reset({
         name: '',
         logo_url: '',
         status: StatusItems.ACTIVE
       })
       setLogoPreview('')
     }
-  }, [brand, reset])
+  }, [brand, form])
 
   useEffect(() => {
     setLogoPreview(watchedLogoUrl || '')
@@ -86,39 +87,64 @@ export function BrandModal({
 
   const handleSubmitForm = async (data: CreateBrand) => {
     setIsLoading(true)
-    try {
-      let result: Brand | null = null
 
+    try {
       if (isEditing && brand) {
-        result = await updateBrand(brand)
-        toast(
+        // Lógica para actualizar marca
+        const updatedBrand = await updateBrand({
+          id: brand.id,
+          name: data.name,
+          logo_url: data.logo_url,
+          status: data.status,
+          updated_at: new Date().toISOString()
+        })
+
+        if (!updatedBrand) {
+          throw new Error('No se recibió respuesta al actualizar la marca')
+        }
+
+        toast.success(
           <ToastCustom
             title="Marca actualizada"
-            message={`La marca ${result?.name} se ha actualizado correctamente.`}
+            message={`La marca ${updatedBrand.name} se ha actualizado correctamente.`}
           />
         )
+
+        onSuccess?.(updatedBrand)
       } else {
-        result = await createBrand(data)
-        toast(
+        // Lógica para crear nueva marca
+        const newBrand = await createBrand({
+          name: data.name,
+          logo_url: data.logo_url,
+          status: data.status,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+
+        if (!newBrand) {
+          throw new Error('No se recibió respuesta al crear la marca')
+        }
+
+        toast.success(
           <ToastCustom
             title="Marca creada"
-            message={`La marca ${result?.name} se ha creado correctamente.`}
+            message={`La marca ${newBrand.name} se ha creado correctamente.`}
           />
         )
+
+        onSuccess?.(newBrand)
       }
 
-      if (result) {
-        onSuccess?.(result)
-      }
       handleClose()
     } catch (error) {
       console.error('Error al guardar la marca:', error)
+      const errorMessage =
+        error instanceof Error ? error.message : 'Ocurrió un error desconocido'
+
       toast.error(
         <ToastCustom
           title={`Error al ${isEditing ? 'actualizar' : 'crear'} la marca`}
-          message={`Ocurrió un error al intentar ${
-            isEditing ? 'actualizar' : 'crear'
-          } la marca. Por favor, inténtalo de nuevo más tarde.`}
+          message={`${errorMessage}. Por favor, inténtalo de nuevo.`}
         />
       )
     } finally {
@@ -127,7 +153,7 @@ export function BrandModal({
   }
 
   const handleClose = () => {
-    reset()
+    form.reset()
     setLogoPreview('')
     onClose()
   }
@@ -146,102 +172,122 @@ export function BrandModal({
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(handleSubmitForm)} className="space-y-6">
-          <div className="space-y-6 py-4 max-h-[70vh] overflow-y-auto">
-            <div className="space-y-2">
-              <Label htmlFor="name">
-                Nombre de la Marca <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="name"
-                placeholder="Ingrese el nombre de la marca"
-                {...register('name')}
-                className={errors.name ? 'border-red-500' : ''}
-              />
-              {errors.name && (
-                <p className="text-sm text-red-500">{errors.name.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="logo_url">URL del Logo</Label>
-              <Input
-                id="logo_url"
-                type="url"
-                placeholder="https://ejemplo.com/logo.png"
-                {...register('logo_url')}
-                className={errors.logo_url ? 'border-red-500' : ''}
-              />
-              {errors.logo_url && (
-                <p className="text-sm text-red-500">
-                  {errors.logo_url.message}
-                </p>
-              )}
-
-              {logoPreview && (
-                <div className="mt-2">
-                  <Label className="text-sm text-gray-600">Vista previa:</Label>
-                  <div className="mt-1 p-2 border rounded-md bg-gray-50">
-                    <img
-                      src={logoPreview || '/placeholder.svg'}
-                      alt="Vista previa del logo"
-                      className="h-16 w-16 object-contain rounded"
-                      onError={handleImageError}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="status">Estado</Label>
-              <Select
-                value={watch('status')}
-                onValueChange={(value: 'ACTIVO' | 'INACTIVO') =>
-                  setValue(
-                    'status',
-                    value === 'ACTIVO'
-                      ? StatusItems.ACTIVE
-                      : StatusItems.INACTIVE
-                  )
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Seleccione el estado" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ACTIVO">Activo</SelectItem>
-                  <SelectItem value="INACTIVO">Inactivo</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <div className="flex justify-end space-x-2 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleClose}
-                disabled={isLoading}
-              >
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
-                    {isEditing ? 'Actualizando...' : 'Creando...'}
-                  </>
-                ) : isEditing ? (
-                  'Actualizar Marca'
-                ) : (
-                  'Crear Marca'
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(handleSubmitForm)}
+            className="space-y-6"
+          >
+            <div className="space-y-6 py-4 max-h-[70vh] overflow-y-auto">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Nombre de la Marca <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Ingrese el nombre de la marca"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
-              </Button>
+              />
+
+              <FormField
+                control={form.control}
+                name="logo_url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>URL del Logo</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="url"
+                        placeholder="https://ejemplo.com/logo.png"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+
+                    {logoPreview && (
+                      <div className="mt-2">
+                        <Label className="text-sm text-gray-600">
+                          Vista previa:
+                        </Label>
+                        <div className="mt-1 p-2 border rounded-md bg-gray-50">
+                          <img
+                            src={logoPreview || '/placeholder.svg'}
+                            alt="Vista previa del logo"
+                            className="h-16 w-16 object-contain rounded"
+                            onError={handleImageError}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Estado</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Seleccione el estado" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value={StatusItems.ACTIVE}>
+                          Activo
+                        </SelectItem>
+                        <SelectItem value={StatusItems.INACTIVE}>
+                          Inactivo
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-          </DialogFooter>
-        </form>
+
+            <DialogFooter>
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleClose}
+                  disabled={isLoading}
+                >
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
+                      {isEditing ? 'Actualizando...' : 'Creando...'}
+                    </>
+                  ) : isEditing ? (
+                    'Actualizar Marca'
+                  ) : (
+                    'Crear Marca'
+                  )}
+                </Button>
+              </div>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   )
