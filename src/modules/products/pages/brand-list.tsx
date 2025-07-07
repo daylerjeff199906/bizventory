@@ -29,9 +29,6 @@ import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { Brand } from '@/types'
 import { BrandModal } from '../components'
-import { updateBrand } from '@/apis/app'
-import { toast } from 'react-toastify'
-import { ToastCustom } from '@/components/app/toast-custom'
 
 type SortField = 'name' | 'updated_at' | 'created_at' | 'status'
 type SortDirection = 'asc' | 'desc'
@@ -45,17 +42,6 @@ export const BrandList = ({ brandslist = [] }: BrandListProps) => {
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'N/A'
-    const date = new Date(dateString)
-    return date.toLocaleDateString('es-ES', {
-      day: 'numeric',
-      month: 'numeric',
-      year: 'numeric'
-    })
-  }
 
   const formatTime = (dateString: string | null) => {
     if (!dateString) return ''
@@ -89,42 +75,7 @@ export const BrandList = ({ brandslist = [] }: BrandListProps) => {
 
   const handleEditBrand = (brand: Brand) => {
     setSelectedBrand(brand)
-    setIsEditMode(true)
     setIsModalOpen(true)
-  }
-
-  const handleEditSubmit = async (brand: Brand) => {
-    setIsLoading(true)
-    try {
-      const updatedBrand = await updateBrand(brand)
-      if (updatedBrand) {
-        toast.success(
-          <ToastCustom
-            title="Marca actualizada"
-            message="Los cambios se han guardado correctamente."
-          />
-        )
-
-        setIsModalOpen(false)
-      } else {
-        toast.error(
-          <ToastCustom
-            title="Error al actualizar la marca"
-            message="No se pudo actualizar la marca. Por favor, inténtalo de nuevo más tarde."
-          />
-        )
-      }
-    } catch (error) {
-      console.error('Error updating brand:', error)
-      toast.error(
-        <ToastCustom
-          title="Error al actualizar la marca"
-          message="Ocurrió un error al intentar actualizar la marca. Por favor, inténtalo de nuevo más tarde."
-        />
-      )
-    } finally {
-      setIsLoading(false)
-    }
   }
 
   return (
@@ -221,7 +172,6 @@ export const BrandList = ({ brandslist = [] }: BrandListProps) => {
                 </TableCell>
                 <TableCell className="border-r border-gray-100">
                   <div className="text-sm">
-                    <div>{formatDate(brand.created_at)}</div>
                     {brand.created_at && (
                       <div className="text-gray-500 text-xs">
                         {formatTime(brand.created_at)}
@@ -231,7 +181,6 @@ export const BrandList = ({ brandslist = [] }: BrandListProps) => {
                 </TableCell>
                 <TableCell className="border-r border-gray-100">
                   <div className="text-sm">
-                    <div>{formatDate(brand.updated_at)}</div>
                     {brand.updated_at && (
                       <div className="text-gray-500 text-xs">
                         {formatTime(brand.updated_at)}
@@ -251,7 +200,6 @@ export const BrandList = ({ brandslist = [] }: BrandListProps) => {
                       <DropdownMenuItem
                         className="text-blue-600 focus:text-blue-600"
                         onClick={() => handleEditBrand(brand)}
-                        disabled={isLoading}
                       >
                         <Edit className="h-4 w-4 mr-2" />
                         Editar
@@ -273,13 +221,6 @@ export const BrandList = ({ brandslist = [] }: BrandListProps) => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         brand={selectedBrand}
-        onSave={async (data) => {
-          if (!selectedBrand) return
-          await handleEditSubmit({
-            ...selectedBrand,
-            ...data
-          })
-        }}
       />
     </div>
   )

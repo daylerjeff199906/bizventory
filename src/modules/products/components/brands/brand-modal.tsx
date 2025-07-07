@@ -25,19 +25,20 @@ import { CreateBrandSchema, CreateBrand } from '../../schemas'
 import { toast } from 'react-toastify'
 import { ToastCustom } from '@/components/app/toast-custom'
 import { Brand, StatusItems } from '@/types'
+import { updateBrand, createBrand } from '@/apis/app'
 
 interface BrandModalProps {
   isOpen: boolean
   onClose: () => void
-  onSave: (data: CreateBrand) => Promise<void>
   brand?: Brand | null
+  onSuccess?: (brand: Brand) => void
 }
 
 export function BrandModal({
   isOpen,
   onClose,
-  onSave,
-  brand
+  brand,
+  onSuccess
 }: BrandModalProps) {
   const [logoPreview, setLogoPreview] = useState<string>('')
   const [isLoading, setIsLoading] = useState(false)
@@ -83,25 +84,42 @@ export function BrandModal({
     setLogoPreview(watchedLogoUrl || '')
   }, [watchedLogoUrl])
 
-  const onSubmit = async (data: CreateBrand) => {
+  const handleSubmitForm = async (data: CreateBrand) => {
     setIsLoading(true)
     try {
-      await onSave(data)
-      toast(
-        <ToastCustom
-          title={`Marca ${isEditing ? 'actualizada' : 'creada'}`}
-          message={`La marca ${data.name} se ha ${
-            isEditing ? 'actualizado' : 'creado'
-          } correctamente.`}
-        />
-      )
+      let result: Brand | null = null
+
+      if (isEditing && brand) {
+        result = await updateBrand(brand)
+        toast(
+          <ToastCustom
+            title="Marca actualizada"
+            message={`La marca ${result?.name} se ha actualizado correctamente.`}
+          />
+        )
+      } else {
+        result = await createBrand(data)
+        toast(
+          <ToastCustom
+            title="Marca creada"
+            message={`La marca ${result?.name} se ha creado correctamente.`}
+          />
+        )
+      }
+
+      if (result) {
+        onSuccess?.(result)
+      }
       handleClose()
     } catch (error) {
       console.error('Error al guardar la marca:', error)
       toast.error(
-        `Error al ${
-          isEditing ? 'actualizar' : 'crear'
-        } la marca. Por favor, inténtalo de nuevo.`
+        <ToastCustom
+          title={`Error al ${isEditing ? 'actualizar' : 'crear'} la marca`}
+          message={`Ocurrió un error al intentar ${
+            isEditing ? 'actualizar' : 'crear'
+          } la marca. Por favor, inténtalo de nuevo más tarde.`}
+        />
       )
     } finally {
       setIsLoading(false)
@@ -128,7 +146,7 @@ export function BrandModal({
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={handleSubmit(handleSubmitForm)} className="space-y-6">
           <div className="space-y-6 py-4 max-h-[70vh] overflow-y-auto">
             <div className="space-y-2">
               <Label htmlFor="name">
