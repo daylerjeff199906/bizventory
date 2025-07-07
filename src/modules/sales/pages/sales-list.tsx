@@ -23,7 +23,8 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
-  ChevronsRight
+  ChevronsRight,
+  Printer
 } from 'lucide-react'
 import type { SaleList, ResApi } from '@/apis/app/sales'
 import { APP_URLS } from '@/config/app-urls'
@@ -237,21 +238,23 @@ export const SalesList = ({ salesData, searchQuery = '' }: SalesListProps) => {
                   <div className="font-medium">
                     {formatCurrency(sale.total_amount || 0)}
                   </div>
-                  {sale.discount_amount && sale.discount_amount > 0 && (
-                    <div className="text-xs text-red-600">
-                      -{formatCurrency(sale.discount_amount)}
-                    </div>
-                  )}
+                  {typeof sale.discount_amount === 'number' &&
+                    sale.discount_amount > 0 && (
+                      <div className="text-xs text-red-600">
+                        -{formatCurrency(sale.discount_amount)}
+                      </div>
+                    )}
                 </TableCell>
                 <TableCell className="border-r border-gray-100">
                   <div className="font-bold">
                     {formatCurrency(sale.total_amount || 0)}
                   </div>
-                  {sale.tax_amount && sale.tax_amount > 0 && (
-                    <div className="text-xs text-gray-500">
-                      IGV: {formatCurrency(sale.tax_amount)}
-                    </div>
-                  )}
+                  {typeof sale.tax_amount === 'number' &&
+                    sale.tax_amount > 0 && (
+                      <div className="text-xs text-gray-500">
+                        IGV: {formatCurrency(sale.tax_amount)}
+                      </div>
+                    )}
                 </TableCell>
                 <TableCell className="border-r border-gray-100">
                   <StatusBadge status={sale.status} />
@@ -280,6 +283,16 @@ export const SalesList = ({ salesData, searchQuery = '' }: SalesListProps) => {
                   </div>
                 </TableCell>
                 <TableCell className="text-right">
+                  <Button
+                    asChild
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                  >
+                    <Link href={APP_URLS.SALES.PRINT(sale.id)}>
+                      <Printer className="h-4 w-4" />
+                    </Link>
+                  </Button>
                   <Button
                     asChild
                     variant="ghost"

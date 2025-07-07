@@ -86,7 +86,7 @@ const navMain = [
     url: '#',
     icon: Contact2,
     items: [
-      { title: 'Clientes', url: '/clients' },
+      // { title: 'Clientes', url: '/clients' },
       { title: 'Proveedores', url: APP_URLS.SUPPLIERS.LIST }
     ]
   },

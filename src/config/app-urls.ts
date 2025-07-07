@@ -34,6 +34,7 @@ export const APP_URLS = {
     LIST: `${URL_PREFIX}/sales`,
     CREATE: `${URL_PREFIX}/sales/create`,
     EDIT: (id: string) => `${URL_PREFIX}/sales/${id}/edit`,
+    PRINT: (id: string) => `${URL_PREFIX}/sales/${id}/ticket`,
     VIEW: (id: string) => `${URL_PREFIX}/sales/${id}`,
     TICKETS: {
       LIST: `${URL_PREFIX}/sales/tickets`,
@@ -51,5 +52,8 @@ export const APP_URLS = {
   },
   BRANDS: {
     LIST: `${URL_PREFIX}/brands`
+  },
+  REPORTS: {
+    INVENTORY: `${URL_PREFIX}/reports/inventory`
   }
 }
