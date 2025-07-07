@@ -67,8 +67,7 @@ const navMain = [
     icon: FileUp,
     items: [
       { title: 'Nueva Venta', url: APP_URLS.SALES.CREATE },
-      { title: 'Lista de Ventas', url: APP_URLS.SALES.LIST },
-      { title: 'Tickets (PDF)', url: APP_URLS.SALES.TICKETS.LIST }
+      { title: 'Lista de Ventas', url: APP_URLS.SALES.LIST }
     ]
   },
   {
@@ -91,12 +90,12 @@ const navMain = [
     ]
   },
   {
-    title: 'Usuarios y Roles',
+    title: 'Configuración',
     url: '#',
     icon: Users,
     items: [
-      { title: 'Gestión de Usuarios', url: '/users' },
-      { title: 'Roles y Permisos', url: '/roles' },
+      // { title: 'Gestión de Usuarios', url: '/users' },
+      // { title: 'Roles y Permisos', url: '/roles' },
       { title: 'Configuración', url: APP_URLS.SETTINGS.GENERAL }
     ]
   }
