@@ -1,10 +1,10 @@
 import { StatusItems } from '../core'
 
 export interface Brand {
-  id: string
+  id?: string
   name: string
-  created_at: string
-  updated_at: string
+  created_at?: string
+  updated_at?: string
   logo_url?: string | null
   status: StatusItems
 }

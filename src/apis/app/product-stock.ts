@@ -2,6 +2,7 @@
 import { VariantAttributeType } from '@/modules/purchases'
 import { Brand } from '@/types'
 import { createClient } from '@/utils/supabase/server'
+import { totalStats } from '@/types'
 
 // Tipos para variantes de producto
 export interface ProductVariant {
@@ -225,5 +226,20 @@ export async function getProductsWithVariantsAndStock({
       total_items: 0,
       total_pages: 0
     }
+  }
+}
+
+// get_inventory_stats
+export async function fetchInventoryStats(): Promise<totalStats | null> {
+  const supabase = await getSupabase()
+  try {
+    const { data, error } = await supabase.rpc('get_inventory_stats').single()
+
+    if (error) return null
+
+    return data as totalStats
+  } catch (error) {
+    console.error('Error fetching inventory stats:', error)
+    return null
   }
 }

@@ -5,7 +5,8 @@ import {
   TrendingDown,
   AlertTriangle,
   FileText,
-  Eye
+  Eye,
+  Building2
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -27,49 +28,30 @@ import {
 } from '@/components/ui/table'
 import Link from 'next/link'
 import { APP_URLS } from '@/config/app-urls'
-import { InventoryMovementWithProduct } from '@/types'
+import { Brand, InventoryMovementWithProduct, StatusItems } from '@/types'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 
-// Datos de ejemplo
-const inventoryStats = {
-  totalProducts: 1247,
-  totalValue: 89750,
-  lowStock: 23,
-  outOfStock: 5
-}
-
-const lowStockProducts = [
-  {
-    id: 1,
-    name: 'Cables USB-C',
-    current: 5,
-    minimum: 20,
-    category: 'Accesorios'
-  },
-  {
-    id: 2,
-    name: 'Baterías AA',
-    current: 12,
-    minimum: 50,
-    category: 'Consumibles'
-  },
-  { id: 3, name: 'Papel A4', current: 8, minimum: 25, category: 'Oficina' },
-  {
-    id: 4,
-    name: 'Tinta Impresora',
-    current: 3,
-    minimum: 15,
-    category: 'Consumibles'
-  }
-]
-
 interface InventoryDashboardProps {
   movements?: InventoryMovementWithProduct[]
+  inventoryStats?: {
+    totalProducts: number
+    totalValue: number
+    lowStock: number
+    outOfStock: number
+  }
+  brandsList?: Brand[]
 }
 
 export default function InventoryDashboard({
-  movements
+  movements = [],
+  inventoryStats = {
+    totalProducts: 0,
+    totalValue: 0,
+    lowStock: 0,
+    outOfStock: 0
+  },
+  brandsList = []
 }: InventoryDashboardProps) {
   return (
     <main className="flex-1 space-y-6 p-6">
@@ -87,7 +69,7 @@ export default function InventoryDashboard({
               {inventoryStats.totalProducts.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">
-              +12% desde el mes pasado
+              Total de productos en inventario
             </p>
           </CardContent>
         </Card>
@@ -99,10 +81,10 @@ export default function InventoryDashboard({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${inventoryStats.totalValue.toLocaleString()}
+              S/{inventoryStats.totalValue.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">
-              +8% desde el mes pasado
+              Incluye ventas y compras recientes
             </p>
           </CardContent>
         </Card>
@@ -161,18 +143,16 @@ export default function InventoryDashboard({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {movements &&
-                  movements.length > 0 &&
-                  movements?.map((movement) => (
+                {movements.length > 0 ? (
+                  movements.map((movement) => (
                     <TableRow key={movement.id}>
                       <TableCell className="font-medium text-sm">
                         {movement.product?.brand?.name}{' '}
                         {movement.product?.description}{' '}
-                        {movement?.variant?.name || ' '}{' '}
-                        {movement?.variant?.attributes &&
-                          movement?.variant?.attributes
-                            ?.map((attr) => `${attr.attribute_value}`)
-                            .join(', ')}
+                        {movement.variant?.name || ''}{' '}
+                        {movement.variant?.attributes
+                          ?.map((attr) => attr.attribute_value)
+                          .join(', ')}
                       </TableCell>
                       <TableCell>
                         <Badge
@@ -209,9 +189,8 @@ export default function InventoryDashboard({
                         </Button>
                       </TableCell>
                     </TableRow>
-                  ))}
-
-                {(!movements || movements.length === 0) && (
+                  ))
+                ) : (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center">
                       No hay movimientos recientes
@@ -223,41 +202,66 @@ export default function InventoryDashboard({
           </CardContent>
         </Card>
 
-        {/* Low Stock Alert */}
+        {/* Brands List */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-yellow-600" />
-              Alertas de Stock
+              <Building2 className="h-5 w-5" />
+              Marcas
             </CardTitle>
-            <CardDescription>Productos con stock bajo</CardDescription>
+            <CardDescription>Listado de marcas registradas</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {lowStockProducts.map((product) => (
-              <div key={product.id} className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium">{product.name}</span>
-                  <Badge variant="outline" className="text-xs">
-                    {product.category}
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>
-                    Stock: {product.current}/{product.minimum}
-                  </span>
-                  <span>
-                    {Math.round((product.current / product.minimum) * 100)}%
-                  </span>
-                </div>
-                {/* <Progress
-                  value={(product.current / product.minimum) * 100}
-                  className="h-2"
-                /> */}
+            {brandsList.length > 0 ? (
+              <div className="space-y-3">
+                {brandsList.slice(0, 5).map((brand) => (
+                  <div key={brand.id} className="flex items-center gap-3">
+                    <div className="flex-shrink-0">
+                      {brand.logo_url ? (
+                        <img
+                          src={brand.logo_url}
+                          alt={`Logo ${brand.name}`}
+                          className="h-8 w-8 object-contain rounded"
+                        />
+                      ) : (
+                        <div className="h-8 w-8 bg-gray-100 rounded-full flex items-center justify-center">
+                          <Building2 className="h-4 w-4 text-gray-400" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">
+                        {brand.name}
+                      </p>
+                      <Badge
+                        variant={
+                          brand.status === StatusItems.ACTIVE
+                            ? 'default'
+                            : 'secondary'
+                        }
+                        className={cn(
+                          'text-xs',
+                          brand.status === StatusItems.ACTIVE
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
+                        )}
+                      >
+                        {brand.status === StatusItems.ACTIVE
+                          ? 'Activo'
+                          : 'Inactivo'}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+                <Button className="w-full mt-4" size="sm" asChild>
+                  <Link href={APP_URLS.BRANDS.LIST}>Ver Todas las Marcas</Link>
+                </Button>
               </div>
-            ))}
-            <Button className="w-full" size="sm">
-              Ver Todas las Alertas
-            </Button>
+            ) : (
+              <div className="text-center text-sm text-muted-foreground">
+                No hay marcas registradas
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -288,9 +292,11 @@ export default function InventoryDashboard({
                 <span>Nuevo Producto</span>
               </Link>
             </Button>
-            <Button className="h-20 flex-col gap-2" variant="outline">
-              <FileText className="h-6 w-6" />
-              <span>Generar Reporte</span>
+            <Button className="h-20 flex-col gap-2" variant="outline" asChild>
+              <Link href={APP_URLS.REPORTS.INVENTORY}>
+                <FileText className="h-6 w-6" />
+                <span>Generar Reporte</span>
+              </Link>
             </Button>
           </div>
         </CardContent>
