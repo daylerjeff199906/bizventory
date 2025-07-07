@@ -170,7 +170,13 @@ export const NewProductForm = () => {
                   render={({ field }) => (
                     <FormItem>
                       <SearchSelectPopover
-                        options={optionsBrands}
+                        options={
+                          optionsBrands as {
+                            id: string
+                            name: string
+                            [key: string]: unknown
+                          }[]
+                        }
                         isLoading={loadingBrands}
                         placeholder="Selecciona una marca"
                         defaultValue={null}
