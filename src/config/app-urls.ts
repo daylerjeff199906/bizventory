@@ -54,6 +54,6 @@ export const APP_URLS = {
     LIST: `${URL_PREFIX}/brands`
   },
   REPORTS: {
-    INVENTORY: `${URL_PREFIX}/reports/inventory`
+    INVENTORY: `${URL_PREFIX}/reports`
   }
 }
