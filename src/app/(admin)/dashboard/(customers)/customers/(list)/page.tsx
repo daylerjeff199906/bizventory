@@ -1,10 +1,10 @@
-import { SuppliersList } from '@/modules/suppliers'
-import { getSuppliers } from '@/apis/app'
+import { getCustomers } from '@/apis/app'
+import { CustomersList } from '@/modules/customers/pages'
 
 export default async function Page() {
-  const suppliers = await getSuppliers()
+  const customers = await getCustomers({})
 
-  return <SuppliersList suppliersList={suppliers || []} />
+  return <CustomersList customersList={customers.data} />
 }
 
 export const dynamic = 'force-dynamic' // Forzar revalidación en cada solicitud
