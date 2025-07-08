@@ -1,4 +1,5 @@
 import { PageHeader } from '@/components/app/header-section'
+import { PersonsCRUD } from '@/modules/customers'
 // import { APP_URLS } from '@/config/app-urls'
 // import { Plus } from 'lucide-react'
 
@@ -14,6 +15,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         //   icon: <Plus className="h-4 w-4 mr-2" />
         // }}
       />
+      <PersonsCRUD />
       <div className="flex flex-col gap-4 container mx-auto">{children}</div>
     </>
   )
