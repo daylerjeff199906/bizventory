@@ -4,7 +4,7 @@
 import type React from 'react'
 
 import { useEffect, useState } from 'react'
-// import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -62,10 +62,13 @@ import {
 } from 'lucide-react'
 import { toast } from 'react-toastify'
 import { ToastCustom } from '@/components/app/toast-custom'
-import { createClient } from '@/utils/supabase/client'
 
 // Inicializar Supabase (reemplaza con tus credenciales)
-const supabase = createClient()
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || 'tu-supabase-url',
+  process.env.SUPABASE_SERVICE_ROLE_KEY || 'tu-service-role-key'
+)
+
 interface User {
   id: string
   email: string
