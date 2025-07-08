@@ -77,7 +77,10 @@ const navMain = [
     items: [
       { title: 'Por Fecha', url: '/reports/dates' },
       { title: 'Stock Actual', url: '/reports/stock' },
-      { title: 'Movimientos de inventario', url: '/reports/movements' }
+      {
+        title: 'Movimientos de inventario',
+        url: APP_URLS.REPORTS.INVENTORY
+      }
     ]
   },
   {
