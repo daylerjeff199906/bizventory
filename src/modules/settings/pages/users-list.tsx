@@ -66,7 +66,8 @@ import { ToastCustom } from '@/components/app/toast-custom'
 // Inicializar Supabase (reemplaza con tus credenciales)
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || 'tu-supabase-url',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZhd29iZWhsemV5d3hibHFkeXBwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0ODQ4Mzk1NSwiZXhwIjoyMDY0MDU5OTU1fQ.KME5GGgL4DqHdq_6-q-9L27o8lyhNJ_KqSFj2mpBdYk'
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZhd29iZWhsemV5d3hibHFkeXBwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0ODQ4Mzk1NSwiZXhwIjoyMDY0MDU5OTU1fQ.KME5GGgL4DqHdq_6-q-9L27o8lyhNJ_KqSFj2mpBdYk'
 )
 
 interface User {
@@ -96,7 +97,6 @@ export const AdminUsuarios = () => {
   })
 
   const usuariosPorPagina = 10
-  console.log('service token', process.env.SUPABASE_SERVICE_ROLE_KEY)
 
   const cargarUsuarios = async (pagina = 1, buscar = '') => {
     setCargando(true)
