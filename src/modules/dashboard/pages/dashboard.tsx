@@ -5,8 +5,7 @@ import {
   TrendingDown,
   AlertTriangle,
   FileText,
-  Eye,
-  Building2
+  Eye
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -28,7 +27,7 @@ import {
 } from '@/components/ui/table'
 import Link from 'next/link'
 import { APP_URLS } from '@/config/app-urls'
-import { Brand, InventoryMovementWithProduct, StatusItems } from '@/types'
+import { Brand, InventoryMovementWithProduct } from '@/types'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 
@@ -50,8 +49,7 @@ export default function InventoryDashboard({
     totalValue: 0,
     lowStock: 0,
     outOfStock: 0
-  },
-  brandsList = []
+  }
 }: InventoryDashboardProps) {
   return (
     <main className="flex-1 space-y-6 p-6">
@@ -203,7 +201,7 @@ export default function InventoryDashboard({
         </Card>
 
         {/* Brands List */}
-        <Card>
+        {/* <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Building2 className="h-5 w-5" />
@@ -263,7 +261,7 @@ export default function InventoryDashboard({
               </div>
             )}
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
 
       {/* Quick Actions */}
