@@ -34,12 +34,12 @@ const navMain = [
     url: '#',
     icon: PackageCheck,
     items: [
-      {
-        title: 'Marcas',
-        url: APP_URLS.BRANDS.LIST
-      },
-      { title: 'Lista de productos', url: APP_URLS.PRODUCTS.LIST },
-      { title: 'Nuevo producto', url: APP_URLS.PRODUCTS.CREATE }
+      // {
+      //   title: 'Marcas',
+      //   url: APP_URLS.BRANDS.LIST
+      // },
+      { title: 'Lista de productos', url: APP_URLS.PRODUCTS.LIST }
+      // { title: 'Nuevo producto', url: APP_URLS.PRODUCTS.CREATE }
     ]
   },
   {
@@ -75,9 +75,12 @@ const navMain = [
     url: '#',
     icon: BarChartBig,
     items: [
-      // { title: 'Por Fecha', url: '/reports/dates' },
-      // { title: 'Stock Actual', url: '/reports/stock' },
-      // { title: 'Reportes de productos', url: APP_URLS.REPORTS.INVENTORY }
+      { title: 'Por Fecha', url: '/reports/dates' },
+      { title: 'Stock Actual', url: APP_URLS.REPORTS.STOCK },
+      {
+        title: 'Movimientos de inventario',
+        url: APP_URLS.REPORTS.INVENTORY
+      }
     ]
   },
   {
@@ -85,7 +88,7 @@ const navMain = [
     url: '#',
     icon: Contact2,
     items: [
-      // { title: 'Clientes', url: '/clients' },
+      { title: 'Clientes', url: APP_URLS.CUSTOMERS.LIST },
       { title: 'Proveedores', url: APP_URLS.SUPPLIERS.LIST }
     ]
   },
