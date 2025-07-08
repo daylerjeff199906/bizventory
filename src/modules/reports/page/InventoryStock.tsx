@@ -382,7 +382,6 @@ export const InventoryStockTableReport = ({
     <div className="space-y-4">
       {/* Encabezado con título y botones de exportación */}
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Stock de Inventario</h2>
         <ReportGenerators company={company} inventoryStock={inventoryStock} />
       </div>
 
