@@ -76,7 +76,7 @@ const navMain = [
     icon: BarChartBig,
     items: [
       { title: 'Por Fecha', url: '/reports/dates' },
-      { title: 'Stock Actual', url: '/reports/stock' },
+      { title: 'Stock Actual', url: APP_URLS.REPORTS.STOCK },
       {
         title: 'Movimientos de inventario',
         url: APP_URLS.REPORTS.INVENTORY

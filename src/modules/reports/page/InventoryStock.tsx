@@ -22,19 +22,11 @@ import {
 import * as XLSX from 'xlsx'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { CompanyInfo } from '@/modules/settings'
 
 interface Props {
   inventoryStock: InventoryStock[]
   company: CompanyInfo
-}
-
-interface CompanyInfo {
-  name: string
-  tax_number: string
-  address: string
-  phone: string
-  email?: string
-  logo_url?: string
 }
 
 // Estilos para el PDF
@@ -382,10 +374,10 @@ const getStockStatus = (quantity: number) => {
   }
 }
 
-export default function InventoryStockTable({
+export const InventoryStockTableReport = ({
   inventoryStock,
   company
-}: Props) {
+}: Props) => {
   return (
     <div className="space-y-4">
       {/* Encabezado con título y botones de exportación */}

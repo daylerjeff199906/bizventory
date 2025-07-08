@@ -1,3 +1,4 @@
 import { InventoryMovementReport } from './InventoryMovementReport'
+import { InventoryStockTableReport } from './InventoryStock'
 
-export { InventoryMovementReport }
+export { InventoryMovementReport, InventoryStockTableReport }
