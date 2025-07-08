@@ -48,7 +48,8 @@ export const APP_URLS = {
     VIEW: (id: string) => `${URL_PREFIX}/customers/${id}`
   },
   SETTINGS: {
-    GENERAL: `${URL_PREFIX}/settings`
+    GENERAL: `${URL_PREFIX}/settings`,
+    USERS: `${URL_PREFIX}/users`
   },
   BRANDS: {
     LIST: `${URL_PREFIX}/brands`
