@@ -227,7 +227,7 @@ export async function updatePerson(id: string, personData: PersonType) {
   const supabase = await getSupabase()
 
   const { data, error } = await supabase
-    .from('person')
+    .from('persons')
     .update(validatedData)
     .eq('id', id)
     .select()
