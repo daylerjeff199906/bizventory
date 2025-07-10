@@ -5,6 +5,8 @@ import { createClient } from '@/utils/supabase/server'
 import { CustomerList, Person } from '@/types'
 import { personSchema, PersonType } from '@/modules/customers'
 import { createCustomerSchema, CreateCustomerData } from '@/modules/customers'
+import { revalidatePath } from 'next/cache'
+import { APP_URLS } from '@/config/app-urls'
 
 // import { revalidatePath } from 'next/cache'
 // import { APP_URLS } from '@/config/app-urls'
@@ -326,6 +328,7 @@ export async function createCustomer(createCustomerData: CreateCustomerData) {
   if (customerError) {
     throw new Error(`Error al crear cliente: ${customerError.message}`)
   }
+  revalidatePath(APP_URLS.CUSTOMERS.LIST)
 
   return data
 }
