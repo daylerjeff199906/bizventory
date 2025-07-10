@@ -15,4 +15,4 @@ export const personSchema = z.object({
   updated_at: z.string().optional()
 })
 
-export type Person = z.infer<typeof personSchema>
+export type PersonType = z.infer<typeof personSchema>
