@@ -29,24 +29,16 @@ import { createPerson, updatePerson } from '@/apis/app'
 import { createCustomer } from '@/apis/app'
 import { Person } from '@/types'
 import { toast } from 'react-toastify'
-import { ToastCustom } from '@/components/app/toast-custom'
 
 interface PersonCrudProps {
   personData?: Person
   isCustomer?: boolean
-  onSuccess?: () => void
   mode?: 'create' | 'edit'
   children?: React.ReactNode
 }
 
 export default function PersonsCRUD(props: PersonCrudProps) {
-  const {
-    personData,
-    isCustomer = false,
-    onSuccess,
-    mode = 'create',
-    children
-  } = props
+  const { personData, isCustomer = false, mode = 'create', children } = props
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -66,49 +58,25 @@ export default function PersonsCRUD(props: PersonCrudProps) {
     setIsLoading(true)
     try {
       if (mode === 'create') {
-        // Crear persona primero
         const personResponse = await createPerson(data)
 
-        if (personResponse.error) {
-          toast.error(
-            <ToastCustom title="Error" message="Error al crear la persona" />
-          )
+        if (isCustomer && personResponse?.data?.id) {
+          await createCustomer({ person_id: personResponse?.data?.id })
+          toast.success('Cliente creado correctamente')
         } else {
-          if (isCustomer && personResponse?.data?.id) {
-            // Si es cliente, crear el cliente después de crear la persona
-            await createCustomer({ person_id: personResponse?.data?.id })
-          }
-
-          toast.success(
-            <ToastCustom title="Éxito" message="Persona creada correctamente" />
-          )
+          toast.success('Persona creada correctamente')
         }
       } else if (mode === 'edit' && personData?.id) {
-        // Editar solo la persona
         await updatePerson(personData.id, data)
-
-        toast.success(
-          <ToastCustom
-            title="Éxito"
-            message="Persona actualizada correctamente"
-          />
-        )
+        toast.success('Datos actualizados correctamente')
       }
 
       setIsOpen(false)
       form.reset()
-      if (onSuccess) onSuccess()
+      // Recargar la página para ver los cambios
+      window.location.reload()
     } catch {
-      toast.error(
-        <ToastCustom
-          title="Error"
-          message={
-            mode === 'create'
-              ? 'Error al crear la persona'
-              : 'Error al actualizar la persona'
-          }
-        />
-      )
+      toast.error('Ocurrió un error al procesar la solicitud')
     } finally {
       setIsLoading(false)
     }
@@ -147,14 +115,14 @@ export default function PersonsCRUD(props: PersonCrudProps) {
               ? isCustomer
                 ? 'Agregar Nuevo Cliente'
                 : 'Agregar Nueva Persona'
-              : 'Editar Persona'}
+              : 'Editar Datos'}
           </DialogTitle>
           <DialogDescription>
             {mode === 'create'
               ? `Completa la información ${
                   isCustomer ? 'del nuevo cliente' : 'de la nueva persona'
-                }. Los campos marcados con * son obligatorios.`
-              : 'Actualiza la información de la persona.'}
+                }.`
+              : 'Actualiza los datos de la persona.'}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
