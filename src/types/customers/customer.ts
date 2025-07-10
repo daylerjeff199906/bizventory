@@ -1,4 +1,4 @@
-import { Person } from '@/modules/customers/schema/person-schema'
+import { Person } from './person'
 
 export interface Customer {
   id: string
