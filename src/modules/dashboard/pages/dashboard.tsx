@@ -4,8 +4,7 @@ import {
   TrendingUp,
   TrendingDown,
   AlertTriangle,
-  FileText,
-  Eye
+  FileText
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -137,7 +136,6 @@ export default function InventoryDashboard({
                   <TableHead>Tipo</TableHead>
                   <TableHead>Cantidad</TableHead>
                   <TableHead>Fecha</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -180,11 +178,6 @@ export default function InventoryDashboard({
                       <TableCell>
                         {movement.date &&
                           format(new Date(movement.date), 'dd/MM/yyyy HH:mm')}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="sm">
-                          <Eye className="h-4 w-4" />
-                        </Button>
                       </TableCell>
                     </TableRow>
                   ))
