@@ -6,6 +6,16 @@ export const APP_URLS = {
     LOGIN: '/login',
     REGISTER: '/register'
   },
+  ORGANIZATION: {
+    BUSINESS: {
+      LIST: `${URL_PREFIX}/businesses`,
+      CREATE: `${URL_PREFIX}/businesses/create`,
+      EDIT: (id: string) => `${URL_PREFIX}/businesses/${id}/edit`,
+      DETAIL: (id: string) => `${URL_PREFIX}/businesses/${id}`
+    }
+  },
+
+  //Old URLs kept for backward compatibility
   PRODUCTS: {
     LIST: `${URL_PREFIX}/products`,
     CREATE: `${URL_PREFIX}/products/create`,
