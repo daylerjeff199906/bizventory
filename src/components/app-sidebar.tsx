@@ -1,161 +1,170 @@
-'use client'
+"use client"
 
-import type * as React from 'react'
+import * as React from "react"
 import {
+  AudioWaveform,
+  BookOpen,
+  Bot,
+  Command,
+  Frame,
   GalleryVerticalEnd,
-  Users,
-  PackageCheck,
-  Warehouse,
-  FileDown,
-  FileUp,
-  BarChartBig,
-  Contact2
-} from 'lucide-react'
+  Map,
+  PieChart,
+  Settings2,
+  SquareTerminal,
+} from "lucide-react"
 
-import { NavUser } from '@/components/nav-user'
+import { NavMain } from "@/components/nav-main"
+import { NavProjects } from "@/components/nav-projects"
+import { NavUser } from "@/components/nav-user"
+import { TeamSwitcher } from "@/components/team-switcher"
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
-  SidebarGroup,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
-  SidebarRail
-} from '@/components/ui/sidebar'
-import { APP_URLS } from '@/config/app-urls'
+  SidebarRail,
+} from "@/components/ui/sidebar"
 
-const navMain = [
-  {
-    title: 'Productos',
-    url: '#',
-    icon: PackageCheck,
-    items: [
-      { title: 'Lista de productos', url: APP_URLS.PRODUCTS.LIST },
-      { title: 'Categorías', url: '/products/categories' },
-      { title: 'Stock Mínimo', url: '/products/min-stock' }
-    ]
-  },
-  {
-    title: 'Inventario',
-    url: '#',
-    icon: Warehouse,
-    items: [
-      { title: 'Estado de Stock', url: APP_URLS.PRODUCTS.PRODUCTS_STOCK },
-      { title: 'Historial de Movimientos', url: APP_URLS.PURCHASES.INVENTORY },
-      { title: 'Alertas de Stock', url: '/inventory/alerts' }
-    ]
-  },
-  {
-    title: 'Entradas (Compras)',
-    url: '#',
-    icon: FileDown,
-    items: [
-      { title: 'Nueva Compra', url: APP_URLS.PURCHASES.CREATE },
-      { title: 'Lista de Compras', url: APP_URLS.PURCHASES.LIST },
-      { title: 'Comprobantes (PDF)', url: '/purchases/receipts' }
-    ]
-  },
-  {
-    title: 'Salidas (Ventas)',
-    url: '#',
-    icon: FileUp,
-    items: [
-      { title: 'Nueva Venta', url: '/sales/new' },
-      { title: 'Lista de Ventas', url: '/sales' },
-      { title: 'Tickets (PDF)', url: '/sales/tickets' }
-    ]
-  },
-  {
-    title: 'Reportes',
-    url: '#',
-    icon: BarChartBig,
-    items: [
-      { title: 'Por Fecha', url: '/reports/dates' },
-      { title: 'Stock Actual', url: '/reports/stock' },
-      { title: 'Movimientos de Inventario', url: '/reports/movements' }
-    ]
-  },
-  {
-    title: 'Clientes y Proveedores',
-    url: '#',
-    icon: Contact2,
-    items: [
-      { title: 'Clientes', url: '/clients' },
-      { title: 'Proveedores', url: APP_URLS.SUPPLIERS.LIST },
-      { title: 'Relaciones', url: '/relationships' }
-    ]
-  },
-  {
-    title: 'Usuarios y Roles',
-    url: '#',
-    icon: Users,
-    items: [
-      { title: 'Gestión de Usuarios', url: '/users' },
-      { title: 'Roles y Permisos', url: '/roles' }
-    ]
-  }
-]
-
-// Datos del usuario (mantener los originales)
+// This is sample data.
 const data = {
   user: {
-    name: 'shadcn',
-    email: 'm@example.com',
-    avatar: '/avatars/shadcn.jpg'
-  }
+    name: "shadcn",
+    email: "m@example.com",
+    avatar: "/avatars/shadcn.jpg",
+  },
+  teams: [
+    {
+      name: "Acme Inc",
+      logo: GalleryVerticalEnd,
+      plan: "Enterprise",
+    },
+    {
+      name: "Acme Corp.",
+      logo: AudioWaveform,
+      plan: "Startup",
+    },
+    {
+      name: "Evil Corp.",
+      logo: Command,
+      plan: "Free",
+    },
+  ],
+  navMain: [
+    {
+      title: "Playground",
+      url: "#",
+      icon: SquareTerminal,
+      isActive: true,
+      items: [
+        {
+          title: "History",
+          url: "#",
+        },
+        {
+          title: "Starred",
+          url: "#",
+        },
+        {
+          title: "Settings",
+          url: "#",
+        },
+      ],
+    },
+    {
+      title: "Models",
+      url: "#",
+      icon: Bot,
+      items: [
+        {
+          title: "Genesis",
+          url: "#",
+        },
+        {
+          title: "Explorer",
+          url: "#",
+        },
+        {
+          title: "Quantum",
+          url: "#",
+        },
+      ],
+    },
+    {
+      title: "Documentation",
+      url: "#",
+      icon: BookOpen,
+      items: [
+        {
+          title: "Introduction",
+          url: "#",
+        },
+        {
+          title: "Get Started",
+          url: "#",
+        },
+        {
+          title: "Tutorials",
+          url: "#",
+        },
+        {
+          title: "Changelog",
+          url: "#",
+        },
+      ],
+    },
+    {
+      title: "Settings",
+      url: "#",
+      icon: Settings2,
+      items: [
+        {
+          title: "General",
+          url: "#",
+        },
+        {
+          title: "Team",
+          url: "#",
+        },
+        {
+          title: "Billing",
+          url: "#",
+        },
+        {
+          title: "Limits",
+          url: "#",
+        },
+      ],
+    },
+  ],
+  projects: [
+    {
+      name: "Design Engineering",
+      url: "#",
+      icon: Frame,
+    },
+    {
+      name: "Sales & Marketing",
+      url: "#",
+      icon: PieChart,
+    },
+    {
+      name: "Travel",
+      url: "#",
+      icon: Map,
+    },
+  ],
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <a href="#">
-                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                  <GalleryVerticalEnd className="size-4" />
-                </div>
-                <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-medium">Sistema de Inventario</span>
-                  <span className="">v1.0.0</span>
-                </div>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarMenu>
-            {navMain.map((item) => (
-              <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton asChild>
-                  <a href={item.url} className="font-medium">
-                    <item.icon className="size-4" />
-                    {item.title}
-                  </a>
-                </SidebarMenuButton>
-                {item.items?.length ? (
-                  <SidebarMenuSub>
-                    {item.items.map((subItem) => (
-                      <SidebarMenuSubItem key={subItem.title}>
-                        <SidebarMenuSubButton asChild>
-                          <a href={subItem.url}>{subItem.title}</a>
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                    ))}
-                  </SidebarMenuSub>
-                ) : null}
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarGroup>
+        <NavMain items={data.navMain} />
+        <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />
