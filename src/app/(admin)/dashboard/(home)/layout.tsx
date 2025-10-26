@@ -31,7 +31,14 @@ export default async function Layout(props: LayoutProps) {
         userName={profile?.name || 'Usuario'}
         urlPhoto={user?.user?.user_metadata.avatar_url || ''}
       />
-      {children}
+      <div className="container mx-auto px-4 sm:px-6 md:px-8 py-6 flex-1">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight mb-4 px-6 mt-4">
+            Mis negocios
+          </h2>
+        </div>
+        {children}
+      </div>
     </div>
   )
 }

@@ -5,6 +5,7 @@ import { ChevronRight, Mail, Phone } from 'lucide-react'
 import { BusinessForm } from '@/schemas/business'
 import Link from 'next/link'
 import { APP_URLS } from '@/config/app-urls'
+import { EmptyState } from '@/components/miscellaneous/empty-state'
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -137,9 +138,11 @@ export const BusinessesPage = ({ businessesList }: BusinessPageProps) => {
 
       {/* Estado vacío si no hay empresas */}
       {businessesList.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">No hay empresas registradas</p>
-        </div>
+        <EmptyState
+          title="¡Vaya! Parece que no tienes empresas registradas."
+          description="Por el momento, no hay empresas asociadas a tu cuenta. Comienza agregando una nueva empresa para gestionar tus operaciones."
+          urlImage="/svg/search-businesses.svg"
+        />
       )}
     </>
   )
