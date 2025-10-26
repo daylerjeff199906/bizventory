@@ -57,7 +57,7 @@ export function EmptyState({
         {urlImage && (
           <EmptyMedia>
             <Image
-              src={urlImage}
+              src={urlImage || '/svg/search-businesses.svg'}
               width={150}
               height={150}
               alt="Empty State Image"
