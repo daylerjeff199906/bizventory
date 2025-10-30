@@ -209,6 +209,8 @@ export const CreateVariantForm = ({
             }
           ]
         })
+        setVariantCreated(false)
+
         router.push(
           APP_URLS.ORGANIZATION.PRODUCTS.CREATE_VARIANT(
             String(businessId),

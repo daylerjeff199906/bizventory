@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Edit2, Check, X, Save, Plus, Trash2 } from 'lucide-react'
+import { Check, X, Save, Plus, Trash2, Edit } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -257,9 +257,9 @@ export const VariantsPreview = ({
                       size="sm"
                       variant="ghost"
                       onClick={() => startEdit(index, 'name')}
-                      className="h-7 w-7 p-0 hover:bg-gray-100"
+                      className="h-7 w-7 p-0 hover:bg-gray-100 cursor-pointer"
                     >
-                      <Edit2 className="h-3 w-3" />
+                      <Edit className="h-3 w-3" />
                     </Button>
                   )}
                   <Button
@@ -268,7 +268,7 @@ export const VariantsPreview = ({
                     onClick={() =>
                       setDeleteState({ type: 'variant', variantIndex: index })
                     }
-                    className="h-7 w-7 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                    className="h-7 w-7 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 cursor-pointer"
                   >
                     <Trash2 className="h-3 w-3" />
                   </Button>
@@ -297,7 +297,10 @@ export const VariantsPreview = ({
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3  gap-2 mb-2">
                 {variant.attributes.map((attr, attrIndex) => (
                   <div key={attrIndex} className="relative group/attr">
-                    <div className="flex items-center gap-2 px-3 py-2 border rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded-md">
+                      <span className="text-xs font-semibold text-gray-500">
+                        {attrIndex + 1}.
+                      </span>
                       <div className="flex flex-row gap-1.5 items-center flex-1">
                         <span className="text-xs font-medium text-gray-700">
                           {ATTRIBUTE_TYPES[
@@ -357,9 +360,9 @@ export const VariantsPreview = ({
                               onClick={() =>
                                 startEdit(index, 'attribute', attrIndex)
                               }
-                              className="h-6 w-6 p-0"
+                              className="h-6 w-6 p-0 cursor-pointer"
                             >
-                              <Edit2 className="h-2 w-2" />
+                              <Edit className="h-2 w-2" />
                             </Button>
                             <Button
                               size="sm"
@@ -371,9 +374,9 @@ export const VariantsPreview = ({
                                   attributeIndex: attrIndex
                                 })
                               }
-                              className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                              className="h-6 w-6 p-0 text-red-500 hover:text-red-700 cursor-pointer"
                             >
-                              <X className="h-2 w-2" />
+                              <Trash2 className="h-2 w-2" />
                             </Button>
                           </>
                         )}
