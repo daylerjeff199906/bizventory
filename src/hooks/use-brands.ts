@@ -7,13 +7,14 @@ export const useBrands = () => {
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<Error | null>(null)
 
-  const fetchBrands = async ({ query = '' } = {}) => {
+  const fetchBrands = async ({ query = '', idBusiness }: { query?: string, idBusiness?: string } = {}) => {
     try {
       setLoading(true)
       const response: ResApi<Brand> = await getBrands({
         filters: {
           name: query
         },
+        idBusiness: idBusiness,
         page: 1,
         pageSize: 100 // Ajusta el tamaño de página según tus necesidades
       })

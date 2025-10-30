@@ -39,6 +39,7 @@ import { ToastCustom } from '@/components/app/toast-custom'
 import { toast } from 'react-toastify'
 import { SearchSelectPopover } from '@/components/app/SearchSelectPopover'
 import { useBrands } from '@/hooks/use-brands'
+import { useParams } from 'next/navigation'
 
 export const NewProductForm = () => {
   const [isLoading, setIsLoading] = useState(false)
@@ -48,6 +49,9 @@ export const NewProductForm = () => {
   const [searchBrand, setSearchBrand] = useState<string>('')
 
   const { brands, fetchBrands, loading: loadingBrands } = useBrands()
+  const params = useParams()
+
+  const uuidBusiness = params?.uuid as string
 
   const form = useForm<CreateProductData>({
     resolver: zodResolver(productSchema),
@@ -55,11 +59,12 @@ export const NewProductForm = () => {
       name: '',
       description: '',
       brand_id: '',
-      code: '',
       tags: []
       //   images: []
     }
   })
+
+  const isDirty = form.formState.isDirty
 
   const addTag = () => {
     if (tagInput.trim() && !form.getValues('tags')?.includes(tagInput.trim())) {
@@ -113,7 +118,12 @@ export const NewProductForm = () => {
             message="El producto se ha creado correctamente."
           />
         )
-        router.push(APP_URLS.PRODUCTS.CREATE_VARIANT(response.id))
+        router.push(
+          APP_URLS.ORGANIZATION.PRODUCTS.CREATE_VARIANT(
+            uuidBusiness,
+            response.id
+          )
+        )
       }
     } catch (error) {
       console.error('Error al crear el producto:', error)
@@ -130,7 +140,8 @@ export const NewProductForm = () => {
 
   useEffect(() => {
     fetchBrands({
-      query: searchBrand
+      query: searchBrand,
+      idBusiness: uuidBusiness
     })
   }, [searchBrand])
 
@@ -320,7 +331,12 @@ export const NewProductForm = () => {
                   Cancelar
                 </Button>
               </Link>
-              <Button type="submit" disabled={isLoading} size="lg">
+              <Button
+                type="submit"
+                disabled={isLoading || !isDirty}
+                size="lg"
+                className="cursor-pointer"
+              >
                 {isLoading ? (
                   <>
                     <RefreshCw className="h-4 w-4 mr-2 animate-spin" />

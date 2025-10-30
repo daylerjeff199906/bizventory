@@ -147,13 +147,15 @@ export async function createProduct({
   newProduct: CreateProductData
 }): Promise<Product | null> {
   const supabase = await getSupabase()
+
+  delete newProduct.code
+
   const { data, error } = await supabase
     .from('products')
     .insert(newProduct)
     .select()
     .single()
 
-  console.log('createProduct', { data, error })
 
   if (error || !data) {
     return null
