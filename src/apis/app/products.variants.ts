@@ -18,6 +18,7 @@ type CreateProductVariantsResponse = {
   error: string | null
 }
 
+// Crear variantes de producto con atributos
 export const createProductVariants = async ({
   businessId,
   productId,
@@ -32,7 +33,7 @@ export const createProductVariants = async ({
       attribute_type: string
       attribute_value: string
     }[]
-  }[],
+  }[]
   revalidateUrl?: string
 }): Promise<CreateProductVariantsResponse> => {
   const supabase = await getSupabase()
@@ -44,7 +45,7 @@ export const createProductVariants = async ({
       .insert(
         variants.map((variant) => ({
           product_id: productId,
-          name: variant.name,
+          name: variant.name
         }))
       )
       .select('id, code')
@@ -76,9 +77,10 @@ export const createProductVariants = async ({
           error: attributesError.message || String(attributesError)
         }
     }
-    revalidatePath(revalidateUrl || APP_URLS.ORGANIZATION.PRODUCTS.CREATE_VARIANT(
-      businessId, productId
-    ))
+    revalidatePath(
+      revalidateUrl ||
+        APP_URLS.ORGANIZATION.PRODUCTS.CREATE_VARIANT(businessId, productId)
+    )
     return {
       data: createdVariants,
       error: null
@@ -115,6 +117,7 @@ export const getProductWithVariants = async (
     `
     )
     .eq('product_id', productId)
+    .eq('is_active', true)
 
   if (variantsError) throw variantsError
 

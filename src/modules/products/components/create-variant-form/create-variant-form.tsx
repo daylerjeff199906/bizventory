@@ -169,6 +169,7 @@ export const CreateVariantForm = ({
     setShowConfirmation(true)
   }
 
+  // Confirmar creación de variantes
   const confirmCreate = async () => {
     setIsLoading(true)
     setShowConfirmation(false)
@@ -498,7 +499,10 @@ export const CreateVariantForm = ({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isLoading}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmCreate} disabled={isLoading}>
+            <AlertDialogAction
+              onClick={() => confirmCreate()}
+              disabled={isLoading}
+            >
               {isLoading ? (
                 <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
               ) : (
