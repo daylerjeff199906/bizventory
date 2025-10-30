@@ -72,19 +72,22 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
 }
 
 export function AppSidebar(props: AppSidebarProps) {
+  // Extraer los props personalizados y dejar solo los props del Sidebar
+  const { userData, menuNavBar, ...sidebarProps } = props
+
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar collapsible="icon" {...sidebarProps}>
       <SidebarHeader>
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={props.menuNavBar?.navMain || []} />
+        <NavMain items={menuNavBar?.navMain || []} />
         <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
         <NavActions
-          isAuthenticated={props.userData?.email ? true : false}
-          userData={props.userData || null}
+          isAuthenticated={!!userData?.email}
+          userData={userData || null}
         />
       </SidebarFooter>
       <SidebarRail />
