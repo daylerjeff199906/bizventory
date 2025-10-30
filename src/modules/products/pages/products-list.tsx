@@ -101,54 +101,54 @@ export const ProductsList = ({
   }
 
   return (
-    <div className="rounded-md border bg-white shadow-none overflow-hidden">
+    <div className="rounded-md border bg-white">
       <Table>
-        <TableHeader>
-          <TableRow className="bg-gray-100 hover:bg-gray-100">
-            <TableHead className="border-r border-gray-200 w-[100px]">
+        <TableHeader className="bg-muted">
+          <TableRow>
+            <TableHead className="w-[100px]">
               <Button
                 variant="ghost"
                 onClick={() => handleSort('code')}
-                className="h-auto p-0 font-medium text-gray-700 hover:bg-transparent hover:text-gray-900"
+                className="h-auto p-0 font-medium hover:bg-transparent"
               >
                 Código
                 {getSortIcon('code')}
               </Button>
             </TableHead>
-            <TableHead className="border-r border-gray-200">
-              <div className="font-medium text-gray-700">Marca</div>
+            <TableHead>
+              <div className="font-medium">Marca</div>
             </TableHead>
-            <TableHead className="border-r border-gray-200">
+            <TableHead>
               <Button
                 variant="ghost"
                 onClick={() => handleSort('name')}
-                className="h-auto p-0 font-medium text-gray-700 hover:bg-transparent hover:text-gray-900"
+                className="h-auto p-0 font-medium hover:bg-transparent"
               >
                 Producto
                 {getSortIcon('name')}
               </Button>
             </TableHead>
-            <TableHead className="border-r border-gray-200">
-              <div className="font-medium text-gray-700">Unidad</div>
+            <TableHead>
+              <div className="font-medium">Unidad</div>
             </TableHead>
-            <TableHead className="border-r border-gray-200">
-              <div className="font-medium text-gray-700">Estado</div>
+            <TableHead>
+              <div className="font-medium">Estado</div>
             </TableHead>
-            <TableHead className="border-r border-gray-200">
+            <TableHead>
               <Button
                 variant="ghost"
                 onClick={() => handleSort('created_at')}
-                className="h-auto p-0 font-medium text-gray-700 hover:bg-transparent hover:text-gray-900"
+                className="h-auto p-0 font-medium hover:bg-transparent"
               >
                 Creado
                 {getSortIcon('created_at')}
               </Button>
             </TableHead>
-            <TableHead className="border-r border-gray-200">
+            <TableHead>
               <Button
                 variant="ghost"
                 onClick={() => handleSort('updated_at')}
-                className="h-auto p-0 font-medium text-gray-700 hover:bg-transparent hover:text-gray-900"
+                className="h-auto p-0 font-medium hover:bg-transparent"
               >
                 Actualizado
                 {getSortIcon('updated_at')}
@@ -171,14 +171,14 @@ export const ProductsList = ({
             <TableRow>
               <TableCell colSpan={8} className="py-12 text-center">
                 <div className="flex flex-col items-center justify-center gap-4">
-                  <PackageSearch className="h-12 w-12 text-gray-400" />
-                  <div className="space-y-1">
-                    <h3 className="text-lg font-medium text-gray-900">
+                  <PackageSearch className="h-12 w-12 text-muted-foreground" />
+                  <div className="space-y-1 text-center">
+                    <h3 className="text-lg font-medium">
                       {searchQuery
                         ? 'No se encontraron coincidencias'
                         : 'No hay productos registrados'}
                     </h3>
-                    <p className="text-sm text-gray-500 max-w-md">
+                    <p className="text-sm text-muted-foreground max-w-md">
                       {searchQuery
                         ? `No se encontraron productos que coincidan con "${searchQuery}". Intenta con otro término de búsqueda.`
                         : 'Parece que aún no has agregado ningún producto. Comienza agregando tu primer producto.'}
@@ -194,20 +194,23 @@ export const ProductsList = ({
             </TableRow>
           ) : (
             dataProducts?.data?.map((product) => (
-              <TableRow key={product.id} className="hover:bg-gray-50">
-                <TableCell className="font-medium border-r border-gray-100">
-                  <Badge variant="outline" className="font-mono rounded-full">
+              <TableRow key={product.id}>
+                <TableCell>
+                  <Badge
+                    variant="outline"
+                    className="font-mono rounded-full text-xs"
+                  >
                     {product.code}
                   </Badge>
                 </TableCell>
-                <TableCell className="border-r border-gray-100">
-                  <div className="text-xs text-gray-500">
+                <TableCell>
+                  <span className="text-sm text-muted-foreground">
                     {product?.brand ? product?.brand?.name : 'Sin marca'}
-                  </div>
+                  </span>
                 </TableCell>
-                <TableCell className="border-r border-gray-100">
+                <TableCell>
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gray-100 rounded-md flex-shrink-0 overflow-hidden">
+                    <div className="w-10 h-10 bg-muted rounded-md flex-shrink-0 overflow-hidden">
                       {product.images && product.images.length > 0 ? (
                         <img
                           src={product.images[0].url || '/placeholder.svg'}
@@ -216,15 +219,17 @@ export const ProductsList = ({
                         />
                       ) : (
                         <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                          <span className="text-gray-400 text-xs">
-                            No image
+                          <span className="text-muted-foreground text-xs">
+                            Sin imagen
                           </span>
                         </div>
                       )}
                     </div>
-                    <div>
-                      <div className="font-medium">{product.name}</div>
-                      <div className="text-sm text-gray-500 line-clamp-1">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium truncate">
+                        {product.name}
+                      </div>
+                      <div className="text-xs text-muted-foreground line-clamp-1">
                         {product.description || 'Sin descripción'}
                       </div>
                       {product.tags && product.tags.length > 0 && (
@@ -243,73 +248,90 @@ export const ProductsList = ({
                     </div>
                   </div>
                 </TableCell>
-                <TableCell className="border-r border-gray-100">
-                  <div className="text-xs text-gray-500 uppercase">
+                <TableCell>
+                  <span className="text-sm text-muted-foreground uppercase">
                     {product.unit || 'unidad'}
-                  </div>
+                  </span>
                 </TableCell>
-
-                <TableCell className="border-r border-gray-100">
+                <TableCell>
                   <Badge
                     className={cn('text-xs rounded-full', {
-                      'bg-lime-100 text-lime-800': product.is_active,
+                      'bg-green-100 text-green-800': product.is_active,
                       'bg-red-100 text-red-800': !product.is_active
                     })}
                   >
                     {product.is_active ? 'Activo' : 'Inactivo'}
                   </Badge>
                 </TableCell>
-
-                <TableCell className="border-r border-gray-100">
-                  <div className="text-sm">
-                    <div>{formatDate(product.created_at)}</div>
-                    <div className="text-gray-500 text-xs">
+                <TableCell>
+                  <div className="flex flex-col">
+                    <span className="text-sm">
+                      {formatDate(product.created_at)}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
                       {formatTime(product.created_at)}
-                    </div>
+                    </span>
                   </div>
                 </TableCell>
-                <TableCell className="border-r border-gray-100">
-                  <div className="text-sm">
-                    <div>
+                <TableCell>
+                  <div className="flex flex-col">
+                    <span className="text-sm">
                       {product.updated_at
                         ? formatDate(product.updated_at)
                         : 'N/A'}
-                    </div>
+                    </span>
                     {product.updated_at && (
-                      <div className="text-gray-500 text-xs">
+                      <span className="text-xs text-muted-foreground">
                         {formatTime(product.updated_at)}
-                      </div>
+                      </span>
                     )}
                   </div>
                 </TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem asChild>
-                        <Link
-                          href={APP_URLS.PRODUCTS.EDIT(product.id)}
-                          className="flex items-center"
+                <TableCell>
+                  <div className="flex justify-end items-center gap-2">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          className="h-8 w-8 p-0"
                         >
-                          <Edit className="h-4 w-4 mr-2" />
-                          Editar
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="text-red-600 focus:text-red-600">
-                        Eliminar
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem asChild>
+                          <Link
+                            href={APP_URLS.PRODUCTS.EDIT(product.id)}
+                            className="flex items-center"
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            Editar
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="text-red-600 focus:text-red-600">
+                          Eliminar
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </TableCell>
               </TableRow>
             ))
           )}
         </TableBody>
       </Table>
+      {dataProducts?.data?.length > 0 && (
+        <div className="px-4 py-3 text-sm text-muted-foreground border-t">
+          {dataProducts.data.length} producto
+          {dataProducts.data.length !== 1 ? 's' : ''} mostrado
+          {dataProducts.data.length !== 1 ? 's' : ''}
+          {dataProducts?.total &&
+            dataProducts.total > dataProducts.data.length && (
+              <> de {dataProducts.total} en total</>
+            )}
+        </div>
+      )}
     </div>
   )
 }

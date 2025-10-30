@@ -1,5 +1,6 @@
-import { BrandList } from '@/modules/products'
-import { getBrands } from '@/apis/app'
+import React from 'react'
+import { ProductsList } from '@/modules/products'
+import { getProducts } from '@/apis/app'
 import { SearchParams } from '@/types'
 
 interface Props {
@@ -19,19 +20,16 @@ export default async function Page(props: Props) {
     sortOrder = order === 'desc' ? 'desc' : 'asc'
   }
 
-  const brandList = await getBrands({
+  const products = await getProducts({
     filters: {
       name: searchParams.name
     },
     sortBy: sortField,
     sortDirection: sortOrder
   })
-
   return (
     <>
-      <BrandList brandslist={brandList.data || []} />
+      <ProductsList dataProducts={products} />
     </>
   )
 }
-
-export const dynamic = 'force-dynamic'
