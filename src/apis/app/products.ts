@@ -36,14 +36,14 @@ export async function getProducts({
   filters,
   sortBy = 'created_at', // Valor por defecto
   sortDirection = 'desc', // 'asc' | 'desc'
-  idBusiness
+
 }: {
   page?: number
   pageSize?: number
   filters?: Record<string, string | number | string[] | undefined>
   sortBy?: string
   sortDirection?: 'asc' | 'desc',
-  idBusiness?: string
+
 }): Promise<ResApi<ProductDetails>> {
   const supabase = await getSupabase()
   const from = (page - 1) * pageSize
@@ -60,16 +60,18 @@ export async function getProducts({
   // Validar que la columna de ordenación exista
   const sortColumn = validSortColumns.includes(sortBy) ? sortBy : 'created_at'
 
-  let query = supabase
-    .from('products')
-    .select('*, brand:brands(*)', { count: 'exact' })
-    .range(from, to)
-    .order(sortColumn, { ascending: sortDirection === 'asc' })
+let query = supabase
+  .from('products')
+  .select(`
+    *,
+    brand:brands!inner(
+      *,
+      business:businesses(id, name)
+    )
+  `, { count: 'exact' })
+  .range(from, to)
+  .order(sortColumn, { ascending: sortDirection === 'asc' });
 
-  // Si se proporciona idBusiness, filtrar por business_id que está en la tabla brands (alias 'brand')
-  if (idBusiness) {
-    query = query.eq('brand.business_id', idBusiness)
-  }
 
   if (filters) {
     Object.entries(filters).forEach(([key, value]) => {
@@ -219,4 +221,78 @@ export async function deleteProduct(id: string): Promise<void> {
 
   if (error) throw error
   revalidatePath(APP_URLS.PRODUCTS.LIST)
+}
+
+
+export async function getProductsByBusinessId(
+ {
+  idBusiness,
+  from = 0,
+  to = 49,
+  sortColumn = 'created_at',
+  sortDirection = 'desc'
+  
+ }:{ idBusiness: string,
+  from: number ,
+  to: number ,
+  sortColumn: string 
+  sortDirection: 'asc' | 'desc'}
+):Promise<ResApi<ProductDetails>> {
+   const supabase = await getSupabase()
+  try {
+    // Primero obtenemos las marcas del negocio
+    const { data: brands, error: brandsError } = await supabase
+      .from('brands')
+      .select('id')
+      .eq('business_id', idBusiness);
+
+
+    if (brandsError) throw brandsError;
+
+    const brandIds = brands?.map(brand => brand.id) || [];
+
+    if (brandIds.length === 0) {
+      return {
+        data: [],
+        page: 1,
+        page_size: to - from + 1,
+        total: 0,
+        total_pages: 0
+      };
+    }
+
+    // Luego obtenemos los productos de esas marcas
+    const { data: products, error, count } = await supabase
+      .from('products')
+      .select(`
+        *,
+        brand:brands(
+          *,
+          business:business_id(*)
+        )
+      `, { count: 'exact' })
+      .in('brand_id', brandIds) // Cambiado de 'brand_id' a 'brands'
+      .range(from, to)
+      .order(sortColumn, { ascending: sortDirection === 'asc' });
+
+
+    if (error) throw error;
+
+    return {
+      data: products || [],
+      page: Math.floor(from / (to - from + 1)) + 1,
+      page_size: to - from + 1,
+      total: count || 0,
+      total_pages: Math.ceil((count || 0) / (to - from + 1))
+    };
+  } catch (error) {
+    console.error('Error in getProductsByBusinessId:', error);
+    return {
+      data: [],
+      page: 1,
+      page_size: 0,
+      total: 0,
+      total_pages: 0
+    };
+  }
 }

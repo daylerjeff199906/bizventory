@@ -1,6 +1,6 @@
 import React from 'react'
 import { ProductsList } from '@/modules/products'
-import { getProducts } from '@/apis/app'
+import { getProductsByBusinessId } from '@/apis/app'
 import { Params, SearchParams } from '@/types'
 
 interface Props {
@@ -25,13 +25,12 @@ export default async function Page(props: Props) {
     sortOrder = order === 'desc' ? 'desc' : 'asc'
   }
 
-  const products = await getProducts({
-    filters: {
-      name: searchParams.name
-    },
-    sortBy: sortField,
-    sortDirection: sortOrder,
-    idBusiness: uuid?.toString()
+  const products = await getProductsByBusinessId({
+    from: 0,
+    to: 49,
+    sortColumn: sortField || 'created_at',
+    sortDirection: sortOrder as 'asc' | 'desc',
+    idBusiness: uuid?.toString() || ''
   })
 
   return (
