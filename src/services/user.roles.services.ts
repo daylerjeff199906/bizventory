@@ -15,8 +15,6 @@ export async function getBusinessesByUserRole(
     .select('business(*)')
     .eq('user_id', userId)
 
-  console.log('User Roles Data:', data, 'Error:', error)
-
   if (error) {
     console.error('Error fetching businesses:', error)
     return []

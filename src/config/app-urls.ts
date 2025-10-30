@@ -8,10 +8,10 @@ export const APP_URLS = {
   },
   ORGANIZATION: {
     BUSINESS: {
-      LIST: `${URL_PREFIX}/businesses`,
-      CREATE: `${URL_PREFIX}/businesses/create`,
-      EDIT: (id: string) => `${URL_PREFIX}/businesses/${id}/edit`,
-      DETAIL: (id: string) => `${URL_PREFIX}/businesses/${id}`
+      LIST: `${URL_PREFIX}/`,
+      CREATE: `${URL_PREFIX}/create`,
+      EDIT: (id: string) => `${URL_PREFIX}/${id}/edit`,
+      DETAIL: (id: string) => `${URL_PREFIX}/${id}`
     }
   },
 
