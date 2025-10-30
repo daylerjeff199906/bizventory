@@ -33,3 +33,5 @@ export default async function Page(props: Props) {
     </>
   )
 }
+
+export const dynamic = 'force-dynamic'
