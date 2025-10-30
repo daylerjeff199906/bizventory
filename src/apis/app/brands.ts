@@ -19,13 +19,15 @@ export async function getBrands({
   pageSize = 10,
   filters,
   sortBy = 'created_at',
-  sortDirection = 'desc'
+  sortDirection = 'desc',
+  idBusiness
 }: {
   page?: number
   pageSize?: number
   filters?: Record<string, string | number | string[] | undefined>
-  sortBy?: string
+  sortBy?: string,
   sortDirection?: 'asc' | 'desc'
+  idBusiness?: string
 }): Promise<ResApi<Brand>> {
   const supabase = await getSupabase()
   const from = (page - 1) * pageSize
@@ -43,6 +45,7 @@ export async function getBrands({
   let query = supabase
     .from('brands')
     .select('*', { count: 'exact' })
+    .eq('business_id', idBusiness)
     .range(from, to)
     .order(sortColumn, { ascending: sortDirection === 'asc' })
 
