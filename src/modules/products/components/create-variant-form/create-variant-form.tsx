@@ -333,6 +333,7 @@ export const CreateVariantForm = ({
               variants={productWithVariants?.variants || []}
               productName={productName}
               productCode={productCode}
+              isLoading={isLoading}
               onVariantsUpdate={(updatedVariants) => {
                 updateProductVariants({
                   productId,

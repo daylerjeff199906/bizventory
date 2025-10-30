@@ -35,15 +35,13 @@ export async function getProducts({
   pageSize = 10,
   filters,
   sortBy = 'created_at', // Valor por defecto
-  sortDirection = 'desc', // 'asc' | 'desc'
-
+  sortDirection = 'desc' // 'asc' | 'desc'
 }: {
   page?: number
   pageSize?: number
   filters?: Record<string, string | number | string[] | undefined>
   sortBy?: string
-  sortDirection?: 'asc' | 'desc',
-
+  sortDirection?: 'asc' | 'desc'
 }): Promise<ResApi<ProductDetails>> {
   const supabase = await getSupabase()
   const from = (page - 1) * pageSize
@@ -60,18 +58,20 @@ export async function getProducts({
   // Validar que la columna de ordenación exista
   const sortColumn = validSortColumns.includes(sortBy) ? sortBy : 'created_at'
 
-let query = supabase
-  .from('products')
-  .select(`
+  let query = supabase
+    .from('products')
+    .select(
+      `
     *,
     brand:brands!inner(
       *,
       business:businesses(id, name)
     )
-  `, { count: 'exact' })
-  .range(from, to)
-  .order(sortColumn, { ascending: sortDirection === 'asc' });
-
+  `,
+      { count: 'exact' }
+    )
+    .range(from, to)
+    .order(sortColumn, { ascending: sortDirection === 'asc' })
 
   if (filters) {
     Object.entries(filters).forEach(([key, value]) => {
@@ -156,7 +156,6 @@ export async function createProduct({
     .select()
     .single()
 
-
   if (error || !data) {
     return null
   }
@@ -176,7 +175,7 @@ export async function updateProduct(
 ): Promise<Product | null> {
   const supabase = await getSupabase()
 
-  // No permitir la actualización del campo 'code'
+  console.log('Datos a actualizar del producto:', { id, updated })
   // No permitir la actualización del campo 'code'
   if (updated.code !== undefined) {
     delete updated.code
@@ -188,6 +187,8 @@ export async function updateProduct(
     .eq('id', id)
     .select()
     .single()
+
+  console.log('Resultado de la actualización del producto:', { data, error })
 
   if (error || !data) return null
   revalidatePath(APP_URLS.PRODUCTS.LIST)
@@ -232,35 +233,32 @@ export async function deleteProduct(id: string): Promise<void> {
   revalidatePath(APP_URLS.PRODUCTS.LIST)
 }
 
-
-export async function getProductsByBusinessId(
- {
+export async function getProductsByBusinessId({
   idBusiness,
   from = 0,
   to = 49,
   sortColumn = 'created_at',
   sortDirection = 'desc',
   searchTerm
- }:{ idBusiness: string,
-  from: number ,
-  to: number ,
-  sortColumn: string,
-  sortDirection: 'asc' | 'desc',
+}: {
+  idBusiness: string
+  from: number
+  to: number
+  sortColumn: string
+  sortDirection: 'asc' | 'desc'
   searchTerm?: string
-}
-):Promise<ResApi<ProductDetails>> {
-   const supabase = await getSupabase()
+}): Promise<ResApi<ProductDetails>> {
+  const supabase = await getSupabase()
   try {
     // Primero obtenemos las marcas del negocio
     const { data: brands, error: brandsError } = await supabase
       .from('brands')
       .select('id')
-      .eq('business_id', idBusiness);
+      .eq('business_id', idBusiness)
 
+    if (brandsError) throw brandsError
 
-    if (brandsError) throw brandsError;
-
-    const brandIds = brands?.map(brand => brand.id) || [];
+    const brandIds = brands?.map((brand) => brand.id) || []
 
     if (brandIds.length === 0) {
       return {
@@ -269,19 +267,22 @@ export async function getProductsByBusinessId(
         page_size: to - from + 1,
         total: 0,
         total_pages: 0
-      };
+      }
     }
 
     // Luego obtenemos los productos de esas marcas
     let query = supabase
       .from('products')
-      .select(`
+      .select(
+        `
       *,
       brand:brands(
         *,
         business:business_id(*)
       )
-      `, { count: 'exact' })
+      `,
+        { count: 'exact' }
+      )
       .in('brand_id', brandIds)
 
     // Aplicar búsqueda por nombre o código si se proporcionó searchTerm
@@ -291,12 +292,13 @@ export async function getProductsByBusinessId(
     }
 
     // Paginación y orden
-    query = query.range(from, to).order(sortColumn, { ascending: sortDirection === 'asc' })
+    query = query
+      .range(from, to)
+      .order(sortColumn, { ascending: sortDirection === 'asc' })
 
     const { data: products, error, count } = await query
 
-
-    if (error) throw error;
+    if (error) throw error
 
     return {
       data: products || [],
@@ -304,15 +306,15 @@ export async function getProductsByBusinessId(
       page_size: to - from + 1,
       total: count || 0,
       total_pages: Math.ceil((count || 0) / (to - from + 1))
-    };
+    }
   } catch (error) {
-    console.error('Error in getProductsByBusinessId:', error);
+    console.error('Error in getProductsByBusinessId:', error)
     return {
       data: [],
       page: 1,
       page_size: 0,
       total: 0,
       total_pages: 0
-    };
+    }
   }
 }
