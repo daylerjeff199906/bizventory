@@ -25,7 +25,6 @@ export const createProductVariants = async ({
   productId: string
   variants: {
     name: string
-    code: string
     attributes: {
       attribute_type: string
       attribute_value: string
@@ -42,7 +41,6 @@ export const createProductVariants = async ({
         variants.map((variant) => ({
           product_id: productId,
           name: variant.name,
-          code: variant.code
         }))
       )
       .select('id, code')

@@ -7,7 +7,6 @@ export const productVariantAttributeSchema = z.object({
 
 export const productVariantSchema = z.object({
   name: z.string().min(1, 'El nombre es obligatorio'),
-  code: z.string().min(1, 'El código es obligatorio'),
   attributes: z.array(productVariantAttributeSchema)
 })
 

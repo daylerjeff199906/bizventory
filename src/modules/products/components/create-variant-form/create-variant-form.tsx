@@ -42,7 +42,6 @@ import {
   ATTRIBUTE_TYPES,
   type AttributeType
 } from '@/modules/products'
-import { generateVariantCode } from './generate-variant-code'
 import { APP_URLS } from '@/config/app-urls'
 import { createProductVariants } from '@/apis/app/products.variants'
 import { ToastCustom } from '@/components/app/toast-custom'
@@ -90,7 +89,6 @@ export const CreateVariantForm = ({
       variants: [
         {
           name: '',
-          code: generateVariantCode(productCode),
           attributes: []
         }
       ]
@@ -113,9 +111,6 @@ export const CreateVariantForm = ({
   const addVariant = () => {
     append({
       name: '',
-      code: enableManualCode
-        ? generateVariantCode(productCode)
-        : generateVariantCode(productCode),
       attributes: createCommonAttributesForVariant()
     })
   }
@@ -204,7 +199,6 @@ export const CreateVariantForm = ({
           variants: [
             {
               name: '',
-              code: generateVariantCode(productCode),
               attributes: createCommonAttributesForVariant()
             }
           ]
@@ -258,7 +252,6 @@ export const CreateVariantForm = ({
                   variants: [
                     {
                       name: '',
-                      code: generateVariantCode(productCode),
                       attributes: createCommonAttributesForVariant()
                     }
                   ]
@@ -270,7 +263,6 @@ export const CreateVariantForm = ({
                   variants: [
                     {
                       name: '',
-                      code: generateVariantCode(productCode),
                       attributes: createCommonAttributesForVariant()
                     }
                   ]
@@ -339,8 +331,7 @@ export const CreateVariantForm = ({
                       const newVariants = form
                         .getValues()
                         .variants.map((v) => ({
-                          ...v,
-                          code: generateVariantCode(productCode)
+                          ...v
                         }))
                       form.setValue('variants', newVariants)
                     } else {
@@ -348,8 +339,7 @@ export const CreateVariantForm = ({
                       const newVariants = form
                         .getValues()
                         .variants.map((v) => ({
-                          ...v,
-                          code: generateVariantCode(productCode)
+                          ...v
                         }))
                       form.setValue('variants', newVariants)
                     }
@@ -411,7 +401,6 @@ export const CreateVariantForm = ({
                         variants: [
                           {
                             name: '',
-                            code: generateVariantCode(productCode),
                             attributes: createCommonAttributesForVariant()
                           }
                         ]
