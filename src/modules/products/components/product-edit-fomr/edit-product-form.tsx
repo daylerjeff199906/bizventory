@@ -28,10 +28,11 @@ import { APP_URLS } from '@/config/app-urls'
 
 interface ProductFormProps {
   productDefault: ProductDetails
+  businessId?: string
 }
 
 export const EditProductPage = (props: ProductFormProps) => {
-  const { productDefault } = props
+  const { productDefault, businessId } = props
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
 
@@ -80,7 +81,9 @@ export const EditProductPage = (props: ProductFormProps) => {
         />
       )
 
-      router.push(APP_URLS.PRODUCTS.EDIT(productDefault.id))
+      router.push(
+        APP_URLS.ORGANIZATION.PRODUCTS.EDIT(businessId || '', productDefault.id)
+      )
       router.refresh()
     } catch (error) {
       console.error('Error al guardar:', error)

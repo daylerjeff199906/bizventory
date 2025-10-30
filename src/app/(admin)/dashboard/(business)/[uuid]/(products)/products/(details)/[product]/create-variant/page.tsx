@@ -12,6 +12,7 @@ export default async function Page(props: Props) {
   const params = await props.params
   const product = await params.product
 
+  const uuid = await params.uuid
   const productData = await getProductById(product?.toString() || '')
   const productsWithVariants = await getProductWithVariants(
     product?.toString() || ''
@@ -28,6 +29,7 @@ export default async function Page(props: Props) {
         productCode={productData.code || 'SIN CÓDIGO'}
         productName={`${productData?.brand?.name} ${productData?.description}`}
         productWithVariants={productsWithVariants}
+        businessId={uuid?.toString() || ''}
       />
     </>
   )

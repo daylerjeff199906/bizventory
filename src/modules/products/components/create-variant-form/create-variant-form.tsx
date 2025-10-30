@@ -55,6 +55,7 @@ interface CreateVariantFormProps {
   productName: string
   productCode: string
   productWithVariants?: ProductWithVariants
+  businessId?: string
 }
 
 const createVariantsFormSchema = z.object({
@@ -69,7 +70,8 @@ export const CreateVariantForm = ({
   productId,
   productName,
   productCode,
-  productWithVariants
+  productWithVariants,
+  businessId
 }: CreateVariantFormProps) => {
   const emptyVariant = productWithVariants
     ? productWithVariants.variants.length === 0
@@ -207,7 +209,12 @@ export const CreateVariantForm = ({
             }
           ]
         })
-        router.push(APP_URLS.PRODUCTS.CREATE_VARIANT(productId))
+        router.push(
+          APP_URLS.ORGANIZATION.PRODUCTS.CREATE_VARIANT(
+            String(businessId),
+            productId
+          )
+        )
       }
     } catch (error) {
       console.error('Error al crear las variantes:', error)
