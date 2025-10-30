@@ -175,6 +175,13 @@ export async function updateProduct(
   updated: Partial<Product>
 ): Promise<Product | null> {
   const supabase = await getSupabase()
+
+  // No permitir la actualización del campo 'code'
+  // No permitir la actualización del campo 'code'
+  if (updated.code !== undefined) {
+    delete updated.code
+  }
+
   const { data, error } = await supabase
     .from('products')
     .update(updated)

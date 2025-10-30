@@ -50,7 +50,6 @@ export const EditProductPage = (props: ProductFormProps) => {
     resolver: zodResolver(editProductSchema),
     defaultValues: {
       tags: defaultValues.tags || [],
-      code: defaultValues.code?.toString() || '',
       description: defaultValues.description?.toString() || '',
       unit: defaultValues.unit?.toString() || 'unidad',
       is_active: defaultValues.is_active,
@@ -101,9 +100,9 @@ export const EditProductPage = (props: ProductFormProps) => {
             <h1 className="text-2xl font-bold text-gray-900">
               Editar Producto
             </h1>
-            <p className="text-gray-600">
+            <p className=" uppercase">
               Producto: {productDefault.brand?.name || ''}{' '}
-              {productDefault.name || 'Sin nombre'}
+              {productDefault.name || 'Sin nombre'}. Cod. {productDefault.code}
             </p>
           </div>
         </div>
@@ -113,42 +112,19 @@ export const EditProductPage = (props: ProductFormProps) => {
       <div className="mt-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid gap-6 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nombre del producto</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nombre del producto" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="code"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Código</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Código único del producto"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Código único para identificar el producto
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>¿Cuál es el nombre del producto?</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Nombre del producto" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="description"
