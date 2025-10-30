@@ -1,12 +1,12 @@
-"use client"
+'use client'
 
-import { ChevronRight, type LucideIcon } from "lucide-react"
+import { ChevronRight, icons } from 'lucide-react'
 
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+  CollapsibleTrigger
+} from '@/components/ui/collapsible'
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -15,23 +15,12 @@ import {
   SidebarMenuItem,
   SidebarMenuSub,
   SidebarMenuSubButton,
-  SidebarMenuSubItem,
-} from "@/components/ui/sidebar"
+  SidebarMenuSubItem
+} from '@/components/ui/sidebar'
+import { IconName, NavItem } from '@/types'
+import Link from 'next/link'
 
-export function NavMain({
-  items,
-}: {
-  items: {
-    title: string
-    url: string
-    icon?: LucideIcon
-    isActive?: boolean
-    items?: {
-      title: string
-      url: string
-    }[]
-  }[]
-}) {
+export function NavMain({ items }: { items: NavItem[] }) {
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Platform</SidebarGroupLabel>
@@ -44,13 +33,31 @@ export function NavMain({
             className="group/collapsible"
           >
             <SidebarMenuItem>
-              <CollapsibleTrigger asChild>
-                <SidebarMenuButton tooltip={item.title}>
-                  {item.icon && <item.icon />}
-                  <span>{item.title}</span>
-                  <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+              {item.items && item.items.length > 0 ? (
+                <CollapsibleTrigger asChild>
+                  <SidebarMenuButton tooltip={item.title}>
+                    {item.icon &&
+                      (() => {
+                        const Icon = icons[item.icon as IconName]
+                        return Icon ? <Icon className="mr-2 h-4 w-4" /> : null
+                      })()}
+
+                    <span>{item.title}</span>
+                    <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                  </SidebarMenuButton>
+                </CollapsibleTrigger>
+              ) : (
+                <SidebarMenuButton asChild tooltip={item.title}>
+                  <Link href={item.url || '#'}>
+                    {item.icon &&
+                      (() => {
+                        const Icon = icons[item.icon as IconName]
+                        return Icon ? <Icon className="mr-2 h-4 w-4" /> : null
+                      })()}
+                    <span>{item.title}</span>
+                  </Link>
                 </SidebarMenuButton>
-              </CollapsibleTrigger>
+              )}
               <CollapsibleContent>
                 <SidebarMenuSub>
                   {item.items?.map((subItem) => (
