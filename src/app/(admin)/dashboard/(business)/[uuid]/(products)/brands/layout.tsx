@@ -4,7 +4,7 @@ import { FiltersProducts, HeaderBrands } from '@/modules/products'
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <LayoutWrapper>
+    <LayoutWrapper sectionTitle="Gestión de Marcas">
       <div className="flex flex-col gap-4 bg-white dark:bg-gray-800 w-full">
         <PageHeader
           title="Lista de Marcas"
