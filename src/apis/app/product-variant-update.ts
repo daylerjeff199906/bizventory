@@ -1,5 +1,7 @@
 'use server'
+import { APP_URLS } from '@/config/app-urls'
 import { getSupabase } from '@/services/core.supabase'
+import { revalidatePath } from 'next/cache'
 
 interface ProductVariantAttribute {
   id?: string
@@ -65,24 +67,32 @@ async function manageProductVariants(
       .select(
         `
         *,
-        product_variant_attributes (*)
+        product_variant_attributes(*)
       `
       )
       .eq('product_id', productId)
+    console.log('Variantes existentes obtenidas:', existingVariants)
 
     if (fetchError) throw fetchError
 
     // Preparar datos para upsert
     const variantsToUpsert: Partial<DatabaseProductVariant>[] =
-      variantsData.map((variant) => ({
-        id: variant.id || undefined,
-        product_id: productId,
-        name: variant.name,
-        description: variant.description,
-        code: variant.code,
-        is_active: true
-      }))
+      variantsData.map((variant) => {
+        const variantData: Partial<DatabaseProductVariant> = {
+          product_id: productId,
+          name: variant.name,
+          description: variant.description,
+          code: variant.code,
+          is_active: true
+        }
 
+        // Solo incluir el id si existe
+        if (variant.id) {
+          variantData.id = variant.id
+        }
+
+        return variantData
+      })
     // Upsert de variantes
     const {
       data: createdVariants,
@@ -101,10 +111,14 @@ async function manageProductVariants(
       throw new Error('No se pudieron crear/actualizar las variantes')
     }
 
-    // Manejar atributos para cada variante
-    for (let i = 0; i < variantsData.length; i++) {
-      const variant = variantsData[i]
-      const createdVariant = createdVariants[i]
+    // Crear un mapa para encontrar las variantes creadas por código
+    const createdVariantsMap = new Map(
+      createdVariants.map((variant) => [variant.code, variant])
+    )
+
+    // Manejar atributos para cada variante usando el código como referencia
+    for (const variant of variantsData) {
+      const createdVariant = createdVariantsMap.get(variant.code)
 
       if (variant.attributes && createdVariant) {
         await manageVariantAttributes(createdVariant.id, variant.attributes)
@@ -158,14 +172,24 @@ async function manageVariantAttributes(
 
     if (fetchError) throw fetchError
 
-    // Preparar datos para upsert
+    // Preparar datos para upsert - NO incluir id si es undefined
     const attributesToUpsert: Partial<DatabaseProductVariantAttribute>[] =
-      attributes.map((attr) => ({
-        id: attr.id || undefined,
-        variant_id: variantId,
-        attribute_type: attr.attribute_type,
-        attribute_value: attr.attribute_value
-      }))
+      attributes.map((attr) => {
+        const attributeData: Partial<DatabaseProductVariantAttribute> = {
+          variant_id: variantId,
+          attribute_type: attr.attribute_type,
+          attribute_value: attr.attribute_value
+        }
+
+        // Solo incluir el id si existe
+        if (attr.id) {
+          attributeData.id = attr.id
+        }
+
+        return attributeData
+      })
+
+    console.log('Atributos a upsert:', attributesToUpsert)
 
     // Upsert de atributos
     if (attributesToUpsert.length > 0) {
@@ -209,9 +233,11 @@ async function manageVariantAttributes(
 
 // Función wrapper completa
 export async function handleProductVariantsUpdate({
+  businessUnitId,
   productId,
   variantsData
 }: {
+  businessUnitId: string
   productId: string
   variantsData: ProductVariant[]
 }): Promise<SupabaseResponse<ProductVariantWithAttributes[]>> {
@@ -241,6 +267,9 @@ export async function handleProductVariantsUpdate({
 
   console.log('Datos completos de variantes obtenidos:', completeData)
   console.log('Error al obtener datos completos:', fetchError)
+  revalidatePath(
+    APP_URLS.ORGANIZATION.PRODUCTS.CREATE_VARIANT(businessUnitId, productId)
+  )
 
   return { data: completeData, error: fetchError }
 }

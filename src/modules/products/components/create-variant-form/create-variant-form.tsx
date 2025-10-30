@@ -241,6 +241,7 @@ export const CreateVariantForm = ({
     try {
       // Call the imported API function with a single object parameter to match its signature
       const response = await handleProductVariantsUpdate({
+        businessUnitId: businessId || '',
         productId,
         variantsData
       })
