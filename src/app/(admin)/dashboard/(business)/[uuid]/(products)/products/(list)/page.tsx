@@ -37,7 +37,10 @@ export default async function Page(props: Props) {
 
   return (
     <>
-      <ProductsList dataProducts={products} />
+      <ProductsList
+        bussinessId={uuid?.toString() || ''}
+        dataProducts={products}
+      />
     </>
   )
 }

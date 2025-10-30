@@ -90,7 +90,7 @@ export const EditProductPage = (props: ProductFormProps) => {
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto p-6">
+    <div className="w-full max-w-5xl p-6">
       {/* Header Section */}
       <div className="mb-4 flex justify-between items-center">
         <div className="flex items-center mb-6">

@@ -224,7 +224,7 @@ export const CreateVariantForm = ({
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="w-full max-w-5xl mx-auto p-6">
+      <div className="w-full max-w-5xl p-6">
         {/* Encabezado de la página */}
         <div className="mb-4 flex justify-between items-center">
           <div className="flex items-center mb-6">

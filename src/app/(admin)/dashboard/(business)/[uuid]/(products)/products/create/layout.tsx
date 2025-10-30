@@ -12,7 +12,7 @@ export default async function Layout(props: LayoutProps) {
   const { children } = props
   return (
     <LayoutWrapper sectionTitle="Crear Nuevo Producto">
-      <div className="flex flex-col gap-4 p-4 bg-white dark:bg-gray-800 max-w-3xl w-full mx-auto">
+      <div className="flex flex-col gap-4 p-4 bg-white dark:bg-gray-800 max-w-3xl w-full">
         <PageHeader
           title="Crear nuevo Producto"
           description="Aquí puedes añadir un nuevo producto a tu inventario."

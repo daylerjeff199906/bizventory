@@ -40,12 +40,14 @@ interface ProductsListProps {
   dataProducts: ResApi<ProductDetails>
   isLoading?: boolean
   searchQuery?: string
+  bussinessId: string
 }
 
 export const ProductsList = ({
   dataProducts,
   isLoading = false,
-  searchQuery = ''
+  searchQuery = '',
+  bussinessId
 }: ProductsListProps) => {
   const router = useRouter()
   const pathname = usePathname()
@@ -302,7 +304,10 @@ export const ProductsList = ({
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
                           <Link
-                            href={APP_URLS.PRODUCTS.EDIT(product.id)}
+                            href={APP_URLS.ORGANIZATION.PRODUCTS.EDIT(
+                              bussinessId,
+                              product.id
+                            )}
                             className="flex items-center"
                           >
                             <Edit className="h-4 w-4 mr-2" />
