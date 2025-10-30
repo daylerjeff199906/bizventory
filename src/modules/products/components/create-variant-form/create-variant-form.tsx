@@ -102,6 +102,7 @@ export const CreateVariantForm = ({
 
   // Crear atributos comunes para una nueva variante
   const createCommonAttributesForVariant = () => {
+    console.log('Creating common attributes for variant:', commonAttributes)
     return commonAttributes.map((attrType) => ({
       attribute_type: attrType,
       attribute_value: ''
@@ -174,6 +175,7 @@ export const CreateVariantForm = ({
       const variantsData = form.getValues().variants
 
       const response = await createProductVariants({
+        businessId: businessId || '',
         productId,
         variants: variantsData
       })

@@ -19,9 +19,12 @@ type CreateProductVariantsResponse = {
 }
 
 export const createProductVariants = async ({
+  businessId,
   productId,
-  variants
+  variants,
+  revalidateUrl
 }: {
+  businessId: string
   productId: string
   variants: {
     name: string
@@ -29,7 +32,8 @@ export const createProductVariants = async ({
       attribute_type: string
       attribute_value: string
     }[]
-  }[]
+  }[],
+  revalidateUrl?: string
 }): Promise<CreateProductVariantsResponse> => {
   const supabase = await getSupabase()
 
@@ -72,7 +76,9 @@ export const createProductVariants = async ({
           error: attributesError.message || String(attributesError)
         }
     }
-    revalidatePath(APP_URLS.PRODUCTS.CREATE_VARIANT(productId))
+    revalidatePath(revalidateUrl || APP_URLS.ORGANIZATION.PRODUCTS.CREATE_VARIANT(
+      businessId, productId
+    ))
     return {
       data: createdVariants,
       error: null
