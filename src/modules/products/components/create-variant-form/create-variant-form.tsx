@@ -48,6 +48,8 @@ import { ToastCustom } from '@/components/app/toast-custom'
 import { toast } from 'react-toastify'
 import { ProductWithVariants } from '@/types'
 import { VariantsPreview } from './VariantsPreview'
+import { handleProductVariantsUpdate } from '@/apis/app/product-variant-update'
+import { ProductVariant as ProductVariantType } from '@/apis/app/product-variant-update'
 
 interface CreateVariantFormProps {
   productId: string
@@ -227,6 +229,51 @@ export const CreateVariantForm = ({
     }
   }
 
+  const updateProductVariants = async ({
+    productId,
+    variantsData
+  }: {
+    productId: string
+    variantsData: ProductVariantType[]
+  }) => {
+    setIsLoading(true)
+    try {
+      // Call the imported API function with a single object parameter to match its signature
+      const response = await handleProductVariantsUpdate({
+        productId,
+        variantsData
+      })
+      if (response?.error) {
+        toast.error(
+          <ToastCustom
+            title="Error al actualizar variantes"
+            message={`${
+              response.error || 'Ocurrió un error al actualizar las variantes.'
+            }`}
+          />
+        )
+        return
+      } else {
+        toast.success(
+          <ToastCustom
+            title="Variantes actualizadas"
+            message="Las variantes del producto se han actualizado correctamente."
+          />
+        )
+      }
+    } catch (error) {
+      console.error('Error al actualizar las variantes:', error)
+      toast.error(
+        <ToastCustom
+          title="Error al actualizar variantes"
+          message="Ocurrió un error al intentar actualizar las variantes. Por favor, inténtalo de nuevo."
+        />
+      )
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-white">
       <div className="w-full max-w-5xl p-6">
@@ -285,6 +332,12 @@ export const CreateVariantForm = ({
               variants={productWithVariants?.variants || []}
               productName={productName}
               productCode={productCode}
+              onVariantsUpdate={(updatedVariants) => {
+                updateProductVariants({
+                  productId,
+                  variantsData: updatedVariants as ProductVariantType[]
+                })
+              }}
             />
           )}
 

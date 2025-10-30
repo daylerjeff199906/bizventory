@@ -143,7 +143,6 @@ export const VariantsPreview = ({
       onVariantsUpdate(localVariants)
     }
     setHasChanges(false)
-    console.log('Guardando variantes actualizadas:', localVariants)
   }
 
   const handleDiscardChanges = () => {
