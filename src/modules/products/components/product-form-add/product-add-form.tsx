@@ -33,7 +33,6 @@ import {
 } from '@/components/ui/alert-dialog'
 
 import { productSchema, type CreateProductData } from '@/modules/products'
-import { generateProductCode } from './generate-code'
 import { APP_URLS } from '@/config/app-urls'
 import { createProduct } from '@/apis/app'
 import { ToastCustom } from '@/components/app/toast-custom'
@@ -61,11 +60,6 @@ export const NewProductForm = () => {
       //   images: []
     }
   })
-
-  const generateCode = () => {
-    const newCode = generateProductCode()
-    form.setValue('code', newCode)
-  }
 
   const addTag = () => {
     if (tagInput.trim() && !form.getValues('tags')?.includes(tagInput.trim())) {
@@ -163,78 +157,42 @@ export const NewProductForm = () => {
                   Datos principales del producto
                 </p>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="brand_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <SearchSelectPopover
-                        options={
-                          optionsBrands as {
-                            id: string
-                            name: string
-                            [key: string]: unknown
-                          }[]
-                        }
-                        isLoading={loadingBrands}
-                        placeholder="Selecciona una marca"
-                        defaultValue={null}
-                        emptyText="No se encontraron marcas"
-                        label="Marca del producto"
-                        required
-                        loadingText="Cargando marcas..."
-                        searchPlaceholder="Buscar marca por nombre..."
-                        onSearch={(value) => {
-                          setSearchBrand(value)
-                        }}
-                        onChange={(value) => {
-                          console.log('Selected brand:', value)
-                          field.onChange(value)
-                        }}
-                      />
-                      <FormDescription>
-                        Selecciona la marca a la que pertenece este producto.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="code"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-base font-medium">
-                        Código del producto
-                      </FormLabel>
-                      <FormControl>
-                        <div className="flex gap-2">
-                          <Input
-                            placeholder="PRD-2025-0001"
-                            className="text-base"
-                            {...field}
-                          />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={generateCode}
-                          >
-                            <RefreshCw className="h-4 w-4 mr-2" />
-                            Generar
-                          </Button>
-                        </div>
-                      </FormControl>
-                      <FormDescription>
-                        Código único para identificación interna. Se genera
-                        automáticamente si no se especifica.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="brand_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <SearchSelectPopover
+                      options={
+                        optionsBrands as {
+                          id: string
+                          name: string
+                          [key: string]: unknown
+                        }[]
+                      }
+                      isLoading={loadingBrands}
+                      placeholder="Selecciona una marca"
+                      defaultValue={null}
+                      emptyText="No se encontraron marcas"
+                      label="Marca del producto"
+                      required
+                      loadingText="Cargando marcas..."
+                      searchPlaceholder="Buscar marca por nombre..."
+                      onSearch={(value) => {
+                        setSearchBrand(value)
+                      }}
+                      onChange={(value) => {
+                        console.log('Selected brand:', value)
+                        field.onChange(value)
+                      }}
+                    />
+                    <FormDescription>
+                      Selecciona la marca a la que pertenece este producto.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <div className="grid grid-cols-1 gap-6">
                 <FormField
