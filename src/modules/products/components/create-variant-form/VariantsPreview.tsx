@@ -187,7 +187,7 @@ export const VariantsPreview = ({
         {localVariants.map((variant, index) => (
           <div
             key={index}
-            className="bg-white border border-gray-200 rounded-lg px-4 py-3 hover:shadow-md transition-all duration-200 group"
+            className="bg-white border border-gray-200 rounded-lg px-4 py-3 transition-all duration-200 group"
           >
             {/* Header de la variante */}
             <div className="flex items-start justify-between mb-3">
@@ -236,9 +236,6 @@ export const VariantsPreview = ({
                           variant.name || `VARIANTE ${index + 1}`
                         ).toUpperCase()}
                       </h4>
-                      <p className="text-xs text-gray-500 font-medium">
-                        {variant.code}
-                      </p>
                     </div>
                   )}
                 </div>
