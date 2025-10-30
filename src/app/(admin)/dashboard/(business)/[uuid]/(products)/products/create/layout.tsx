@@ -1,4 +1,5 @@
 import { PageHeader } from '@/components/app/header-section'
+import { LayoutWrapper } from '@/components/layouts'
 import { APP_URLS } from '@/config/app-urls'
 import { Params } from '@/types'
 interface LayoutProps {
@@ -10,18 +11,20 @@ export default async function Layout(props: LayoutProps) {
   const params = await props.params
   const { children } = props
   return (
-    <div className="flex flex-col gap-4 p-4 bg-white dark:bg-gray-800">
-      <PageHeader
-        title="Crear nuevo Producto"
-        description="Aquí puedes añadir un nuevo producto a tu inventario."
-        backButton={{
-          href: APP_URLS.ORGANIZATION.PRODUCTS.LIST(
-            params.uuid?.toString() || ''
-          ),
-          hidden: false
-        }}
-      />
-      {children}
-    </div>
+    <LayoutWrapper sectionTitle="Crear Nuevo Producto">
+      <div className="flex flex-col gap-4 p-4 bg-white dark:bg-gray-800">
+        <PageHeader
+          title="Crear nuevo Producto"
+          description="Aquí puedes añadir un nuevo producto a tu inventario."
+          backButton={{
+            href: APP_URLS.ORGANIZATION.PRODUCTS.LIST(
+              params.uuid?.toString() || ''
+            ),
+            hidden: false
+          }}
+        />
+        {children}
+      </div>
+    </LayoutWrapper>
   )
 }
