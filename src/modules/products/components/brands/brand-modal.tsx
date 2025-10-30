@@ -40,13 +40,15 @@ interface BrandModalProps {
   onClose: () => void
   brand?: Brand | null
   onSuccess?: (brand: Brand) => void
+  businessId?: string
 }
 
 export function BrandModal({
   isOpen,
   onClose,
   brand,
-  onSuccess
+  onSuccess,
+  businessId
 }: BrandModalProps) {
   const [logoPreview, setLogoPreview] = useState<string>('')
   const [isLoading, setIsLoading] = useState(false)
@@ -93,6 +95,7 @@ export function BrandModal({
         // Lógica para actualizar marca
         const updatedBrand = await updateBrand({
           id: brand.id,
+          business_id: businessId || brand.business_id,
           name: data.name,
           logo_url: data.logo_url,
           status: data.status,
@@ -116,6 +119,7 @@ export function BrandModal({
         const newBrand = await createBrand({
           name: data.name,
           logo_url: data.logo_url,
+          business_id: businessId,
           status: data.status,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()

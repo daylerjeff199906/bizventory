@@ -252,6 +252,7 @@ export const BrandList = ({ brandslist = [] }: BrandListProps) => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         brand={selectedBrand}
+        businessId={selectedBrand?.business_id}
       />
 
       <DeleteBrandDialog

@@ -4,7 +4,11 @@ import { BrandModal } from '../components'
 import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
 
-export default function HeaderBrands() {
+interface HeaderBrandsProps {
+  businessId?: string
+}
+
+export default function HeaderBrands({ businessId }: HeaderBrandsProps) {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
@@ -15,6 +19,7 @@ export default function HeaderBrands() {
       </Button>
       <BrandModal
         isOpen={isOpen}
+        businessId={businessId}
         onClose={setIsOpen.bind(null, false)}
         onSuccess={() => setIsOpen(false)}
       />
