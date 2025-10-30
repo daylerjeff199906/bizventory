@@ -230,13 +230,15 @@ export async function getProductsByBusinessId(
   from = 0,
   to = 49,
   sortColumn = 'created_at',
-  sortDirection = 'desc'
-  
+  sortDirection = 'desc',
+  searchTerm
  }:{ idBusiness: string,
   from: number ,
   to: number ,
-  sortColumn: string 
-  sortDirection: 'asc' | 'desc'}
+  sortColumn: string,
+  sortDirection: 'asc' | 'desc',
+  searchTerm?: string
+}
 ):Promise<ResApi<ProductDetails>> {
    const supabase = await getSupabase()
   try {
@@ -262,18 +264,27 @@ export async function getProductsByBusinessId(
     }
 
     // Luego obtenemos los productos de esas marcas
-    const { data: products, error, count } = await supabase
+    let query = supabase
       .from('products')
       .select(`
+      *,
+      brand:brands(
         *,
-        brand:brands(
-          *,
-          business:business_id(*)
-        )
+        business:business_id(*)
+      )
       `, { count: 'exact' })
-      .in('brand_id', brandIds) // Cambiado de 'brand_id' a 'brands'
-      .range(from, to)
-      .order(sortColumn, { ascending: sortDirection === 'asc' });
+      .in('brand_id', brandIds)
+
+    // Aplicar búsqueda por nombre o código si se proporcionó searchTerm
+    if (searchTerm && searchTerm.trim() !== '') {
+      const term = `%${searchTerm.trim()}%`
+      query = query.or(`name.ilike.${term},code.ilike.${term}`)
+    }
+
+    // Paginación y orden
+    query = query.range(from, to).order(sortColumn, { ascending: sortDirection === 'asc' })
+
+    const { data: products, error, count } = await query
 
 
     if (error) throw error;

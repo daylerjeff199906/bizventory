@@ -15,6 +15,7 @@ export default async function Page(props: Props) {
   const uuid = params.uuid
 
   const sortBy = searchParams.sortBy
+  const name = searchParams.name
 
   let sortField: string | undefined
   let sortOrder: 'asc' | 'desc' | undefined
@@ -30,7 +31,8 @@ export default async function Page(props: Props) {
     to: 49,
     sortColumn: sortField || 'created_at',
     sortDirection: sortOrder as 'asc' | 'desc',
-    idBusiness: uuid?.toString() || ''
+    idBusiness: uuid?.toString() || '',
+    searchTerm: name?.toString() || ''
   })
 
   return (
