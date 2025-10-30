@@ -381,7 +381,6 @@ export const CreateVariantForm = ({
                           onRemove={() => remove(index)}
                           canRemove={fields.length > 1}
                           commonAttributes={commonAttributes}
-                          enableManualCode={enableManualCode}
                         />
                       ))}
                     </div>
@@ -477,7 +476,6 @@ interface VariantCardProps {
   onRemove: () => void
   canRemove: boolean
   commonAttributes: string[]
-  enableManualCode: boolean
 }
 
 const VariantCard = ({
@@ -485,8 +483,7 @@ const VariantCard = ({
   form,
   onRemove,
   canRemove,
-  commonAttributes,
-  enableManualCode
+  commonAttributes
 }: VariantCardProps) => {
   const {
     fields: attributeFields,
@@ -537,40 +534,19 @@ const VariantCard = ({
       </div>
       <div className="p-2 space-y-2">
         {/* Información básica */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          <FormField
-            control={form.control}
-            name={`variants.${index}.name`}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-xs font-medium">Nombre *</FormLabel>
-                <FormControl>
-                  <Input placeholder="Nombre de la variante" {...field} />
-                </FormControl>
-                <FormMessage className="text-xs" />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name={`variants.${index}.code`}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-xs font-medium">Código *</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Código único"
-                    {...field}
-                    readOnly={!enableManualCode}
-                    disabled={!enableManualCode}
-                  />
-                </FormControl>
-                <FormMessage className="text-xs" />
-              </FormItem>
-            )}
-          />
-        </div>
+        <FormField
+          control={form.control}
+          name={`variants.${index}.name`}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-xs font-medium">Nombre *</FormLabel>
+              <FormControl>
+                <Input placeholder="Nombre de la variante" {...field} />
+              </FormControl>
+              <FormMessage className="text-xs" />
+            </FormItem>
+          )}
+        />
 
         {/* Atributos comunes */}
         {commonAttrs.length > 0 && (
