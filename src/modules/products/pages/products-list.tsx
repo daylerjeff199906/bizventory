@@ -9,7 +9,9 @@ import {
   Edit,
   MoreHorizontal,
   Loader2,
-  PackageSearch
+  PackageSearch,
+  PlusSquare,
+  Trash
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -314,7 +316,20 @@ export const ProductsList = ({
                             Editar
                           </Link>
                         </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link
+                            href={APP_URLS.ORGANIZATION.PRODUCTS.CREATE_VARIANT(
+                              bussinessId,
+                              product.id
+                            )}
+                            className="flex items-center"
+                          >
+                            <PlusSquare className="h-4 w-4 mr-2" />
+                            Agregar variante
+                          </Link>
+                        </DropdownMenuItem>
                         <DropdownMenuItem className="text-red-600 focus:text-red-600">
+                          <Trash className="h-4 w-4 mr-2 text-red-600" />
                           Eliminar
                         </DropdownMenuItem>
                       </DropdownMenuContent>
