@@ -80,142 +80,173 @@ export const BrandList = ({ brandslist = [] }: BrandListProps) => {
 
   return (
     <div className="rounded-md border bg-white shadow-none overflow-hidden">
-      <Table>
-        <TableHeader>
-          <TableRow className="bg-gray-100 hover:bg-gray-100">
-            <TableHead className="border-r border-gray-200">
-              <Button
-                variant="ghost"
-                onClick={() => handleSort('name')}
-                className="h-auto p-0 font-medium text-gray-700 hover:bg-transparent hover:text-gray-900"
-              >
-                Nombre
-                {getSortIcon('name')}
-              </Button>
-            </TableHead>
-            <TableHead className="border-r border-gray-200">
-              <div className="font-medium text-gray-700">Logo</div>
-            </TableHead>
-            <TableHead className="border-r border-gray-200">
-              <Button
-                variant="ghost"
-                onClick={() => handleSort('status')}
-                className="h-auto p-0 font-medium text-gray-700 hover:bg-transparent hover:text-gray-900"
-              >
-                Estado
-                {getSortIcon('status')}
-              </Button>
-            </TableHead>
-            <TableHead className="border-r border-gray-200">
-              <Button
-                variant="ghost"
-                onClick={() => handleSort('created_at')}
-                className="h-auto p-0 font-medium text-gray-700 hover:bg-transparent hover:text-gray-900"
-              >
-                Creado
-                {getSortIcon('created_at')}
-              </Button>
-            </TableHead>
-            <TableHead className="border-r border-gray-200">
-              <Button
-                variant="ghost"
-                onClick={() => handleSort('updated_at')}
-                className="h-auto p-0 font-medium text-gray-700 hover:bg-transparent hover:text-gray-900"
-              >
-                Actualizado
-                {getSortIcon('updated_at')}
-              </Button>
-            </TableHead>
-            <TableHead className="w-[80px] text-right">Acciones</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {brandslist.length === 0 ? (
+      <div className="rounded-md border bg-white">
+        <Table>
+          <TableHeader className="bg-muted">
             <TableRow>
-              <TableCell colSpan={6} className="py-12 text-center">
-                No hay marcas registradas
-              </TableCell>
+              <TableHead>
+                <Button
+                  variant="ghost"
+                  onClick={() => handleSort('name')}
+                  className="h-auto p-0 font-medium hover:bg-transparent"
+                >
+                  Nombre
+                  {getSortIcon('name')}
+                </Button>
+              </TableHead>
+              <TableHead>
+                <div className="font-medium">Logo</div>
+              </TableHead>
+              <TableHead>
+                <Button
+                  variant="ghost"
+                  onClick={() => handleSort('status')}
+                  className="h-auto p-0 font-medium hover:bg-transparent"
+                >
+                  Estado
+                  {getSortIcon('status')}
+                </Button>
+              </TableHead>
+              <TableHead>
+                <Button
+                  variant="ghost"
+                  onClick={() => handleSort('created_at')}
+                  className="h-auto p-0 font-medium hover:bg-transparent"
+                >
+                  Creado
+                  {getSortIcon('created_at')}
+                </Button>
+              </TableHead>
+              <TableHead>
+                <Button
+                  variant="ghost"
+                  onClick={() => handleSort('updated_at')}
+                  className="h-auto p-0 font-medium hover:bg-transparent"
+                >
+                  Actualizado
+                  {getSortIcon('updated_at')}
+                </Button>
+              </TableHead>
+              <TableHead className="w-[80px] text-right">Acciones</TableHead>
             </TableRow>
-          ) : (
-            brandslist.map((brand) => (
-              <TableRow key={brand.id} className="hover:bg-gray-50">
-                <TableCell className="font-medium border-r border-gray-100">
-                  {brand.name || 'Sin nombre'}
-                </TableCell>
-                <TableCell className="border-r border-gray-100">
-                  {brand.logo_url ? (
-                    <img
-                      src={brand.logo_url}
-                      alt={`Logo de ${brand.name}`}
-                      className="h-8 w-8 object-contain rounded"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement
-                        target.onerror = null
-                        target.src = '/placeholder-brand.svg'
-                      }}
-                    />
-                  ) : (
-                    <div className="h-8 w-8 bg-gray-200 rounded flex items-center justify-center">
-                      <span className="text-xs text-gray-500">No logo</span>
-                    </div>
-                  )}
-                </TableCell>
-                <TableCell className="border-r border-gray-100">
-                  <Badge
-                    className={cn('text-xs rounded-full', {
-                      'bg-green-100 text-green-800': brand.status === 'ACTIVO',
-                      'bg-red-100 text-red-800': brand.status !== 'ACTIVO'
-                    })}
-                  >
-                    {brand.status || 'N/A'}
-                  </Badge>
-                </TableCell>
-                <TableCell className="border-r border-gray-100">
-                  <div className="text-sm">
-                    {brand.created_at && (
-                      <div className="text-gray-500 text-xs">
-                        {format(new Date(brand.created_at), 'dd/MM/yyyy HH:mm')}
-                      </div>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell className="border-r border-gray-100">
-                  <div className="text-sm">
-                    {brand.updated_at && (
-                      <div className="text-gray-500 text-xs">
-                        {format(new Date(brand.updated_at), 'dd/MM/yyyy HH:mm')}
-                      </div>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                        <MoreHorizontal className="h-4 w-4" />
-                        <span className="sr-only">Acciones</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleEditBrand(brand)}>
-                        <Edit className="h-4 w-4 mr-2" />
-                        Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="text-red-600 focus:text-red-600"
-                        onClick={() => handleDeleteBrand(brand)}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Eliminar
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+          </TableHeader>
+          <TableBody>
+            {brandslist.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-8">
+                  <p className="text-muted-foreground">
+                    No hay marcas registradas
+                  </p>
                 </TableCell>
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+            ) : (
+              brandslist.map((brand) => (
+                <TableRow key={brand.id}>
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium">
+                        {brand.name || 'Sin nombre'}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    {brand.logo_url ? (
+                      <img
+                        src={brand.logo_url}
+                        alt={`Logo de ${brand.name}`}
+                        className="h-8 w-8 object-contain rounded"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement
+                          target.onerror = null
+                          target.src = '/placeholder-brand.svg'
+                        }}
+                      />
+                    ) : (
+                      <div className="h-8 w-8 bg-gray-200 rounded flex items-center justify-center">
+                        <span className="text-xs text-muted-foreground">
+                          No logo
+                        </span>
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      className={cn('text-xs rounded-full', {
+                        'bg-green-100 text-green-800':
+                          brand.status === 'ACTIVO',
+                        'bg-red-100 text-red-800': brand.status !== 'ACTIVO'
+                      })}
+                    >
+                      {brand.status || 'N/A'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col">
+                      {brand.created_at && (
+                        <span className="text-sm text-muted-foreground">
+                          {format(
+                            new Date(brand.created_at),
+                            'dd/MM/yyyy HH:mm'
+                          )}
+                        </span>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col">
+                      {brand.updated_at && (
+                        <span className="text-sm text-muted-foreground">
+                          {format(
+                            new Date(brand.updated_at),
+                            'dd/MM/yyyy HH:mm'
+                          )}
+                        </span>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex justify-end items-center gap-2">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            className="h-8 w-8 p-0"
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Acciones</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => handleEditBrand(brand)}
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-red-600 focus:text-red-600"
+                            onClick={() => handleDeleteBrand(brand)}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Eliminar
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+        {brandslist.length > 0 && (
+          <div className="px-4 py-3 text-sm text-muted-foreground border-t">
+            {brandslist.length} marca{brandslist.length !== 1 ? 's' : ''}{' '}
+            mostrada{brandslist.length !== 1 ? 's' : ''}
+          </div>
+        )}
+      </div>
 
       <BrandModal
         isOpen={isModalOpen}

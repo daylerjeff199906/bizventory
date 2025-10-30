@@ -33,8 +33,6 @@ export default async function Page(props: Props) {
     sortDirection: sortOrder
   })
 
-  console.log({ brandList })
-
   return (
     <>
       <BrandList brandslist={brandList.data || []} />
