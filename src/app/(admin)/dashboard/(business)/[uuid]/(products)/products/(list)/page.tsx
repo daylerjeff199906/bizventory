@@ -1,14 +1,19 @@
 import React from 'react'
 import { ProductsList } from '@/modules/products'
 import { getProducts } from '@/apis/app'
-import { SearchParams } from '@/types'
+import { Params, SearchParams } from '@/types'
 
 interface Props {
   searchParams: SearchParams
+  params: Params
 }
 
 export default async function Page(props: Props) {
   const searchParams = await props.searchParams
+  const params = await props.params
+
+  const uuid = params.uuid
+
   const sortBy = searchParams.sortBy
 
   let sortField: string | undefined
@@ -25,8 +30,10 @@ export default async function Page(props: Props) {
       name: searchParams.name
     },
     sortBy: sortField,
-    sortDirection: sortOrder
+    sortDirection: sortOrder,
+    idBusiness: uuid?.toString()
   })
+
   return (
     <>
       <ProductsList dataProducts={products} />

@@ -35,13 +35,15 @@ export async function getProducts({
   pageSize = 10,
   filters,
   sortBy = 'created_at', // Valor por defecto
-  sortDirection = 'desc' // 'asc' | 'desc'
+  sortDirection = 'desc', // 'asc' | 'desc'
+  idBusiness
 }: {
   page?: number
   pageSize?: number
   filters?: Record<string, string | number | string[] | undefined>
   sortBy?: string
-  sortDirection?: 'asc' | 'desc'
+  sortDirection?: 'asc' | 'desc',
+  idBusiness?: string
 }): Promise<ResApi<ProductDetails>> {
   const supabase = await getSupabase()
   const from = (page - 1) * pageSize
@@ -63,6 +65,11 @@ export async function getProducts({
     .select('*, brand:brands(*)', { count: 'exact' })
     .range(from, to)
     .order(sortColumn, { ascending: sortDirection === 'asc' })
+
+  // Si se proporciona idBusiness, filtrar por business_id que está en la tabla brands (alias 'brand')
+  if (idBusiness) {
+    query = query.eq('brand.business_id', idBusiness)
+  }
 
   if (filters) {
     Object.entries(filters).forEach(([key, value]) => {
