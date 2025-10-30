@@ -101,7 +101,7 @@ export const ProductsList = ({
   }
 
   return (
-    <div className="rounded-md border bg-white">
+    <div className="rounded-md border bg-white w-full">
       <Table>
         <TableHeader className="bg-muted">
           <TableRow>

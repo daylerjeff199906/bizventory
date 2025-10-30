@@ -23,7 +23,7 @@ export default async function Layout(props: LayoutProps) {
         />
         <HeaderBrands businessId={uuid?.toString() || ''} />
         <FiltersProducts placeholder="Buscar marcas por nombre..." />
-        <div className="flex flex-col gap-4 w-full">{children}</div>
+        {children}
       </div>
     </LayoutWrapper>
   )
