@@ -3,12 +3,12 @@ import { APP_URLS } from '@/config/app-urls'
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-4 p-4 bg-white dark:bg-gray-800">
+    <div className="flex flex-col gap-4 md:p-4 bg-white dark:bg-gray-800">
       <PageHeader
-        title="Crear nuevo Producto"
-        description="Aquí puedes añadir un nuevo producto a tu inventario."
+        title="Registrar nueva compra"
+        description="Aquí puedes registrar una nueva compra para mantener un control de tus adquisiciones."
         backButton={{
-          href: APP_URLS.PRODUCTS.LIST,
+          href: APP_URLS.PURCHASES.LIST,
           hidden: false
         }}
       />
