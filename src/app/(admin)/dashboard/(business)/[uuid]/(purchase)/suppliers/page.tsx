@@ -13,7 +13,12 @@ export default async function Page(props: Props) {
     businessId: uuid?.toString() || ''
   })
 
-  return <SuppliersList suppliersList={suppliers || []} />
+  return (
+    <SuppliersList
+      bussinessId={uuid?.toString() || ''}
+      suppliersList={suppliers || []}
+    />
+  )
 }
 
 export const dynamic = 'force-dynamic' // Forzar revalidación en cada solicitud

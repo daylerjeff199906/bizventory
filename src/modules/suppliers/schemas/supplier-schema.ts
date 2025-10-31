@@ -2,6 +2,7 @@ import { StatusItems } from '@/types'
 import { z } from 'zod'
 
 export const supplierSchema = z.object({
+  business_id: z.string().min(1, 'El ID del negocio es requerido'),
   name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   contact: z.string().optional(),
   email: z

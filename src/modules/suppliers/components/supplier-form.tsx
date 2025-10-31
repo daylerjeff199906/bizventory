@@ -47,15 +47,17 @@ import { StatusItems } from '@/types'
 interface SupplierFormProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  supplier?: Supplier
+  supplier?: Supplier | null
   onSuccess?: (supplier: Supplier) => void
+  bussinessId: string
 }
 
 export default function SupplierForm({
   open,
   onOpenChange,
   supplier,
-  onSuccess
+  onSuccess,
+  bussinessId
 }: SupplierFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const isEditing = !!supplier
@@ -63,6 +65,7 @@ export default function SupplierForm({
   const form = useForm<CreateSupplierData>({
     resolver: zodResolver(supplierSchema),
     defaultValues: {
+      business_id: bussinessId,
       address: '',
       company_type: '',
       contact: '',
@@ -78,6 +81,7 @@ export default function SupplierForm({
   })
 
   const onSubmit = async (data: CreateSupplierData) => {
+    console.log('Submitting data:', data)
     setIsLoading(true)
     try {
       let result: Supplier
@@ -150,10 +154,12 @@ export default function SupplierForm({
         name: supplier.name,
         notes: supplier.notes || '',
         phone: supplier.phone || '',
-        status: supplier.status || StatusItems.ACTIVE
+        status: supplier.status || StatusItems.ACTIVE,
+        business_id: bussinessId
       })
     } else {
       form.reset({
+        business_id: bussinessId,
         address: '',
         company_type: '',
         contact: '',
@@ -167,7 +173,7 @@ export default function SupplierForm({
         status: StatusItems.ACTIVE
       })
     }
-  }, [supplier, form])
+  }, [supplier, form, bussinessId, form.setValue])
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
