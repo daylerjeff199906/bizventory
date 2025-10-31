@@ -40,6 +40,7 @@ interface EditingState {
   variantIndex: number | null
   field: 'name' | 'attribute' | 'new-attribute'
   attributeIndex?: number
+  idVariant?: string
 }
 
 interface DeleteState {
@@ -54,11 +55,13 @@ export const VariantsPreview = ({
   onVariantsUpdate,
   isLoading
 }: VariantsPreviewProps) => {
+  console.log('Rendering VariantsPreview with variants:', variants)
   const [localVariants, setLocalVariants] =
     useState<ProductVariantsData>(variants)
   const [editing, setEditing] = useState<EditingState>({
     variantIndex: null,
-    field: 'name'
+    field: 'name',
+    idVariant: undefined
   })
   const [editValue, setEditValue] = useState('')
   const [hasChanges, setHasChanges] = useState(false)
@@ -71,7 +74,8 @@ export const VariantsPreview = ({
   const startEdit = (
     variantIndex: number,
     field: 'name' | 'attribute' | 'new-attribute',
-    attributeIndex?: number
+    attributeIndex?: number,
+    idVariant?: string
   ) => {
     const variant = localVariants[variantIndex]
     let currentValue = ''
@@ -80,10 +84,13 @@ export const VariantsPreview = ({
       currentValue = variant.name || `Variante ${variantIndex + 1}`
     } else if (field === 'attribute' && attributeIndex !== undefined) {
       currentValue = variant.attributes[attributeIndex]?.attribute_value || ''
+    } else if (field === 'new-attribute') {
+      currentValue = newAttributeValue
+      idVariant = variant.id
     }
 
     setEditValue(currentValue)
-    setEditing({ variantIndex, field, attributeIndex })
+    setEditing({ variantIndex, field, attributeIndex, idVariant })
   }
 
   const cancelEdit = () => {
@@ -97,7 +104,7 @@ export const VariantsPreview = ({
     if (editing.variantIndex === null) return
 
     const updatedVariants = [...localVariants]
-    const variant = updatedVariants[editing.variantIndex]
+    const variant = { ...updatedVariants[editing.variantIndex] } // Crear copia para preservar ID
 
     if (editing.field === 'name') {
       variant.name = editValue.trim() || `Variante ${editing.variantIndex + 1}`
@@ -105,19 +112,30 @@ export const VariantsPreview = ({
       editing.field === 'attribute' &&
       editing.attributeIndex !== undefined
     ) {
-      variant.attributes[editing.attributeIndex].attribute_value =
-        editValue.trim()
+      // Preservar el ID del atributo al actualizar
+      const updatedAttributes = [...variant.attributes]
+      updatedAttributes[editing.attributeIndex] = {
+        ...updatedAttributes[editing.attributeIndex], // Preservar ID existente
+        attribute_value: editValue.trim()
+      }
+      variant.attributes = updatedAttributes
     } else if (
       editing.field === 'new-attribute' &&
       newAttributeType &&
       newAttributeValue.trim()
     ) {
-      variant.attributes.push({
-        attribute_type: newAttributeType,
-        attribute_value: newAttributeValue.trim()
-      })
+      // Nuevo atributo - no tiene ID
+      variant.attributes = [
+        ...variant.attributes,
+        {
+          attribute_type: newAttributeType,
+          attribute_value: newAttributeValue.trim()
+          // id se generará en el backend
+        }
+      ]
     }
 
+    updatedVariants[editing.variantIndex] = variant
     setLocalVariants(updatedVariants)
     setHasChanges(true)
     cancelEdit()

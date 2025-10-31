@@ -113,7 +113,7 @@ export const getProductWithVariants = async (
     .select(
       `
       *,
-      attributes:product_variant_attributes(attribute_type, attribute_value)
+      attributes:product_variant_attributes(*)
     `
     )
     .eq('product_id', productId)

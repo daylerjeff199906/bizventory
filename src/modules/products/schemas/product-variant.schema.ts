@@ -1,11 +1,14 @@
 import { z } from 'zod'
 
 export const productVariantAttributeSchema = z.object({
+  id: z.string().optional(),
+  variant_id: z.string().optional(),
   attribute_type: z.string().min(1, 'El tipo de atributo es obligatorio'),
   attribute_value: z.string().min(1, 'El valor del atributo es obligatorio')
 })
 
 export const productVariantSchema = z.object({
+  id: z.string().optional(),
   name: z.string().min(1, 'El nombre es obligatorio'),
   attributes: z.array(productVariantAttributeSchema)
 })
