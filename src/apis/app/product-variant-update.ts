@@ -159,57 +159,101 @@ async function manageVariantAttributes(
   variantId: string,
   attributes: ProductVariantAttribute[]
 ): Promise<SupabaseResponse<ProductVariantAttribute[]>> {
-  console.log('Gestionando atributos para la variante:', variantId, attributes)
   try {
     const supabase = await getSupabase()
 
     // Obtener atributos existentes
-    // const {
-    //   data: existingAttributes,
-    //   error: fetchError
-    // }: SupabaseResponse<DatabaseProductVariantAttribute[]> = await supabase
-    //   .from('product_variant_attributes')
-    //   .select('*')
-    //   .eq('variant_id', variantId)
+    const {
+      data: existingAttributes,
+      error: fetchError
+    }: SupabaseResponse<DatabaseProductVariantAttribute[]> = await supabase
+      .from('product_variant_attributes')
+      .select('*')
+      .eq('variant_id', variantId)
 
-    // if (fetchError) throw fetchError
+    if (fetchError) throw fetchError
 
-    //trae los atributos existentes
+    // Separar atributos en nuevos y existentes basándonos únicamente en el ID
+    const attributesToInsert: Partial<DatabaseProductVariantAttribute>[] = []
+    const attributesToUpdate: Partial<DatabaseProductVariantAttribute>[] = []
 
-    //Actualiza o crea los atributos
-    const attributesToUpsert: Partial<DatabaseProductVariantAttribute>[] =
-      attributes.map((attr) => {
-        const attrData: Partial<DatabaseProductVariantAttribute> = {
+    for (const attr of attributes) {
+      if (attr.id) {
+        // Atributo con ID - actualizar (si existe en la BD)
+        const existingAttr = (existingAttributes || []).find(
+          (ea) => ea.id === attr.id
+        )
+        if (existingAttr) {
+          attributesToUpdate.push({
+            id: attr.id,
+            variant_id: variantId,
+            attribute_type: attr.attribute_type,
+            attribute_value: attr.attribute_value
+          })
+        } else {
+          // Tiene ID pero no existe en BD - tratarlo como nuevo
+          attributesToInsert.push({
+            id: attr.id, // Incluir el ID proporcionado
+            variant_id: variantId,
+            attribute_type: attr.attribute_type,
+            attribute_value: attr.attribute_value
+          })
+        }
+      } else {
+        // Atributo sin ID - insertar como nuevo
+        attributesToInsert.push({
           variant_id: variantId,
           attribute_type: attr.attribute_type,
           attribute_value: attr.attribute_value
-        }
-        // Solo incluir el id si existe
-        if (attr.id) {
-          attrData.id = attr.id
-        }
-        return attrData
-      })
-
-    console.log('Atributos a upsertar:', attributesToUpsert)
-
-    const {
-      data: upsertedAttributes,
-      error: upsertError
-    }: SupabaseResponse<DatabaseProductVariantAttribute[]> = await supabase
-      .from('product_variant_attributes')
-      .upsert(attributesToUpsert, {
-        onConflict: 'id',
-        ignoreDuplicates: false
-      })
-      .select()
-
-    if (upsertError) throw upsertError
-
-    return {
-      data: upsertedAttributes as ProductVariantAttribute[],
-      error: null
+        })
+      }
     }
+
+    console.log('Atributos a insertar:', attributesToInsert)
+    console.log('Atributos a actualizar:', attributesToUpdate)
+
+    // Insertar nuevos atributos
+    if (attributesToInsert.length > 0) {
+      const { error: insertError } = await supabase
+        .from('product_variant_attributes')
+        .insert(attributesToInsert)
+
+      if (insertError) throw insertError
+    }
+
+    // Actualizar atributos existentes
+    if (attributesToUpdate.length > 0) {
+      const { error: updateError } = await supabase
+        .from('product_variant_attributes')
+        .upsert(attributesToUpdate, {
+          onConflict: 'id'
+        })
+
+      if (updateError) throw updateError
+    }
+
+    // Eliminar atributos que no están en la nueva lista (por ID)
+    const newAttributeIds: string[] = attributes
+      .map((a) => a.id)
+      .filter((id): id is string => !!id)
+
+    const attributesToDelete: DatabaseProductVariantAttribute[] = (
+      existingAttributes || []
+    ).filter((ea) => ea.id && !newAttributeIds.includes(ea.id))
+
+    if (attributesToDelete.length > 0) {
+      const { error: deleteError } = await supabase
+        .from('product_variant_attributes')
+        .delete()
+        .in(
+          'id',
+          attributesToDelete.map((a) => a.id)
+        )
+
+      if (deleteError) throw deleteError
+    }
+
+    return { data: attributes as ProductVariantAttribute[], error: null }
   } catch (error) {
     console.error('Error managing variant attributes:', error)
     return { data: null, error }
