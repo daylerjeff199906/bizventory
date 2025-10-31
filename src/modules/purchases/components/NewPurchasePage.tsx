@@ -316,7 +316,12 @@ const EditItemDialog = ({
   )
 }
 
-export const NewPurchasePage = () => {
+interface NewPurchasePageProps {
+  businessId?: string
+}
+
+export const NewPurchasePage = (props: NewPurchasePageProps) => {
+  const { businessId } = props
   const [isLoading, setIsLoading] = useState(false)
   const [purchaseItems, setPurchaseItems] = useState<PurchaseItem[]>([])
   const [productModalOpen, setProductModalOpen] = useState(false)
@@ -326,7 +331,7 @@ export const NewPurchasePage = () => {
   const [confirmOpen, setConfirmOpen] = useState(false)
 
   const router = useRouter()
-  const { suppliers } = useSuppliers()
+  const { suppliers } = useSuppliers({ businessId })
 
   const filteredSuppliers = suppliers.filter((supplier) =>
     supplier.name.toLowerCase().includes(searchSupplier.toLowerCase())
@@ -339,7 +344,6 @@ export const NewPurchasePage = () => {
       supplier_id: '',
       guide_number: '',
       reference_number: '',
-      code: '',
       subtotal: 0,
       discount: 0,
       tax_rate: 18,
@@ -479,7 +483,6 @@ export const NewPurchasePage = () => {
         ...data,
         items: purchaseItems,
         date: new Date(data.date).toISOString(),
-        code: data.code || generatePurchaseCode(),
         subtotal: form.getValues('subtotal')
       }
 
@@ -570,35 +573,7 @@ export const NewPurchasePage = () => {
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <FormField
-                  control={form.control}
-                  name="code"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-base font-medium">
-                        Código de compra
-                      </FormLabel>
-                      <FormControl>
-                        <div className="flex gap-2">
-                          <Input {...field} readOnly className="bg-gray-50" />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={generateCode}
-                          >
-                            <RefreshCw className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </FormControl>
-                      <FormDescription>
-                        Código único interno para identificar la compra
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}
                   name="supplier_id"
