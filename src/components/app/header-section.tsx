@@ -37,7 +37,7 @@ export const PageHeader = ({
             <Button
               variant="outline"
               className="rounded-full"
-              size="sm"
+              size="icon"
               asChild
             >
               <Link href={backButton.href}>
