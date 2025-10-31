@@ -1,5 +1,5 @@
-import { BrandList } from '@/modules/products'
-import { getBrands } from '@/apis/app'
+import { getPurchases } from '@/apis/app'
+import { PurchasesList } from '@/modules/purchases'
 import { SearchParams } from '@/types'
 
 interface Props {
@@ -15,23 +15,18 @@ export default async function Page(props: Props) {
 
   if (sortBy) {
     const [field, order] = sortBy.toString()?.split('.')
-    sortField = field
+    sortField = field || 'id'
     sortOrder = order === 'desc' ? 'desc' : 'asc'
   }
 
-  const brandList = await getBrands({
-    filters: {
-      name: searchParams.name
-    },
-    sortBy: sortField,
-    sortDirection: sortOrder
+  const purchases = await getPurchases({
+    sortBy: sortField ?? 'id',
+    sortDirection: sortOrder ?? 'asc'
   })
 
   return (
     <>
-      <BrandList brandslist={brandList.data || []} />
+      <PurchasesList isReceiptPage purchasesData={purchases.data} />
     </>
   )
 }
-
-export const dynamic = 'force-dynamic'

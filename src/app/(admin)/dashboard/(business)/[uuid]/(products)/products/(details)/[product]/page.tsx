@@ -9,9 +9,11 @@ interface Props {
 
 export default async function Page(props: Props) {
   const params = await props.params
-  const uuid = await params.uuid
 
-  const productData = await getProductById(uuid?.toString() || '')
+  const uuid = await params.uuid
+  const product = await params.product
+
+  const productData = await getProductById(product?.toString() || '')
 
   if (!productData) {
     return <div>Product not found</div>
@@ -19,7 +21,10 @@ export default async function Page(props: Props) {
 
   return (
     <>
-      <EditProductPage productDefault={productData} />
+      <EditProductPage
+        businessId={uuid?.toString() || ''}
+        productDefault={productData}
+      />
     </>
   )
 }

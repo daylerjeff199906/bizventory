@@ -1,6 +1,5 @@
-import React from 'react'
-import { ProductsList } from '@/modules/products'
-import { getProducts } from '@/apis/app'
+import { getPurchases } from '@/apis/app'
+import { PurchasesList } from '@/modules/purchases'
 import { SearchParams } from '@/types'
 
 interface Props {
@@ -16,20 +15,18 @@ export default async function Page(props: Props) {
 
   if (sortBy) {
     const [field, order] = sortBy.toString()?.split('.')
-    sortField = field
+    sortField = field || 'id'
     sortOrder = order === 'desc' ? 'desc' : 'asc'
   }
 
-  const products = await getProducts({
-    filters: {
-      name: searchParams.name
-    },
-    sortBy: sortField,
-    sortDirection: sortOrder
+  const purchases = await getPurchases({
+    sortBy: sortField ?? 'id',
+    sortDirection: sortOrder ?? 'asc'
   })
+
   return (
     <>
-      <ProductsList dataProducts={products} />
+      <PurchasesList purchasesData={purchases.data} />
     </>
   )
 }

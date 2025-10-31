@@ -10,11 +10,12 @@ interface Props {
 
 export default async function Page(props: Props) {
   const params = await props.params
-  const uuid = await params.uuid
+  const product = await params.product
 
-  const productData = await getProductById(uuid?.toString() || '')
+  const uuid = await params.uuid
+  const productData = await getProductById(product?.toString() || '')
   const productsWithVariants = await getProductWithVariants(
-    uuid?.toString() || ''
+    product?.toString() || ''
   )
 
   if (!productData) {
@@ -26,8 +27,9 @@ export default async function Page(props: Props) {
       <CreateVariantForm
         productId={productData.id}
         productCode={productData.code || 'SIN CÓDIGO'}
-        productName={`${productData?.brand?.name} ${productData?.description}`}
+        productName={`${productData?.brand?.name} ${productData?.name}`}
         productWithVariants={productsWithVariants}
+        businessId={uuid?.toString() || ''}
       />
     </>
   )

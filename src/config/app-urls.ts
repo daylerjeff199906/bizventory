@@ -12,7 +12,18 @@ export const APP_URLS = {
       CREATE: `${URL_PREFIX}/create`,
       EDIT: (id: string) => `${URL_PREFIX}/${id}/edit`,
       DETAIL: (id: string) => `${URL_PREFIX}/${id}`
-    }
+    },
+    PRODUCTS: {
+      LIST: (uuid: string) => `${URL_PREFIX}/${uuid}/products`,
+      CREATE: (uuid: string) => `${URL_PREFIX}/${uuid}/products/create`,
+      EDIT: (uuid: string, id: string) => `${URL_PREFIX}/${uuid}/products/${id}`,
+      CREATE_VARIANT: (uuid: string, id: string) =>
+        `${URL_PREFIX}/${uuid}/products/${id}/create-variant`,
+    },
+    PURCHASES: {
+      LIST: (uuid: string) => `${URL_PREFIX}/business/${uuid}/purchases`,
+      CREATE: (uuid: string) => `${URL_PREFIX}/business/${uuid}/purchases/create`
+    },
   },
 
   //Old URLs kept for backward compatibility

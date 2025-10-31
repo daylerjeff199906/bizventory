@@ -42,19 +42,21 @@ import {
   ATTRIBUTE_TYPES,
   type AttributeType
 } from '@/modules/products'
-import { generateVariantCode } from './generate-variant-code'
 import { APP_URLS } from '@/config/app-urls'
 import { createProductVariants } from '@/apis/app/products.variants'
 import { ToastCustom } from '@/components/app/toast-custom'
 import { toast } from 'react-toastify'
 import { ProductWithVariants } from '@/types'
 import { VariantsPreview } from './VariantsPreview'
+import { handleProductVariantsUpdate } from '@/apis/app/product-variant-update'
+import { ProductVariant as ProductVariantType } from '@/apis/app/product-variant-update'
 
 interface CreateVariantFormProps {
   productId: string
   productName: string
   productCode: string
   productWithVariants?: ProductWithVariants
+  businessId?: string
 }
 
 const createVariantsFormSchema = z.object({
@@ -69,7 +71,8 @@ export const CreateVariantForm = ({
   productId,
   productName,
   productCode,
-  productWithVariants
+  productWithVariants,
+  businessId
 }: CreateVariantFormProps) => {
   const emptyVariant = productWithVariants
     ? productWithVariants.variants.length === 0
@@ -88,7 +91,6 @@ export const CreateVariantForm = ({
       variants: [
         {
           name: '',
-          code: generateVariantCode(productCode),
           attributes: []
         }
       ]
@@ -102,6 +104,7 @@ export const CreateVariantForm = ({
 
   // Crear atributos comunes para una nueva variante
   const createCommonAttributesForVariant = () => {
+    console.log('Creating common attributes for variant:', commonAttributes)
     return commonAttributes.map((attrType) => ({
       attribute_type: attrType,
       attribute_value: ''
@@ -111,9 +114,6 @@ export const CreateVariantForm = ({
   const addVariant = () => {
     append({
       name: '',
-      code: enableManualCode
-        ? generateVariantCode(productCode)
-        : generateVariantCode(productCode),
       attributes: createCommonAttributesForVariant()
     })
   }
@@ -169,6 +169,7 @@ export const CreateVariantForm = ({
     setShowConfirmation(true)
   }
 
+  // Confirmar creación de variantes
   const confirmCreate = async () => {
     setIsLoading(true)
     setShowConfirmation(false)
@@ -177,6 +178,7 @@ export const CreateVariantForm = ({
       const variantsData = form.getValues().variants
 
       const response = await createProductVariants({
+        businessId: businessId || '',
         productId,
         variants: variantsData
       })
@@ -202,12 +204,18 @@ export const CreateVariantForm = ({
           variants: [
             {
               name: '',
-              code: generateVariantCode(productCode),
               attributes: createCommonAttributesForVariant()
             }
           ]
         })
-        router.push(APP_URLS.PRODUCTS.CREATE_VARIANT(productId))
+        setVariantCreated(false)
+
+        router.push(
+          APP_URLS.ORGANIZATION.PRODUCTS.CREATE_VARIANT(
+            String(businessId),
+            productId
+          )
+        )
       }
     } catch (error) {
       console.error('Error al crear las variantes:', error)
@@ -222,9 +230,55 @@ export const CreateVariantForm = ({
     }
   }
 
+  const updateProductVariants = async ({
+    productId,
+    variantsData
+  }: {
+    productId: string
+    variantsData: ProductVariantType[]
+  }) => {
+    setIsLoading(true)
+    try {
+      // Call the imported API function with a single object parameter to match its signature
+      const response = await handleProductVariantsUpdate({
+        businessUnitId: businessId || '',
+        productId,
+        variantsData
+      })
+      if (response?.error) {
+        toast.error(
+          <ToastCustom
+            title="Error al actualizar variantes"
+            message={`${
+              response.error || 'Ocurrió un error al actualizar las variantes.'
+            }`}
+          />
+        )
+        return
+      } else {
+        toast.success(
+          <ToastCustom
+            title="Variantes actualizadas"
+            message="Las variantes del producto se han actualizado correctamente."
+          />
+        )
+      }
+    } catch (error) {
+      console.error('Error al actualizar las variantes:', error)
+      toast.error(
+        <ToastCustom
+          title="Error al actualizar variantes"
+          message="Ocurrió un error al intentar actualizar las variantes. Por favor, inténtalo de nuevo."
+        />
+      )
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-white">
-      <div className="w-full max-w-5xl mx-auto p-6">
+      <div className="w-full max-w-5xl p-6">
         {/* Encabezado de la página */}
         <div className="mb-4 flex justify-between items-center">
           <div className="flex items-center mb-6">
@@ -249,7 +303,6 @@ export const CreateVariantForm = ({
                   variants: [
                     {
                       name: '',
-                      code: generateVariantCode(productCode),
                       attributes: createCommonAttributesForVariant()
                     }
                   ]
@@ -261,7 +314,6 @@ export const CreateVariantForm = ({
                   variants: [
                     {
                       name: '',
-                      code: generateVariantCode(productCode),
                       attributes: createCommonAttributesForVariant()
                     }
                   ]
@@ -282,6 +334,13 @@ export const CreateVariantForm = ({
               variants={productWithVariants?.variants || []}
               productName={productName}
               productCode={productCode}
+              isLoading={isLoading}
+              onVariantsUpdate={(updatedVariants) => {
+                updateProductVariants({
+                  productId,
+                  variantsData: updatedVariants as ProductVariantType[]
+                })
+              }}
             />
           )}
 
@@ -330,8 +389,7 @@ export const CreateVariantForm = ({
                       const newVariants = form
                         .getValues()
                         .variants.map((v) => ({
-                          ...v,
-                          code: generateVariantCode(productCode)
+                          ...v
                         }))
                       form.setValue('variants', newVariants)
                     } else {
@@ -339,8 +397,7 @@ export const CreateVariantForm = ({
                       const newVariants = form
                         .getValues()
                         .variants.map((v) => ({
-                          ...v,
-                          code: generateVariantCode(productCode)
+                          ...v
                         }))
                       form.setValue('variants', newVariants)
                     }
@@ -372,7 +429,6 @@ export const CreateVariantForm = ({
                           onRemove={() => remove(index)}
                           canRemove={fields.length > 1}
                           commonAttributes={commonAttributes}
-                          enableManualCode={enableManualCode}
                         />
                       ))}
                     </div>
@@ -403,7 +459,6 @@ export const CreateVariantForm = ({
                         variants: [
                           {
                             name: '',
-                            code: generateVariantCode(productCode),
                             attributes: createCommonAttributesForVariant()
                           }
                         ]
@@ -446,7 +501,10 @@ export const CreateVariantForm = ({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isLoading}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmCreate} disabled={isLoading}>
+            <AlertDialogAction
+              onClick={() => confirmCreate()}
+              disabled={isLoading}
+            >
               {isLoading ? (
                 <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
               ) : (
@@ -468,7 +526,6 @@ interface VariantCardProps {
   onRemove: () => void
   canRemove: boolean
   commonAttributes: string[]
-  enableManualCode: boolean
 }
 
 const VariantCard = ({
@@ -476,8 +533,7 @@ const VariantCard = ({
   form,
   onRemove,
   canRemove,
-  commonAttributes,
-  enableManualCode
+  commonAttributes
 }: VariantCardProps) => {
   const {
     fields: attributeFields,
@@ -528,40 +584,19 @@ const VariantCard = ({
       </div>
       <div className="p-2 space-y-2">
         {/* Información básica */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          <FormField
-            control={form.control}
-            name={`variants.${index}.name`}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-xs font-medium">Nombre *</FormLabel>
-                <FormControl>
-                  <Input placeholder="Nombre de la variante" {...field} />
-                </FormControl>
-                <FormMessage className="text-xs" />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name={`variants.${index}.code`}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-xs font-medium">Código *</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Código único"
-                    {...field}
-                    readOnly={!enableManualCode}
-                    disabled={!enableManualCode}
-                  />
-                </FormControl>
-                <FormMessage className="text-xs" />
-              </FormItem>
-            )}
-          />
-        </div>
+        <FormField
+          control={form.control}
+          name={`variants.${index}.name`}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-xs font-medium">Nombre *</FormLabel>
+              <FormControl>
+                <Input placeholder="Nombre de la variante" {...field} />
+              </FormControl>
+              <FormMessage className="text-xs" />
+            </FormItem>
+          )}
+        />
 
         {/* Atributos comunes */}
         {commonAttrs.length > 0 && (

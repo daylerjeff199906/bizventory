@@ -28,10 +28,11 @@ import { APP_URLS } from '@/config/app-urls'
 
 interface ProductFormProps {
   productDefault: ProductDetails
+  businessId?: string
 }
 
 export const EditProductPage = (props: ProductFormProps) => {
-  const { productDefault } = props
+  const { productDefault, businessId } = props
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
 
@@ -49,7 +50,6 @@ export const EditProductPage = (props: ProductFormProps) => {
     resolver: zodResolver(editProductSchema),
     defaultValues: {
       tags: defaultValues.tags || [],
-      code: defaultValues.code?.toString() || '',
       description: defaultValues.description?.toString() || '',
       unit: defaultValues.unit?.toString() || 'unidad',
       is_active: defaultValues.is_active,
@@ -80,7 +80,9 @@ export const EditProductPage = (props: ProductFormProps) => {
         />
       )
 
-      router.push(APP_URLS.PRODUCTS.EDIT(productDefault.id))
+      router.push(
+        APP_URLS.ORGANIZATION.PRODUCTS.EDIT(businessId || '', productDefault.id)
+      )
       router.refresh()
     } catch (error) {
       console.error('Error al guardar:', error)
@@ -90,7 +92,7 @@ export const EditProductPage = (props: ProductFormProps) => {
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto p-6">
+    <div className="w-full max-w-5xl p-6">
       {/* Header Section */}
       <div className="mb-4 flex justify-between items-center">
         <div className="flex items-center mb-6">
@@ -98,9 +100,9 @@ export const EditProductPage = (props: ProductFormProps) => {
             <h1 className="text-2xl font-bold text-gray-900">
               Editar Producto
             </h1>
-            <p className="text-gray-600">
+            <p className=" uppercase">
               Producto: {productDefault.brand?.name || ''}{' '}
-              {productDefault.name || 'Sin nombre'}
+              {productDefault.name || 'Sin nombre'}. Cod. {productDefault.code}
             </p>
           </div>
         </div>
@@ -110,42 +112,19 @@ export const EditProductPage = (props: ProductFormProps) => {
       <div className="mt-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid gap-6 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nombre del producto</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nombre del producto" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="code"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Código</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Código único del producto"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Código único para identificar el producto
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>¿Cuál es el nombre del producto?</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Nombre del producto" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="description"

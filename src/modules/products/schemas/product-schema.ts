@@ -14,9 +14,7 @@ export const editProductSchema = z.object({
   name: z.string().min(2, {
     message: 'El nombre debe tener al menos 2 caracteres.'
   }),
-  code: z.string().min(2, {
-    message: 'El código debe tener al menos 2 caracteres.'
-  }),
+  code: z.string().optional(),
   description: z.string().optional(),
   unit: z.string().min(1, {
     message: 'La unidad es requerida.'

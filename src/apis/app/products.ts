@@ -60,7 +60,16 @@ export async function getProducts({
 
   let query = supabase
     .from('products')
-    .select('*, brand:brands(*)', { count: 'exact' })
+    .select(
+      `
+    *,
+    brand:brands!inner(
+      *,
+      business:businesses(id, name)
+    )
+  `,
+      { count: 'exact' }
+    )
     .range(from, to)
     .order(sortColumn, { ascending: sortDirection === 'asc' })
 
@@ -138,13 +147,14 @@ export async function createProduct({
   newProduct: CreateProductData
 }): Promise<Product | null> {
   const supabase = await getSupabase()
+
+  delete newProduct.code
+
   const { data, error } = await supabase
     .from('products')
     .insert(newProduct)
     .select()
     .single()
-
-  console.log('createProduct', { data, error })
 
   if (error || !data) {
     return null
@@ -164,12 +174,21 @@ export async function updateProduct(
   updated: Partial<Product>
 ): Promise<Product | null> {
   const supabase = await getSupabase()
+
+  console.log('Datos a actualizar del producto:', { id, updated })
+  // No permitir la actualización del campo 'code'
+  if (updated.code !== undefined) {
+    delete updated.code
+  }
+
   const { data, error } = await supabase
     .from('products')
     .update(updated)
     .eq('id', id)
     .select()
     .single()
+
+  console.log('Resultado de la actualización del producto:', { data, error })
 
   if (error || !data) return null
   revalidatePath(APP_URLS.PRODUCTS.LIST)
@@ -212,4 +231,90 @@ export async function deleteProduct(id: string): Promise<void> {
 
   if (error) throw error
   revalidatePath(APP_URLS.PRODUCTS.LIST)
+}
+
+export async function getProductsByBusinessId({
+  idBusiness,
+  from = 0,
+  to = 49,
+  sortColumn = 'created_at',
+  sortDirection = 'desc',
+  searchTerm
+}: {
+  idBusiness: string
+  from: number
+  to: number
+  sortColumn: string
+  sortDirection: 'asc' | 'desc'
+  searchTerm?: string
+}): Promise<ResApi<ProductDetails>> {
+  const supabase = await getSupabase()
+  try {
+    // Primero obtenemos las marcas del negocio
+    const { data: brands, error: brandsError } = await supabase
+      .from('brands')
+      .select('id')
+      .eq('business_id', idBusiness)
+
+    if (brandsError) throw brandsError
+
+    const brandIds = brands?.map((brand) => brand.id) || []
+
+    if (brandIds.length === 0) {
+      return {
+        data: [],
+        page: 1,
+        page_size: to - from + 1,
+        total: 0,
+        total_pages: 0
+      }
+    }
+
+    // Luego obtenemos los productos de esas marcas
+    let query = supabase
+      .from('products')
+      .select(
+        `
+      *,
+      brand:brands(
+        *,
+        business:business_id(*)
+      )
+      `,
+        { count: 'exact' }
+      )
+      .in('brand_id', brandIds)
+
+    // Aplicar búsqueda por nombre o código si se proporcionó searchTerm
+    if (searchTerm && searchTerm.trim() !== '') {
+      const term = `%${searchTerm.trim()}%`
+      query = query.or(`name.ilike.${term},code.ilike.${term}`)
+    }
+
+    // Paginación y orden
+    query = query
+      .range(from, to)
+      .order(sortColumn, { ascending: sortDirection === 'asc' })
+
+    const { data: products, error, count } = await query
+
+    if (error) throw error
+
+    return {
+      data: products || [],
+      page: Math.floor(from / (to - from + 1)) + 1,
+      page_size: to - from + 1,
+      total: count || 0,
+      total_pages: Math.ceil((count || 0) / (to - from + 1))
+    }
+  } catch (error) {
+    console.error('Error in getProductsByBusinessId:', error)
+    return {
+      data: [],
+      page: 1,
+      page_size: 0,
+      total: 0,
+      total_pages: 0
+    }
+  }
 }
