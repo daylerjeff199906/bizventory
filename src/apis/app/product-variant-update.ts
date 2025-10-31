@@ -209,9 +209,6 @@ async function manageVariantAttributes(
       }
     }
 
-    console.log('Atributos a insertar:', attributesToInsert)
-    console.log('Atributos a actualizar:', attributesToUpdate)
-
     // Insertar nuevos atributos
     if (attributesToInsert.length > 0) {
       const { error: insertError } = await supabase
