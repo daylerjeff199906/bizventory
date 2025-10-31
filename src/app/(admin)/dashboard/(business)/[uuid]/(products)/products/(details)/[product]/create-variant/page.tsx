@@ -27,7 +27,7 @@ export default async function Page(props: Props) {
       <CreateVariantForm
         productId={productData.id}
         productCode={productData.code || 'SIN CÓDIGO'}
-        productName={`${productData?.brand?.name} ${productData?.description}`}
+        productName={`${productData?.brand?.name} ${productData?.name}`}
         productWithVariants={productsWithVariants}
         businessId={uuid?.toString() || ''}
       />

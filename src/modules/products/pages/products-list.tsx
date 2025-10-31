@@ -229,13 +229,13 @@ export const ProductsList = ({
                         </div>
                       )}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium truncate">
+                    <div className="flex-1 min-w-0 max-w-md">
+                      <h2 className="text-sm font-medium break-words whitespace-normal">
                         {product.name}
-                      </div>
-                      <div className="text-xs text-muted-foreground line-clamp-1">
+                      </h2>
+                      <p className="text-xs text-muted-foreground break-words whitespace-normal line-clamp-2">
                         {product.description || 'Sin descripción'}
-                      </div>
+                      </p>
                       {product.tags && product.tags.length > 0 && (
                         <div className="flex gap-1 mt-1 flex-wrap">
                           {product.tags.map((tag) => (
