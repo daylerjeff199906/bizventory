@@ -66,12 +66,13 @@ export async function getProductsAndVariantsForPurchase({
   const { data: productsWithoutVariants } = await supabase
     .from('products')
     .select('*, brand:brand_id(*)')
-    .eq('business_id', businessId)
+    .eq('brand.business_id', businessId) // filtra por business_id en la marca
     .eq('has_variants', false)
     .or(
       `name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,code.ilike.%${searchTerm}%`
     )
     .limit(limit)
+  console.log('productsWithoutVariants', productsWithoutVariants)
 
   // Fetch products with variants
   const { data: productsWithVariants } = await supabase
@@ -89,7 +90,6 @@ export async function getProductsAndVariantsForPurchase({
       )
     `
     )
-    .eq('product.business_id', businessId)
     .or(
       `name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,code.ilike.%${searchTerm}%`
     )

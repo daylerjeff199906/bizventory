@@ -31,7 +31,7 @@ export function TeamSwitcher({ teams }: { teams: TeamSwitcherType[] }) {
   const pathname = usePathname()
 
   // Open the dropdown by default if there is more than one team
-  const [open, setOpen] = React.useState<boolean>(teams.length > 1)
+  const [open, setOpen] = React.useState<boolean>(false)
 
   // Determine active team from pathname (falls back to first team)
   const getActiveFromPath = React.useCallback(() => {
@@ -48,8 +48,6 @@ export function TeamSwitcher({ teams }: { teams: TeamSwitcherType[] }) {
     if (newActive && newActive.name !== activeTeam?.name) {
       setActiveTeam(newActive)
     }
-    // If teams list changes, ensure open state follows the "more than one" rule
-    setOpen(teams.length > 1)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, teams])
 
