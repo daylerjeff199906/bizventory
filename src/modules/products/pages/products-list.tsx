@@ -189,7 +189,9 @@ export const ProductsList = ({
                     </p>
                   </div>
                   <Button asChild>
-                    <Link href={APP_URLS.PRODUCTS.CREATE}>
+                    <Link
+                      href={APP_URLS.ORGANIZATION.PRODUCTS.CREATE(bussinessId)}
+                    >
                       Agregar nuevo producto
                     </Link>
                   </Button>

@@ -1,8 +1,10 @@
 import { AppSidebar } from '@/components/app-sidebar'
 import { adminNavMain } from '@/components/menus-sidebar'
+import { TeamSwitcherType } from '@/components/team-switcher'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { APP_URLS } from '@/config/app-urls'
 import { getSupabase } from '@/services/core.supabase'
+import { getBusinessesByUserRole } from '@/services/user.roles.services'
 import { Params } from '@/types'
 import { redirect } from 'next/navigation'
 
@@ -38,10 +40,20 @@ export default async function Layout(props: LayoutProps) {
       }
     : null
 
+  const responseData = await getBusinessesByUserRole(user?.user?.id || '')
+
+  const teamSwitcherData: TeamSwitcherType[] = responseData.map((business) => ({
+    name: business.business_name,
+    plan: business.business_type,
+    url_logo: business.brand || undefined,
+    href: APP_URLS.ORGANIZATION.BASE.HOME(business.id)
+  }))
+
   return (
     <SidebarProvider>
       <AppSidebar
         userData={userData}
+        menuTeamSwitcher={teamSwitcherData || []}
         menuNavBar={{
           navMain: adminNavMain(uuid?.toString() || '')
         }}

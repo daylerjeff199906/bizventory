@@ -12,13 +12,19 @@ export const adminNavMain: (uuid: string) => NavItem[] = (uuid: string) => [
   {
     title: 'Productos',
     url: APP_URLS.ORGANIZATION.PRODUCTS.LIST(uuid),
-    icon: 'User',
+    icon: 'Box',
+    items: []
+  },
+  {
+    title: 'Proveedores',
+    url: APP_URLS.ORGANIZATION.SUPPLIERS.LIST(uuid),
+    icon: 'Building2',
     items: []
   },
   {
     title: 'Entradas',
     url: APP_URLS.ORGANIZATION.PURCHASES.LIST(uuid),
-    icon: 'FolderOpen',
+    icon: 'SquareArrowDownRight',
     items: []
   }
 ]

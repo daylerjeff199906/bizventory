@@ -32,12 +32,14 @@ interface PurchasesListProps {
   purchasesData: PurchaseList[]
   searchQuery?: string
   isReceiptPage?: boolean
+  businessId?: string
 }
 
 export const PurchasesList = ({
   purchasesData = [],
   searchQuery = '',
-  isReceiptPage = false
+  isReceiptPage = false,
+  businessId
 }: PurchasesListProps) => {
   const router = useRouter()
   const pathname = usePathname()
@@ -186,7 +188,11 @@ export const PurchasesList = ({
                     </p>
                   </div>
                   <Button asChild>
-                    <Link href={APP_URLS.PURCHASES.CREATE}>
+                    <Link
+                      href={APP_URLS.ORGANIZATION.PURCHASES.CREATE(
+                        businessId || ''
+                      )}
+                    >
                       <Plus className="h-4 w-4 mr-2" />
                       Nueva Compra
                     </Link>

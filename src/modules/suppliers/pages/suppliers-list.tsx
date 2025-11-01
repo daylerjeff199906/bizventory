@@ -46,16 +46,17 @@ type SortDirection = 'asc' | 'desc'
 
 interface IProps {
   suppliersList?: Supplier[]
+  bussinessId?: string
 }
 
 export default function SuppliersList(props: IProps) {
-  const { suppliersList: suppliers } = props
+  const { suppliersList: suppliers, bussinessId } = props
 
   const [searchTerm, setSearchTerm] = useState('')
   const [sortField, setSortField] = useState<SortField>('name')
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [editingSupplier, setEditingSupplier] = useState<Supplier | undefined>()
+  const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
   const handleSort = (field: SortField) => {
@@ -160,7 +161,7 @@ export default function SuppliersList(props: IProps) {
   }
 
   const handleNewSupplier = () => {
-    setEditingSupplier(undefined)
+    setEditingSupplier(null)
     setDialogOpen(true)
   }
 
@@ -334,6 +335,7 @@ export default function SuppliersList(props: IProps) {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         supplier={editingSupplier}
+        bussinessId={String(bussinessId)}
       />
 
       <AlertDialog

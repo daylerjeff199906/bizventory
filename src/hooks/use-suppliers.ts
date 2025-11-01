@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { getSuppliers } from '@/apis/app'
 import { Supplier } from '@/types'
 
-export const useSuppliers = () => {
+export const useSuppliers = ({businessId}: {businessId?: string}) => {
   const [suppliers, setSuppliers] = useState<Supplier[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<Error | null>(null)
@@ -11,7 +11,9 @@ export const useSuppliers = () => {
   useEffect(() => {
     let isMounted = true
     setLoading(true)
-    getSuppliers()
+    getSuppliers({ 
+      businessId: businessId?.toString() || ''
+    })
       .then((data) => {
         if (isMounted) {
           setSuppliers(data)
@@ -27,7 +29,7 @@ export const useSuppliers = () => {
     return () => {
       isMounted = false
     }
-  }, [])
+  }, [businessId])
 
   return { suppliers, loading, error }
 }

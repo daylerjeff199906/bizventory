@@ -20,11 +20,18 @@ async function getSupabase() {
  * @param filters - campos y valores a filtrar
  * @returns Promise<Supplier[]>
  */
-export async function getSuppliers(
-  filters?: Partial<Supplier>
-): Promise<Supplier[]> {
+export async function getSuppliers({
+  filters,
+  businessId
+}: {
+  filters?: { [key: string]: string }
+  businessId: string
+}): Promise<Supplier[]> {
   const supabase = await getSupabase()
-  let query = supabase.from('suppliers').select('*')
+  let query = supabase
+    .from('suppliers')
+    .select('*')
+    .eq('business_id', businessId)
 
   if (filters) {
     Object.entries(filters).forEach(([key, value]) => {

@@ -5,7 +5,9 @@ import {
   getProductsAndVariantsForPurchase
 } from '@/apis/app/productc.variants.list'
 
-export const useProductsAndVariants = () => {
+export const useProductsAndVariants = ({
+  businessId
+}: { businessId?: string } = {}) => {
   const [items, setItems] = useState<CombinedResult[]>([])
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<Error | null>(null)
@@ -15,7 +17,11 @@ export const useProductsAndVariants = () => {
       setLoading(true)
       setError(null)
 
-      const results = await getProductsAndVariantsForPurchase(searchTerm, limit)
+      const results = await getProductsAndVariantsForPurchase({
+        businessId: businessId,
+        searchTerm: searchTerm,
+        limit: limit
+      })
       setItems(results)
     } catch (err) {
       setError(

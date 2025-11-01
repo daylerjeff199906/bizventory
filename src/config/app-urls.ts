@@ -7,6 +7,9 @@ export const APP_URLS = {
     REGISTER: '/register'
   },
   ORGANIZATION: {
+    BASE: {
+      HOME: (uuid: string = ':uuid') => `${URL_PREFIX}/${uuid}`
+    },
     BUSINESS: {
       LIST: `${URL_PREFIX}/`,
       CREATE: `${URL_PREFIX}/create`,
@@ -16,14 +19,19 @@ export const APP_URLS = {
     PRODUCTS: {
       LIST: (uuid: string) => `${URL_PREFIX}/${uuid}/products`,
       CREATE: (uuid: string) => `${URL_PREFIX}/${uuid}/products/create`,
-      EDIT: (uuid: string, id: string) => `${URL_PREFIX}/${uuid}/products/${id}`,
+      EDIT: (uuid: string, id: string) =>
+        `${URL_PREFIX}/${uuid}/products/${id}`,
       CREATE_VARIANT: (uuid: string, id: string) =>
-        `${URL_PREFIX}/${uuid}/products/${id}/create-variant`,
+        `${URL_PREFIX}/${uuid}/products/${id}/create-variant`
     },
     PURCHASES: {
-      LIST: (uuid: string) => `${URL_PREFIX}/business/${uuid}/purchases`,
-      CREATE: (uuid: string) => `${URL_PREFIX}/business/${uuid}/purchases/create`
+      LIST: (uuid: string) => `${URL_PREFIX}/${uuid}/purchases`,
+      CREATE: (uuid: string) => `${URL_PREFIX}/${uuid}/purchases/create`
     },
+    SUPPLIERS: {
+      LIST: (uuid: string) => `${URL_PREFIX}/${uuid}/suppliers`,
+      CREATE: (uuid: string) => `${URL_PREFIX}/${uuid}/suppliers/create`
+    }
   },
 
   //Old URLs kept for backward compatibility

@@ -1,18 +1,11 @@
 'use client'
 
 import * as React from 'react'
-import {
-  AudioWaveform,
-  Command,
-  Frame,
-  GalleryVerticalEnd,
-  Map,
-  PieChart
-} from 'lucide-react'
+import { Frame, Map, PieChart } from 'lucide-react'
 
 import { NavMain } from '@/components/nav-main'
 import { NavProjects } from '@/components/nav-projects'
-import { TeamSwitcher } from '@/components/team-switcher'
+import { TeamSwitcher, TeamSwitcherType } from '@/components/team-switcher'
 import {
   Sidebar,
   SidebarContent,
@@ -25,23 +18,6 @@ import { NavMainType } from '@/types'
 
 // This is sample data.
 const data = {
-  teams: [
-    {
-      name: 'Acme Inc',
-      logo: GalleryVerticalEnd,
-      plan: 'Enterprise'
-    },
-    {
-      name: 'Acme Corp.',
-      logo: AudioWaveform,
-      plan: 'Startup'
-    },
-    {
-      name: 'Evil Corp.',
-      logo: Command,
-      plan: 'Free'
-    }
-  ],
   projects: [
     {
       name: 'Design Engineering',
@@ -69,16 +45,17 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
     roles?: string[]
   } | null
   menuNavBar?: NavMainType
+  menuTeamSwitcher?: TeamSwitcherType[]
 }
 
 export function AppSidebar(props: AppSidebarProps) {
   // Extraer los props personalizados y dejar solo los props del Sidebar
-  const { userData, menuNavBar, ...sidebarProps } = props
+  const { userData, menuNavBar, menuTeamSwitcher, ...sidebarProps } = props
 
   return (
     <Sidebar collapsible="icon" {...sidebarProps}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher teams={menuTeamSwitcher || []} />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={menuNavBar?.navMain || []} />
