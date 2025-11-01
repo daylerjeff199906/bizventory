@@ -25,7 +25,8 @@ export default async function Page(props: Props) {
 
   const purchases = await getPurchases({
     sortBy: sortField ?? 'id',
-    sortDirection: sortOrder ?? 'asc'
+    sortDirection: sortOrder ?? 'asc',
+    business_id: uuid?.toString() || ''
   })
 
   return (

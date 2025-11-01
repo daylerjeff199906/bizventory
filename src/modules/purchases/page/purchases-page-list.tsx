@@ -109,7 +109,7 @@ export const PurchasesList = ({
   }
 
   return (
-    <div className="rounded-md border bg-white w-full">
+    <div className="rounded-md border bg-white w-full overflow-x-auto">
       <Table>
         <TableHeader className="bg-muted">
           <TableRow>
@@ -166,16 +166,6 @@ export const PurchasesList = ({
               >
                 Creado
                 {getSortIcon('created_at')}
-              </Button>
-            </TableHead>
-            <TableHead>
-              <Button
-                variant="ghost"
-                onClick={() => handleSort('updated_at')}
-                className="h-auto p-0 font-medium hover:bg-transparent"
-              >
-                Actualizado
-                {getSortIcon('updated_at')}
               </Button>
             </TableHead>
             <TableHead className="w-[80px] text-right">Acciones</TableHead>
@@ -302,28 +292,6 @@ export const PurchasesList = ({
                           purchase.created_at instanceof Date
                             ? purchase.created_at.toISOString()
                             : purchase.created_at
-                        )}
-                      </span>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex flex-col">
-                    <span className="text-sm">
-                      {purchase.updated_at
-                        ? formatDate(
-                            purchase.updated_at instanceof Date
-                              ? purchase.updated_at.toISOString()
-                              : purchase.updated_at
-                          )
-                        : 'N/A'}
-                    </span>
-                    {purchase.updated_at && (
-                      <span className="text-xs text-muted-foreground">
-                        {formatTime(
-                          purchase.updated_at instanceof Date
-                            ? purchase.updated_at.toISOString()
-                            : purchase.updated_at
                         )}
                       </span>
                     )}

@@ -564,6 +564,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
       const purchaseData: CreatePurchaseData = {
         ...data,
         items: validItems,
+        business_id: String(businessId),
         date: new Date(data.date).toISOString(),
         subtotal: form.getValues('subtotal')
       }
@@ -590,7 +591,12 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
           />
         )
         if (response.data) {
-          router.push(APP_URLS.PURCHASES.VIEW(response.data.id))
+          router.push(
+            APP_URLS.ORGANIZATION.PURCHASES.DETAIL(
+              businessId!,
+              response.data.id
+            )
+          )
         }
       }
     } catch (error) {

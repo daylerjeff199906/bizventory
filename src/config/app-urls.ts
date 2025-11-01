@@ -26,7 +26,11 @@ export const APP_URLS = {
     },
     PURCHASES: {
       LIST: (uuid: string) => `${URL_PREFIX}/${uuid}/purchases`,
-      CREATE: (uuid: string) => `${URL_PREFIX}/${uuid}/purchases/create`
+      CREATE: (uuid: string) => `${URL_PREFIX}/${uuid}/purchases/create`,
+      DETAIL: (uuid: string, id: string) =>
+        `${URL_PREFIX}/${uuid}/purchases/${id}`
+      // EDIT: (uuid: string, id: string) =>
+      //   `${URL_PREFIX}/${uuid}/purchases/${id}/edit`
     },
     SUPPLIERS: {
       LIST: (uuid: string) => `${URL_PREFIX}/${uuid}/suppliers`,
