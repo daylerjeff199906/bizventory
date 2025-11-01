@@ -66,18 +66,27 @@ export async function getProductsAndVariantsForPurchase({
 }): Promise<CombinedResult[]> {
   const supabase = await getSupabase()
 
-  // Obtener productos sin variantes del negocio
+  // Primero obtener las marcas del negocio
+  const { data: businessBrands } = await supabase
+    .from('brands')
+    .select('id')
+    .eq('business_id', businessId)
+
+  const brandIds = businessBrands?.map((brand) => brand.id) || []
+
+  // Luego obtener productos de esas marcas
   const { data: productsWithoutVariants } = await supabase
     .from('products')
     .select('*, brand:brand_id(*)')
-    .eq('brand.business_id', businessId)
-    .or(`name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`)
+    .in('brand_id', brandIds)
+    .or(
+      `name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,code.ilike.%${searchTerm}%`
+    )
     .limit(limit)
 
   // Obtener IDs de productos del negocio para usar en la consulta de variantes
   const businessProductIds =
     productsWithoutVariants?.map((product) => product.id) || []
-  console.log('Business Product IDs:', businessProductIds)
 
   // Obtener variantes de productos del negocio
   let productsWithVariants: ProductVariant[] | null = []
@@ -98,12 +107,9 @@ export async function getProductsAndVariantsForPurchase({
       )
     `
       )
-      .in('product_id', businessProductIds)
-      // opcional: filtrar por término de búsqueda en campos de la variante
-      // .or(
-      //   `name.ilike.%${searchTerm}%,code.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`
-      // )
-      .limit(limit)
+      // .in('product_id', businessProductIds)
+      .eq('product.brand.business_id', businessId)
+      .or(`product_id.in.(${businessProductIds.join(',')})`)
 
     if (error) {
       console.error('Error fetching variants:', error)

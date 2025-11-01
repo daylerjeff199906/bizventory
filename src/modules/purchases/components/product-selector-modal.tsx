@@ -2,7 +2,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Check, ImageOff, Plus, ArrowLeft } from 'lucide-react'
+import {
+  Check,
+  ImageOff,
+  Plus,
+  ArrowLeft,
+  CheckCircle2,
+  Eye
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -20,7 +27,6 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { SearchInput } from '@/components/app/search-input'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useProductsAndVariants } from '@/hooks/use-products-variants'
 import {
   CombinedResult,
@@ -48,9 +54,7 @@ export const ProductSelectorModal = ({
   onSelectProduct,
   selectedProductIds
 }: ProductSelectorModalProps) => {
-  const [searchType, setSearchType] = useState<'name' | 'code'>('name')
   const [searchTerm, setSearchTerm] = useState('')
-  const [searchCode, setSearchCode] = useState<string>()
   const [viewMode, setViewMode] = useState<ViewMode>('products')
   const [selectedProduct, setSelectedProduct] = useState<CombinedResult | null>(
     null
@@ -67,7 +71,7 @@ export const ProductSelectorModal = ({
       setViewMode('products')
       setSelectedProduct(null)
     }
-  }, [open, searchTerm, searchCode])
+  }, [open, searchTerm])
 
   const handleSelectProduct = (product: CombinedResult) => {
     // Si el producto tiene variantes, navegar a la vista de variantes
@@ -123,34 +127,11 @@ export const ProductSelectorModal = ({
   // Vista de productos principales
   const renderProductsView = () => (
     <>
-      {/* Selector de tipo de búsqueda */}
-      <Tabs
-        value={searchType}
-        onValueChange={(value) => {
-          setSearchType(value as 'name' | 'code')
-          setSearchTerm('')
-        }}
-        className="w-full"
-      >
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="name">Buscar por Nombre</TabsTrigger>
-          <TabsTrigger value="code">Buscar por Código</TabsTrigger>
-        </TabsList>
-      </Tabs>
-
       {/* Búsqueda */}
       <SearchInput
-        placeholder={
-          searchType === 'name'
-            ? 'Buscar por nombre o marca...'
-            : 'Buscar por código...'
-        }
+        placeholder={'Buscar por nombre o descripción...'}
         value={searchTerm}
-        onChange={
-          searchType === 'name'
-            ? (value) => setSearchTerm(value)
-            : (value) => setSearchCode(value)
-        }
+        onChange={setSearchTerm}
       />
 
       {/* Información sobre la selección */}
@@ -272,36 +253,29 @@ export const ProductSelectorModal = ({
                         )}
                       </TableCell>
 
-                      <TableCell>
-                        <Button
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleSelectProduct(product)
-                          }}
-                          disabled={isSelected && !hasVariants}
-                          variant={
-                            isSelected && !hasVariants ? 'secondary' : 'default'
-                          }
-                          className={cn(
-                            'min-w-24',
-                            isSelected &&
-                              !hasVariants &&
-                              'bg-green-100 text-green-800 hover:bg-green-100 border-green-200'
-                          )}
-                        >
-                          {isSelected && !hasVariants ? (
-                            <>
-                              <Check className="h-4 w-4 mr-1" />
-                              Agregado
-                            </>
-                          ) : (
-                            <>
-                              <Plus className="h-4 w-4 mr-1" />
-                              {hasVariants ? 'Ver variantes' : 'Agregar'}
-                            </>
-                          )}
-                        </Button>
+                      <TableCell className="text-right">
+                        {isSelected && !hasVariants && (
+                          <span className="text-xs font-medium text-green-600 flex items-center">
+                            <CheckCircle2 className="h-4 w-4 mr-1" />
+                            Agregado
+                          </span>
+                        )}
+                        {!isSelected && !hasVariants && (
+                          <Button size="icon">
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {!isSelected && hasVariants && (
+                          <Button size="icon" variant="outline">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {isSelected && hasVariants && (
+                          <span className="text-xs font-medium text-green-600 flex items-center">
+                            <CheckCircle2 className="h-4 w-4 mr-1" />
+                            Agregado
+                          </span>
+                        )}
                       </TableCell>
                     </TableRow>
                   )
@@ -323,17 +297,21 @@ export const ProductSelectorModal = ({
         <div className="flex items-center space-x-2 mb-4">
           <Button
             variant="ghost"
-            size="sm"
+            size="icon"
             onClick={handleBackToProducts}
             className="p-2"
           >
             <ArrowLeft className="h-4 w-4 mr-1" />
-            Volver
           </Button>
           <div>
-            <h3 className="font-semibold text-sm">
-              {selectedProduct?.brand?.name} {selectedProduct.description}
-            </h3>
+            <div className="mb-1 flex flex-col">
+              <p className="text-sm">
+                {selectedProduct?.brand?.name} {selectedProduct.name}
+              </p>
+              <p className="text-xs text-muted-foreground break-words whitespace-normal line-clamp-2">
+                {selectedProduct?.description}
+              </p>
+            </div>
             <p className="text-xs text-muted-foreground">
               Selecciona una variante para agregar
             </p>
