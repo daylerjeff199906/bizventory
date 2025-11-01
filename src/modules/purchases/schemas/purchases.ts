@@ -57,6 +57,11 @@ export const PurchaseSchema = PurchaseFormSchema.extend({
 export type PurchaseItem = z.infer<typeof PurchaseItemSchema> & {
   _temp_id?: string // Para manejar IDs temporales en el frontend
   _index?: number // Para manejar el índice del item en el formulario
+  // Información del producto/variante
+  is_product_header?: boolean
+  has_variants?: boolean
+  variants_count?: number
+  // Información del producto
   product?: {
     id: string
     name: string

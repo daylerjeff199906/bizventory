@@ -5,7 +5,15 @@ import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
-import { Save, Plus, Trash2, RefreshCw, Edit } from 'lucide-react'
+import {
+  Save,
+  Plus,
+  Trash2,
+  RefreshCw,
+  Edit,
+  ChevronDown,
+  ChevronRight
+} from 'lucide-react'
 import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
@@ -71,13 +79,6 @@ import { createPurchaseWithItems } from '@/apis/app'
 import type { CombinedResult } from '@/apis/app/productc.variants.list'
 import { formatCurrencySoles } from '@/utils'
 
-// Función para generar código de barras aleatorio
-const generateBarCode = (): string => {
-  const timestamp = Date.now().toString()
-  const random = Math.random().toString(36).substring(2, 8).toUpperCase()
-  return `${timestamp.slice(-6)}${random}`
-}
-
 // Función para generar código de producto aleatorio
 const generateProductCode = (): string => {
   const prefix = 'PROD'
@@ -125,10 +126,8 @@ const EditItemDialog = ({
       quantity: editData.quantity || item.quantity,
       price: editData.price || item.price,
       discount: editData.discount || 0,
-      code: editData.code || generateProductCode(),
-      bar_code: includeBarCode
-        ? editData.bar_code || generateBarCode()
-        : undefined
+      code: editData.code,
+      bar_code: includeBarCode ? editData.bar_code : undefined
     }
 
     onSave(updatedItem)
@@ -236,8 +235,7 @@ const EditItemDialog = ({
                     variant="outline"
                     onClick={() =>
                       setEditData((prev) => ({
-                        ...prev,
-                        bar_code: generateBarCode()
+                        ...prev
                       }))
                     }
                   >
@@ -305,6 +303,9 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
   const [editingItem, setEditingItem] = useState<PurchaseItem | null>(null)
   const [searchSupplier, setSearchSupplier] = useState<string>('')
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [expandedProducts, setExpandedProducts] = useState<Set<string>>(
+    new Set()
+  )
 
   const router = useRouter()
   const { suppliers } = useSuppliers({ businessId })
@@ -365,64 +366,166 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
     form.setValue('items', purchaseItems)
   }
 
-  const handleAddProduct = (product: CombinedResult) => {
-    // Generar un ID único temporal para cada item
-    const tempId = `${product.id}-${
-      product.variant_id || 'no-variant'
-    }-${Date.now()}`
-
-    const newItem: PurchaseItem = {
-      product_id: product.id,
-      product_variant_id: product.has_variants ? product.variant_id : null,
-      quantity: 1,
-      price: 0,
-      discount: 0,
-      purchase_id: null,
-      code: generateProductCode(),
-      _temp_id: tempId, // ID temporal único
-      product: {
-        id: product.id,
-        name: product.name,
-        unit: product.unit,
-        brand: product.brand?.name || 'Sin marca',
-        description: product.description || null
-      },
-      original_product_name: product.description,
-      original_variant_name: product.variant_name,
-      variant_attributes: product.attributes || [],
-      variant: {
-        id: product.variant_id || '',
-        name: product?.variant_name || '',
-        attributes: product.attributes || []
+  const toggleProductExpansion = (productId: string) => {
+    setExpandedProducts((prev) => {
+      const newSet = new Set(prev)
+      if (newSet.has(productId)) {
+        newSet.delete(productId)
+      } else {
+        newSet.add(productId)
       }
-    }
-
-    setPurchaseItems([...purchaseItems, newItem])
+      return newSet
+    })
   }
 
+  const handleAddProduct = (product: CombinedResult) => {
+    // Si el producto tiene variantes, agregamos el producto como cabecera
+    if (
+      product.has_variants &&
+      product.variants &&
+      product.variants.length > 0
+    ) {
+      // Verificar si el producto ya existe como cabecera
+      const existingProductHeader = purchaseItems.find(
+        (item) => item.product_id === product.id && item.is_product_header
+      )
+
+      if (!existingProductHeader) {
+        const tempId = `${product.id}-header-${Date.now()}`
+
+        const productHeader: PurchaseItem = {
+          product_id: product.id,
+          product_variant_id: null,
+          quantity: 0, // La cabecera no tiene cantidad
+          price: 0, // La cabecera no tiene precio
+          discount: 0,
+          purchase_id: null,
+          code: '',
+          _temp_id: tempId,
+          product: {
+            id: product.id,
+            name: product.name,
+            unit: product.unit,
+            brand: product.brand?.name || 'Sin marca',
+            description: product.description || null
+          },
+          original_product_name: product.description,
+          is_product_header: true, // Marcar como cabecera
+          has_variants: true
+        }
+
+        setPurchaseItems((prev) => [...prev, productHeader])
+        setExpandedProducts((prev) => new Set(prev).add(product.id))
+      }
+    } else {
+      // Producto sin variantes - agregar directamente
+      const tempId = `${product.id}-no-variant-${Date.now()}`
+
+      const newItem: PurchaseItem = {
+        product_id: product.id,
+        product_variant_id: null,
+        quantity: 1,
+        price: 0,
+        discount: 0,
+        purchase_id: null,
+        code: generateProductCode(),
+        _temp_id: tempId,
+        product: {
+          id: product.id,
+          name: product.name,
+          unit: product.unit,
+          brand: product.brand?.name || 'Sin marca',
+          description: product.description || null
+        },
+        original_product_name: product.description,
+        has_variants: false
+      }
+
+      setPurchaseItems((prev) => [...prev, newItem])
+    }
+  }
+
+  // const handleAddVariant = (
+  //   product: CombinedResult,
+  //   variant: ProductVariantItem
+  // ) => {
+  //   const tempId = `${variant.id}-variant-${Date.now()}`
+
+  //   const variantItem: PurchaseItem = {
+  //     product_id: product.id,
+  //     product_variant_id: variant.id,
+  //     quantity: 1,
+  //     price: 0,
+  //     discount: 0,
+  //     purchase_id: null,
+  //     code: generateProductCode(),
+  //     _temp_id: tempId,
+  //     product: {
+  //       id: product.id,
+  //       name: product.name,
+  //       unit: product.unit,
+  //       brand: product.brand?.name || 'Sin marca',
+  //       description: product.description || null
+  //     },
+  //     variant: {
+  //       id: variant.id,
+  //       name: variant.name,
+  //       attributes: variant.attributes || []
+  //     },
+  //     original_product_name: product.description,
+  //     original_variant_name: variant.name,
+  //     variant_attributes: variant.attributes || [],
+  //     has_variants: true
+  //   }
+
+  //   setPurchaseItems((prev) => [...prev, variantItem])
+  // }
+
   const handleEditItem = (item: PurchaseItem, index: number) => {
-    setEditingItem({ ...item, _index: index }) // Agregar índice temporal
+    // No permitir editar cabeceras de productos
+    if (item.is_product_header) return
+
+    setEditingItem({ ...item, _index: index })
     setEditDialogOpen(true)
   }
 
   const handleSaveEditedItem = (updatedItem: PurchaseItem) => {
     const updatedItems = purchaseItems.map((item) => {
-      // Usar el ID temporal único para identificar el item exacto
       return item._temp_id === editingItem?._temp_id ? updatedItem : item
     })
     setPurchaseItems(updatedItems)
   }
 
   const handleRemoveItem = (itemToRemove: PurchaseItem, index: number) => {
-    // Usar tanto el índice como el ID temporal para mayor seguridad
-    const updatedItems = purchaseItems.filter(
-      (item, i) => !(i === index && item._temp_id === itemToRemove._temp_id)
-    )
-    setPurchaseItems(updatedItems)
+    // Si es una cabecera, eliminar también todas sus variantes
+    if (itemToRemove.is_product_header) {
+      const updatedItems = purchaseItems.filter(
+        (item) =>
+          item.product_id !== itemToRemove.product_id || item.is_product_header
+      )
+      setPurchaseItems(updatedItems)
+      // Remover del conjunto de expandidos
+      setExpandedProducts((prev) => {
+        const newSet = new Set(prev)
+        newSet.delete(itemToRemove.product_id!)
+        return newSet
+      })
+    } else {
+      // Eliminar item individual
+      const updatedItems = purchaseItems.filter(
+        (item, i) => !(i === index && item._temp_id === itemToRemove._temp_id)
+      )
+      setPurchaseItems(updatedItems)
+    }
   }
 
   const handleSubmitForm = () => {
-    if (purchaseItems.length === 0) {
+    // Filtrar solo los items que no son cabeceras y tienen cantidad > 0
+    const validItems = purchaseItems.filter(
+      (item) => !item.is_product_header && item.quantity > 0
+    )
+
+    if (validItems.length === 0) {
       toast.error(
         <ToastCustom
           title="No hay productos"
@@ -432,9 +535,8 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
       return
     }
 
-    // Validar con el esquema final que requiere items
     const formData = form.getValues()
-    const dataWithItems = { ...formData, items: purchaseItems }
+    const dataWithItems = { ...formData, items: validItems }
 
     const validation = PurchaseSchema.safeParse(dataWithItems)
     if (!validation.success) {
@@ -456,15 +558,18 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
     setConfirmOpen(false)
 
     try {
+      // Filtrar solo los items que no son cabeceras
+      const validItems = purchaseItems.filter((item) => !item.is_product_header)
+
       const purchaseData: CreatePurchaseData = {
         ...data,
-        items: purchaseItems,
+        items: validItems,
         date: new Date(data.date).toISOString(),
         subtotal: form.getValues('subtotal')
       }
 
       const response = await createPurchaseWithItems({
-        itemsData: purchaseItems,
+        itemsData: validItems,
         purchaseData
       })
 
@@ -510,6 +615,17 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
         : null
   }))
 
+  // Agrupar variantes por producto
+  const productVariantsMap = new Map()
+  purchaseItems.forEach((item) => {
+    if (!item.is_product_header && item.product_variant_id) {
+      if (!productVariantsMap.has(item.product_id)) {
+        productVariantsMap.set(item.product_id, [])
+      }
+      productVariantsMap.get(item.product_id).push(item)
+    }
+  })
+
   return (
     <div className="min-h-screen bg-white">
       <div>
@@ -529,6 +645,11 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
               controla si afecta el inventario: solo en estado{' '}
               <span className="font-medium text-green-700">completada</span> se
               actualiza el stock.
+            </li>
+            <li>
+              Los <span className="font-medium">productos con variantes</span>{' '}
+              aparecen como cabeceras. Haz clic para expandir y agregar
+              variantes específicas.
             </li>
           </ul>
         </div>
@@ -738,6 +859,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-gray-50">
+                        <TableHead className="w-8"></TableHead>
                         <TableHead>Producto</TableHead>
                         <TableHead>Unidad</TableHead>
                         <TableHead>Cantidad</TableHead>
@@ -751,80 +873,229 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {purchaseItems.map((item, index) => (
-                        <TableRow key={index}>
-                          <TableCell className="">
-                            <p className="text-sm break-words whitespace-normal line-clamp-3">
-                              {item.product?.brand || ''}{' '}
-                              {item.product?.description && (
-                                <> {item.product.description}</>
-                              )}
-                              {item?.variant?.name && <>{item.variant.name}</>}
-                            </p>
-                            <p className="text-xs text-gray-500 pt-1">
-                              {item?.variant_attributes &&
-                                item?.variant_attributes?.length > 0 && (
-                                  <>
-                                    {' '}
-                                    {item?.variant_attributes
-                                      .map((attr) => ` ${attr.attribute_value}`)
-                                      .join(', ')}
-                                  </>
+                      {purchaseItems.map((item, index) => {
+                        const isHeader = item.is_product_header
+                        const isExpanded = expandedProducts.has(
+                          item.product_id!
+                        )
+                        const variants =
+                          productVariantsMap.get(item.product_id) || []
+                        const selectedVariantsCount = variants.length
+                        const totalVariantsCount = item.variants_count || 0
+
+                        if (isHeader) {
+                          return (
+                            <>
+                              <TableRow
+                                key={item._temp_id}
+                                className="bg-gray-50"
+                              >
+                                <TableCell>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() =>
+                                      toggleProductExpansion(item.product_id!)
+                                    }
+                                    className="h-6 w-6 p-0"
+                                  >
+                                    {isExpanded ? (
+                                      <ChevronDown className="h-4 w-4" />
+                                    ) : (
+                                      <ChevronRight className="h-4 w-4" />
+                                    )}
+                                  </Button>
+                                </TableCell>
+                                <TableCell
+                                  colSpan={isExpanded ? 1 : 6}
+                                  className="font-medium"
+                                >
+                                  <div className="flex items-center">
+                                    <span className="ml-2">
+                                      {item.product?.brand}{' '}
+                                      {item.product?.description}
+                                    </span>
+                                    <span className="ml-2 text-xs text-gray-500 bg-blue-100 px-2 py-1 rounded">
+                                      {selectedVariantsCount} de{' '}
+                                      {totalVariantsCount} variantes
+                                      seleccionadas
+                                    </span>
+                                  </div>
+                                </TableCell>
+                                {!isExpanded && (
+                                  <TableCell colSpan={3} className="text-right">
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() =>
+                                        handleRemoveItem(item, index)
+                                      }
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </TableCell>
                                 )}
-                            </p>
-                          </TableCell>
-                          <TableCell>{item.product?.unit}</TableCell>
-                          <TableCell className="font-medium">
-                            {item.quantity}
-                          </TableCell>
-                          <TableCell className="font-medium text-right">
-                            {formatCurrencySoles(item.price)}
-                          </TableCell>
-                          <TableCell className="text-red-600 text-right">
-                            {item.discount
-                              ? formatCurrencySoles(item.discount)
-                              : '-'}
-                          </TableCell>
-                          <TableCell className="font-medium text-right">
-                            {formatCurrencySoles(
-                              item.quantity * item.price - (item.discount || 0)
-                            )}
-                          </TableCell>
-                          {purchaseItems.some((item) => item.bar_code) && (
-                            <TableCell className="text-xs text-gray-500">
-                              {item.bar_code ? (
-                                <span className="bg-gray-100 px-2 py-1 rounded">
-                                  {item.bar_code}
-                                </span>
-                              ) : (
-                                '-'
+                              </TableRow>
+                              {isExpanded &&
+                                variants.map((variant: PurchaseItem) => (
+                                  <TableRow
+                                    key={variant._temp_id}
+                                    className="bg-white"
+                                  >
+                                    <TableCell></TableCell>
+                                    <TableCell className="pl-8">
+                                      <div className="flex flex-col">
+                                        <span className="text-sm">
+                                          {variant.variant?.name}
+                                        </span>
+                                        <span className="text-xs text-gray-500">
+                                          {variant.variant_attributes
+                                            ?.map(
+                                              (attr) =>
+                                                `${attr.attribute_value}`
+                                            )
+                                            .join(', ')}
+                                        </span>
+                                      </div>
+                                    </TableCell>
+                                    <TableCell>
+                                      {variant.product?.unit}
+                                    </TableCell>
+                                    <TableCell className="font-medium">
+                                      {variant.quantity}
+                                    </TableCell>
+                                    <TableCell className="font-medium text-right">
+                                      {formatCurrencySoles(variant.price)}
+                                    </TableCell>
+                                    <TableCell className="text-red-600 text-right">
+                                      {variant.discount
+                                        ? formatCurrencySoles(variant.discount)
+                                        : '-'}
+                                    </TableCell>
+                                    <TableCell className="font-medium text-right">
+                                      {formatCurrencySoles(
+                                        variant.quantity * variant.price -
+                                          (variant.discount || 0)
+                                      )}
+                                    </TableCell>
+                                    {purchaseItems.some(
+                                      (item) => item.bar_code
+                                    ) && (
+                                      <TableCell className="text-xs text-gray-500">
+                                        {variant.bar_code ? (
+                                          <span className="bg-gray-100 px-2 py-1 rounded">
+                                            {variant.bar_code}
+                                          </span>
+                                        ) : (
+                                          '-'
+                                        )}
+                                      </TableCell>
+                                    )}
+                                    <TableCell>
+                                      <div className="flex gap-1">
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() =>
+                                            handleEditItem(variant, index)
+                                          }
+                                          className="cursor-pointer"
+                                        >
+                                          <Edit className="h-4 w-4 text-blue-500" />
+                                        </Button>
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() =>
+                                            handleRemoveItem(variant, index)
+                                          }
+                                          className="cursor-pointer"
+                                        >
+                                          <Trash2 className="h-4 w-4 text-red-500" />
+                                        </Button>
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                            </>
+                          )
+                        }
+
+                        // Productos sin variantes
+                        return (
+                          <TableRow key={item._temp_id}>
+                            <TableCell></TableCell>
+                            <TableCell>
+                              <p className="text-sm break-words whitespace-normal line-clamp-3 uppercase">
+                                {item.product?.brand || ''}{' '}
+                                {item.product?.name && (
+                                  <> {item.product.name}</>
+                                )}
+                              </p>
+                              <p className="text-xs text-gray-500 break-words whitespace-normal line-clamp-2">
+                                {item.product?.description && (
+                                  <> {item.product.description}</>
+                                )}
+                              </p>
+                            </TableCell>
+                            <TableCell>{item.product?.unit}</TableCell>
+                            <TableCell className="font-medium">
+                              {item.quantity}
+                            </TableCell>
+                            <TableCell className="font-medium text-right">
+                              {formatCurrencySoles(item.price)}
+                            </TableCell>
+                            <TableCell className="text-red-600 text-right">
+                              {item.discount
+                                ? formatCurrencySoles(item.discount)
+                                : '-'}
+                            </TableCell>
+                            <TableCell className="font-medium text-right">
+                              {formatCurrencySoles(
+                                item.quantity * item.price -
+                                  (item.discount || 0)
                               )}
                             </TableCell>
-                          )}
-                          <TableCell>
-                            <div className="flex gap-1">
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEditItem(item, index)}
-                                className="cursor-pointer"
-                              >
-                                <Edit className="h-4 w-4 text-blue-500" />
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleRemoveItem(item, index)}
-                                className="cursor-pointer"
-                              >
-                                <Trash2 className="h-4 w-4 text-red-500" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                            {purchaseItems.some((item) => item.bar_code) && (
+                              <TableCell className="text-xs text-gray-500">
+                                {item.bar_code ? (
+                                  <span className="bg-gray-100 px-2 py-1 rounded">
+                                    {item.bar_code}
+                                  </span>
+                                ) : (
+                                  '-'
+                                )}
+                              </TableCell>
+                            )}
+                            <TableCell>
+                              <div className="flex gap-1">
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleEditItem(item, index)}
+                                  className="cursor-pointer"
+                                >
+                                  <Edit className="h-4 w-4 text-blue-500" />
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleRemoveItem(item, index)}
+                                  className="cursor-pointer"
+                                >
+                                  <Trash2 className="h-4 w-4 text-red-500" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )
+                      })}
                     </TableBody>
                   </Table>
                 </div>
@@ -957,7 +1228,12 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
               </Link>
               <Button
                 type="submit"
-                disabled={isLoading || purchaseItems.length === 0}
+                disabled={
+                  isLoading ||
+                  purchaseItems.filter(
+                    (item) => !item.is_product_header && item.quantity > 0
+                  ).length === 0
+                }
                 size="lg"
               >
                 {isLoading ? (
