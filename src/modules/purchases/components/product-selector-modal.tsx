@@ -2,7 +2,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ImageOff, Plus } from 'lucide-react'
+import { Check, ImageOff, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -23,6 +23,7 @@ import { SearchInput } from '@/components/app/search-input'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useProductsAndVariants } from '@/hooks/use-products-variants'
 import { CombinedResult } from '@/apis/app/productc.variants.list'
+import { cn } from '@/lib/utils'
 
 interface ProductSelectorModalProps {
   businessId: string | null
@@ -100,105 +101,128 @@ export const ProductSelectorModal = ({
           />
           {/* Lista de productos */}
           <div className="flex-1 overflow-auto border rounded-lg">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Producto</TableHead>
-                  {/* <TableHead>Código</TableHead> */}
-                  <TableHead>Unidad</TableHead>
-                  <TableHead className="w-20"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading && (
+            <div className="F h-full min-h-[200px]">
+              <Table className="relative">
+                <TableHeader className="sticky top-0 bg-white z-10">
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8">
-                      Cargando productos...
-                    </TableCell>
+                    <TableHead className="bg-muted">Producto</TableHead>
+                    <TableHead className="bg-muted">Unidad</TableHead>
+                    <TableHead className="w-20 bg-muted"></TableHead>
                   </TableRow>
-                )}
-                {!loading &&
-                  items.map((product) => {
-                    const isVariant = product.variant_id !== undefined
-                    const uuid = isVariant ? product.variant_id : product.id
-                    const isSelected = product.variant_id
-                      ? selectedProductIds.some(
-                          (sel) =>
-                            String(product.id) === sel.productId &&
-                            String(product.variant_id) === sel.variantId
-                        )
-                      : selectedProductIds.some(
-                          (sel) => String(product.id) === sel.productId
-                        )
+                </TableHeader>
+                <TableBody>
+                  {loading && (
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-center py-8">
+                        Cargando productos...
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {!loading &&
+                    items.map((product) => {
+                      const isVariant = product.variant_id !== undefined
+                      const uuid = isVariant ? product.variant_id : product.id
+                      const isSelected = product.variant_id
+                        ? selectedProductIds.some(
+                            (sel) =>
+                              String(product.id) === sel.productId &&
+                              String(product.variant_id) === sel.variantId
+                          )
+                        : selectedProductIds.some(
+                            (sel) => String(product.id) === sel.productId
+                          )
 
-                    return (
-                      <TableRow
-                        key={uuid}
-                        className={isSelected ? 'bg-gray-50' : ''}
-                      >
-                        <TableCell>
-                          <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
-                              {product.images && product.images.length > 0 ? (
-                                <img
-                                  src={
-                                    product.images[0]?.url || '/placeholder.svg'
-                                  }
-                                  alt={product.name}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                                  <ImageOff className="h-6 w-6 text-gray-400" />
-                                </div>
-                              )}
-                            </div>
-                            <div className="font-medium text-sm">
-                              {product?.brand?.name && (
-                                <>{product.brand.name}</>
-                              )}{' '}
-                              {product.description}{' '}
-                              {product?.variant_name && (
-                                <>{product.variant_name}</>
-                              )}
-                              {product?.attributes &&
-                                product?.attributes?.length > 0 && (
-                                  <div className="mt-1">
-                                    {product.attributes.map((attr) => (
-                                      <Badge
-                                        key={attr.attribute_type}
-                                        className="mr-1 text-xs rounded-full bg-gray-200 text-gray-800 hover:bg-gray-300"
-                                      >
-                                        {attr.attribute_value}
-                                      </Badge>
-                                    ))}
+                      return (
+                        <TableRow
+                          key={uuid}
+                          className={cn(
+                            isSelected && 'bg-muted/50',
+                            'hover:bg-muted/30'
+                          )}
+                        >
+                          <TableCell>
+                            <div className="flex items-center space-x-3">
+                              <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
+                                {product.images && product.images.length > 0 ? (
+                                  <img
+                                    src={
+                                      product.images[0]?.url ||
+                                      '/placeholder.svg'
+                                    }
+                                    alt={product.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full bg-muted flex items-center justify-center">
+                                    <ImageOff className="h-6 w-6 text-muted-foreground" />
                                   </div>
                                 )}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm break-words whitespace-normal line-clamp-2">
+                                  {product?.brand?.name && (
+                                    <span className="font-medium">
+                                      {product.brand.name}
+                                    </span>
+                                  )}{' '}
+                                  {product.description}{' '}
+                                  {product?.variant_name && (
+                                    <span className="text-muted-foreground">
+                                      ({product.variant_name})
+                                    </span>
+                                  )}
+                                </p>
+                                {product?.attributes &&
+                                  product?.attributes?.length > 0 && (
+                                    <div className="mt-1 flex flex-wrap gap-1">
+                                      {product.attributes.map((attr) => (
+                                        <Badge
+                                          key={attr.attribute_type}
+                                          variant="secondary"
+                                          className="text-xs rounded-full"
+                                        >
+                                          {attr.attribute_value}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  )}
+                              </div>
                             </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="uppercase">
-                          {product.unit}
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            size="sm"
-                            onClick={() => handleSelectProduct(product)}
-                            disabled={isSelected}
-                            variant={isSelected ? 'secondary' : 'default'}
-                          >
-                            {isSelected ? (
-                              'Agregado'
-                            ) : (
-                              <Plus className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
-              </TableBody>
-            </Table>
+                          </TableCell>
+                          <TableCell className="uppercase text-sm text-muted-foreground">
+                            {product.unit}
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              size="sm"
+                              onClick={() => handleSelectProduct(product)}
+                              disabled={isSelected}
+                              variant={isSelected ? 'secondary' : 'default'}
+                              className={cn(
+                                'min-w-20',
+                                isSelected &&
+                                  'bg-green-100 text-green-800 hover:bg-green-100'
+                              )}
+                            >
+                              {isSelected ? (
+                                <>
+                                  <Check className="h-4 w-4 mr-1" />
+                                  Agregado
+                                </>
+                              ) : (
+                                <>
+                                  <Plus className="h-4 w-4 mr-1" />
+                                  Agregar
+                                </>
+                              )}
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         </div>
       </DialogContent>

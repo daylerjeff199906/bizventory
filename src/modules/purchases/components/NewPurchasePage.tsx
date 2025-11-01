@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
-import { Save, Plus, Trash2, RefreshCw, Edit2 } from 'lucide-react'
+import { Save, Plus, Trash2, RefreshCw, Edit } from 'lucide-react'
 import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
@@ -69,6 +69,7 @@ import { ToastCustom } from '@/components/app/toast-custom'
 import { APP_URLS } from '@/config/app-urls'
 import { createPurchaseWithItems } from '@/apis/app'
 import type { CombinedResult } from '@/apis/app/productc.variants.list'
+import { formatCurrencySoles } from '@/utils'
 
 // Función para generar código de barras aleatorio
 const generateBarCode = (): string => {
@@ -132,13 +133,6 @@ const EditItemDialog = ({
 
     onSave(updatedItem)
     onOpenChange(false)
-  }
-
-  const handleGenerateCode = () => {
-    setEditData((prev) => ({
-      ...prev,
-      code: generateProductCode()
-    }))
   }
 
   if (!item) return null
@@ -211,29 +205,6 @@ const EditItemDialog = ({
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Código del Producto</label>
-            <div className="flex gap-2">
-              <Input
-                placeholder="Se generará automáticamente si está vacío"
-                value={editData.code || ''}
-                onChange={(e) =>
-                  setEditData((prev) => ({
-                    ...prev,
-                    code: e.target.value
-                  }))
-                }
-              />
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleGenerateCode}
-              >
-                <RefreshCw className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
           <div className="space-y-3">
             <div className="flex items-center space-x-2">
               <Checkbox
@@ -242,13 +213,13 @@ const EditItemDialog = ({
                 onCheckedChange={(checked) => setIncludeBarCode(!!checked)}
               />
               <label htmlFor="include-barcode" className="text-sm font-medium">
-                Incluir código de barras
+                Incluir código
               </label>
             </div>
 
             {includeBarCode && (
               <div className="space-y-2">
-                <label className="text-sm font-medium">Código de Barras</label>
+                <label className="text-sm font-medium">Código de item</label>
                 <div className="flex gap-2">
                   <Input
                     placeholder="Se generará automáticamente si está vacío"
@@ -277,32 +248,37 @@ const EditItemDialog = ({
             )}
           </div>
 
-          {editData.quantity && editData.price && (
-            <div className="bg-gray-50 p-3 rounded-lg space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Subtotal:</span>
-                <span>
-                  S/ {(editData.quantity * editData.price).toFixed(2)}
-                </span>
-              </div>
-              {(editData.discount || 0) > 0 && (
-                <div className="flex justify-between text-sm text-red-600">
-                  <span>Descuento:</span>
-                  <span>-S/ {(editData.discount || 0).toFixed(2)}</span>
+          {typeof editData.quantity === 'number' &&
+            editData.quantity > 0 &&
+            typeof editData.price === 'number' && (
+              <div className="bg-gray-50 p-3 rounded-lg space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Subtotal:</span>
+                  <span>
+                    {formatCurrencySoles(
+                      Number(editData.quantity) * Number(editData.price)
+                    )}
+                  </span>
                 </div>
-              )}
-              <div className="flex justify-between text-sm font-medium border-t pt-2">
-                <span>Total:</span>
-                <span>
-                  S/{' '}
-                  {(
-                    editData.quantity * editData.price -
-                    (editData.discount || 0)
-                  ).toFixed(2)}
-                </span>
+                {(editData.discount || 0) > 0 && (
+                  <div className="flex justify-between text-sm text-red-600">
+                    <span>Descuento:</span>
+                    <span>
+                      -{formatCurrencySoles(Number(editData.discount) || 0)}
+                    </span>
+                  </div>
+                )}
+                <div className="flex justify-between text-sm font-medium border-t pt-2">
+                  <span>Total:</span>
+                  <span>
+                    {formatCurrencySoles(
+                      Number(editData.quantity) * Number(editData.price) -
+                        (Number(editData.discount) || 0)
+                    )}
+                  </span>
+                </div>
               </div>
-            </div>
-          )}
+            )}
         </div>
 
         <DialogFooter>
@@ -763,7 +739,6 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                     <TableHeader>
                       <TableRow className="bg-gray-50">
                         <TableHead>Producto</TableHead>
-                        <TableHead>Código</TableHead>
                         <TableHead>Unidad</TableHead>
                         <TableHead>Cantidad</TableHead>
                         <TableHead>Precio Unit.</TableHead>
@@ -778,42 +753,42 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                     <TableBody>
                       {purchaseItems.map((item, index) => (
                         <TableRow key={index}>
-                          <TableCell className="font-medium">
-                            {item.product?.brand || ''}{' '}
-                            {item.product?.description && (
-                              <> {item.product.description}</>
-                            )}
-                            {item?.variant?.name && <>{item.variant.name}</>}
-                            {item?.variant_attributes &&
-                              item?.variant_attributes?.length > 0 && (
-                                <>
-                                  {' '}
-                                  {item?.variant_attributes
-                                    .map((attr) => ` ${attr.attribute_value}`)
-                                    .join(', ')}
-                                </>
+                          <TableCell className="">
+                            <p className="text-sm break-words whitespace-normal line-clamp-3">
+                              {item.product?.brand || ''}{' '}
+                              {item.product?.description && (
+                                <> {item.product.description}</>
                               )}
+                              {item?.variant?.name && <>{item.variant.name}</>}
+                            </p>
+                            <p className="text-xs text-gray-500 pt-1">
+                              {item?.variant_attributes &&
+                                item?.variant_attributes?.length > 0 && (
+                                  <>
+                                    {' '}
+                                    {item?.variant_attributes
+                                      .map((attr) => ` ${attr.attribute_value}`)
+                                      .join(', ')}
+                                  </>
+                                )}
+                            </p>
                           </TableCell>
-                          <TableCell>{item.code}</TableCell>
-
                           <TableCell>{item.product?.unit}</TableCell>
                           <TableCell className="font-medium">
                             {item.quantity}
                           </TableCell>
-                          <TableCell className="font-medium">
-                            S/ {item.price.toFixed(2)}
+                          <TableCell className="font-medium text-right">
+                            {formatCurrencySoles(item.price)}
                           </TableCell>
-                          <TableCell className="text-red-600">
+                          <TableCell className="text-red-600 text-right">
                             {item.discount
-                              ? `S/ ${item.discount.toFixed(2)}`
+                              ? formatCurrencySoles(item.discount)
                               : '-'}
                           </TableCell>
-                          <TableCell className="font-medium">
-                            S/{' '}
-                            {(
-                              item.quantity * item.price -
-                              (item.discount || 0)
-                            ).toFixed(2)}
+                          <TableCell className="font-medium text-right">
+                            {formatCurrencySoles(
+                              item.quantity * item.price - (item.discount || 0)
+                            )}
                           </TableCell>
                           {purchaseItems.some((item) => item.bar_code) && (
                             <TableCell className="text-xs text-gray-500">
@@ -833,14 +808,16 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleEditItem(item, index)}
+                                className="cursor-pointer"
                               >
-                                <Edit2 className="h-4 w-4 text-blue-500" />
+                                <Edit className="h-4 w-4 text-blue-500" />
                               </Button>
                               <Button
                                 type="button"
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleRemoveItem(item, index)}
+                                className="cursor-pointer"
                               >
                                 <Trash2 className="h-4 w-4 text-red-500" />
                               </Button>
@@ -940,14 +917,14 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                   <div className="flex justify-between">
                     <span>Subtotal (con descuentos por producto):</span>
                     <span className="font-medium">
-                      S/ {(form.watch('subtotal') || 0).toFixed(2)}
+                      {formatCurrencySoles(form.watch('subtotal') || 0)}
                     </span>
                   </div>
                   {(form.watch('discount') || 0) > 0 && (
                     <div className="flex justify-between text-red-600">
                       <span>Descuento general:</span>
                       <span>
-                        -S/ {(form.watch('discount') || 0).toFixed(2)}
+                        -{formatCurrencySoles(form.watch('discount') || 0)}
                       </span>
                     </div>
                   )}
@@ -955,7 +932,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                     <div className="flex justify-between">
                       <span>IGV ({form.watch('tax_rate') || 0}%):</span>
                       <span>
-                        S/ {(form.watch('tax_amount') || 0).toFixed(2)}
+                        {formatCurrencySoles(form.watch('tax_amount') || 0)}
                       </span>
                     </div>
                   )}
@@ -963,7 +940,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                     <div className="flex justify-between text-lg font-bold">
                       <span>Total:</span>
                       <span>
-                        S/ {(form.watch('total_amount') || 0).toFixed(2)}
+                        {formatCurrencySoles(form.watch('total_amount') || 0)}
                       </span>
                     </div>
                   </div>
