@@ -7,6 +7,9 @@ export const APP_URLS = {
     REGISTER: '/register'
   },
   ORGANIZATION: {
+    BASE: {
+      HOME: (uuid: string = ':uuid') => `${URL_PREFIX}/${uuid}`
+    },
     BUSINESS: {
       LIST: `${URL_PREFIX}/`,
       CREATE: `${URL_PREFIX}/create`,

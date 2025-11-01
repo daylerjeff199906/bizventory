@@ -51,16 +51,22 @@ export interface CombinedResultExtendedSales extends CombinedResult {
   total_price?: number
 }
 
-export async function getProductsAndVariantsForPurchase(
-  searchTerm: string,
-  limit: number = 10
-): Promise<CombinedResult[]> {
+export async function getProductsAndVariantsForPurchase({
+  businessId,
+  searchTerm = '',
+  limit = 10
+}: {
+  businessId?: string
+  searchTerm?: string
+  limit?: number
+}): Promise<CombinedResult[]> {
   const supabase = await getSupabase()
 
   // Fetch products without variants
   const { data: productsWithoutVariants } = await supabase
     .from('products')
     .select('*, brand:brand_id(*)')
+    .eq('business_id', businessId)
     .eq('has_variants', false)
     .or(
       `name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,code.ilike.%${searchTerm}%`
@@ -83,6 +89,7 @@ export async function getProductsAndVariantsForPurchase(
       )
     `
     )
+    .eq('product.business_id', businessId)
     .or(
       `name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,code.ilike.%${searchTerm}%`
     )

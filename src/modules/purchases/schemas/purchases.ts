@@ -30,6 +30,7 @@ export const PurchaseItemSchema = z
 
 // Esquema para el formulario (permite items vacíos)
 export const PurchaseFormSchema = z.object({
+  business_id: z.string(),
   date: z.string(),
   supplier_id: z.string(),
   guide_number: z.string().optional(),

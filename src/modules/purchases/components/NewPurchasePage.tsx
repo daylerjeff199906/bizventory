@@ -341,6 +341,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
     resolver: zodResolver(PurchaseFormSchema),
     defaultValues: {
       date: new Date().toISOString().split('T')[0],
+      business_id: businessId || '',
       supplier_id: '',
       guide_number: '',
       reference_number: '',
@@ -588,7 +589,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                         value={field.value}
                       >
                         <FormControl>
-                          <SelectTrigger className="w-full max-w-[350px]">
+                          <SelectTrigger className="w-full">
                             <SelectValue
                               placeholder="Seleccionar proveedor"
                               className="w-full"
@@ -999,6 +1000,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
         </Form>
 
         <ProductSelectorModal
+          businessId={businessId || null}
           open={productModalOpen}
           onOpenChange={setProductModalOpen}
           onSelectProduct={handleAddProduct}

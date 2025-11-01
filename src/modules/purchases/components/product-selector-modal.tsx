@@ -25,6 +25,7 @@ import { useProductsAndVariants } from '@/hooks/use-products-variants'
 import { CombinedResult } from '@/apis/app/productc.variants.list'
 
 interface ProductSelectorModalProps {
+  businessId: string | null
   open: boolean
   onOpenChange: (open: boolean) => void
   onSelectProduct: (product: CombinedResult) => void
@@ -35,6 +36,7 @@ interface ProductSelectorModalProps {
 }
 
 export const ProductSelectorModal = ({
+  businessId,
   open,
   onOpenChange,
   onSelectProduct,
@@ -44,7 +46,9 @@ export const ProductSelectorModal = ({
   const [searchTerm, setSearchTerm] = useState('')
   const [searchCode, setSearchCode] = useState<string>()
 
-  const { fetchItems, items, loading } = useProductsAndVariants()
+  const { fetchItems, items, loading } = useProductsAndVariants({
+    businessId: businessId || undefined
+  })
 
   useEffect(() => {
     if (open) {
