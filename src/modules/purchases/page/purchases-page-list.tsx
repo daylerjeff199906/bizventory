@@ -153,9 +153,6 @@ export const PurchasesList = ({
               <div className="font-medium">Total</div>
             </TableHead>
             <TableHead>
-              <div className="font-medium">Est. Compra</div>
-            </TableHead>
-            <TableHead>
               <div className="font-medium">Est. Pago</div>
             </TableHead>
             <TableHead>
@@ -249,7 +246,7 @@ export const PurchasesList = ({
                     </span>
                   )}
                 </TableCell>
-                <TableCell>
+                <TableCell className="text-right">
                   <div className="font-medium text-sm">
                     {formatCurrency(purchase.subtotal || 0)}
                   </div>
@@ -259,7 +256,7 @@ export const PurchasesList = ({
                     </div>
                   )}
                 </TableCell>
-                <TableCell>
+                <TableCell className="text-right">
                   <div className="font-bold text-sm">
                     {formatCurrency(purchase.total_amount || 0)}
                   </div>
@@ -268,9 +265,6 @@ export const PurchasesList = ({
                       IGV: {formatCurrency(purchase.tax_amount)}
                     </div>
                   )}
-                </TableCell>
-                <TableCell>
-                  <StatusBadge status={purchase.status} />
                 </TableCell>
                 <TableCell>
                   <StatusBadge payment_status={purchase.payment_status} />
@@ -314,10 +308,14 @@ export const PurchasesList = ({
                           <Link
                             href={
                               isReceiptPage
-                                ? APP_URLS.PURCHASES.RECEIPTS.DETAIL(
+                                ? APP_URLS.ORGANIZATION.PURCHASES.RECEIPT(
+                                    businessId || '',
                                     purchase.id
                                   )
-                                : APP_URLS.PURCHASES.VIEW(purchase.id)
+                                : APP_URLS.ORGANIZATION.PURCHASES.DETAIL(
+                                    businessId || '',
+                                    purchase.id
+                                  )
                             }
                             className="flex items-center"
                           >
@@ -327,7 +325,10 @@ export const PurchasesList = ({
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Link
-                            href={APP_URLS.PURCHASES.EDIT(purchase.id)}
+                            href={APP_URLS.ORGANIZATION.PURCHASES.EDIT(
+                              businessId || '',
+                              purchase.id
+                            )}
                             className="flex items-center"
                           >
                             <FileText className="h-4 w-4 mr-2" />
