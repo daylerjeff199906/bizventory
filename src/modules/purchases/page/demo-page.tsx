@@ -99,7 +99,12 @@ export default function PurchaseInvoice(props: PurchaseInvoiceProps) {
       {/* Actions PDF */}
       <Card className="mb-6 shadow-none rounded-md border sticky top-20">
         <CardContent>
-          <PurchasePDFGenerator purchase={purchase} items={items} />
+          <div className="flex flex-col md:flex-row md:justify-end gap-2">
+            <p className="text-sm text-gray-600 mr-auto">
+              Generar PDF de la compra para impresión o envío por correo.
+            </p>
+            <PurchasePDFGenerator purchase={purchase} items={items} />
+          </div>
         </CardContent>
       </Card>
 
