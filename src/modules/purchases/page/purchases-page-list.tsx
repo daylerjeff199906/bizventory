@@ -46,7 +46,6 @@ interface PurchasesListProps {
 export const PurchasesList = ({
   purchasesData = [],
   searchQuery = '',
-  isReceiptPage = false,
   businessId
 }: PurchasesListProps) => {
   const router = useRouter()
@@ -344,13 +343,10 @@ export const PurchasesList = ({
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
                           <Link
-                            href={
-                              isReceiptPage
-                                ? APP_URLS.PURCHASES.RECEIPTS.DETAIL(
-                                    purchase.id
-                                  )
-                                : APP_URLS.PURCHASES.VIEW(purchase.id)
-                            }
+                            href={APP_URLS.ORGANIZATION.PURCHASES.VIEW(
+                              businessId || '',
+                              purchase.id
+                            )}
                             className="flex items-center"
                           >
                             <Eye className="h-4 w-4 mr-2" />
@@ -359,7 +355,10 @@ export const PurchasesList = ({
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Link
-                            href={APP_URLS.PURCHASES.EDIT(purchase.id)}
+                            href={APP_URLS.ORGANIZATION.PURCHASES.EDIT(
+                              businessId || '',
+                              purchase.id
+                            )}
                             className="flex items-center"
                           >
                             <FileText className="h-4 w-4 mr-2" />
