@@ -445,42 +445,6 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
     }
   }
 
-  // const handleAddVariant = (
-  //   product: CombinedResult,
-  //   variant: ProductVariantItem
-  // ) => {
-  //   const tempId = `${variant.id}-variant-${Date.now()}`
-
-  //   const variantItem: PurchaseItem = {
-  //     product_id: product.id,
-  //     product_variant_id: variant.id,
-  //     quantity: 1,
-  //     price: 0,
-  //     discount: 0,
-  //     purchase_id: null,
-  //     code: generateProductCode(),
-  //     _temp_id: tempId,
-  //     product: {
-  //       id: product.id,
-  //       name: product.name,
-  //       unit: product.unit,
-  //       brand: product.brand?.name || 'Sin marca',
-  //       description: product.description || null
-  //     },
-  //     variant: {
-  //       id: variant.id,
-  //       name: variant.name,
-  //       attributes: variant.attributes || []
-  //     },
-  //     original_product_name: product.description,
-  //     original_variant_name: variant.name,
-  //     variant_attributes: variant.attributes || [],
-  //     has_variants: true
-  //   }
-
-  //   setPurchaseItems((prev) => [...prev, variantItem])
-  // }
-
   const handleEditItem = (item: PurchaseItem, index: number) => {
     // No permitir editar cabeceras de productos
     if (item.is_product_header) return

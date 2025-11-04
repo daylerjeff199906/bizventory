@@ -28,6 +28,40 @@ export const PurchaseItemSchema = z
     }
   )
 
+export type StatusPurchase = 
+  | 'draft'
+  | 'pending'
+  | 'completed'
+  | 'cancelled' 
+
+export enum StatusPurchaseEnum {
+    DRAFT = 'draft',
+    PENDING = 'pending',
+    COMPLETED = 'completed',
+    CANCELLED = 'cancelled'
+}
+
+export type PaymentStatusPurchase = 
+  | 'pending'
+  | 'paid'
+  | 'partially_paid'
+  | 'cancelled'
+
+  export enum PaymentStatusPurchaseEnum {
+    PENDING = 'pending',
+    PAID = 'paid',
+    PARTIALLY_PAID = 'partially_paid',
+    CANCELLED = 'cancelled'
+}
+
+export enum PurchaseMovementTypeEnum {
+    ENTRY = 'entry',
+    EXIT = 'exit',
+    PURCHASE = 'purchase',
+    SALE = 'sale',
+    PURCHASE_RETURN = 'purchase_return'
+}
+
 // Esquema para el formulario (permite items vacíos)
 export const PurchaseFormSchema = z.object({
   business_id: z.string(),

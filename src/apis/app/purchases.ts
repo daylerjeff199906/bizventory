@@ -25,12 +25,14 @@ async function getSupabase() {
  * @returns Promise<Purchase[]>
  */
 export async function getPurchases({
+  bussinessId,
   filters,
   sortBy = 'date',
   sortDirection = 'asc',
   page,
   pageSize
 }: {
+  bussinessId: string
   page?: number
   pageSize?: number
   filters?: Partial<Purchase>
@@ -58,8 +60,12 @@ export async function getPurchases({
   const sortColumn = validSortColumns.includes(sortBy) ? sortBy : 'created_at'
 
   let query = supabase
-    .from('purchases')
-    .select('*, supplier:suppliers(*)')
+    .from('purchases')  
+  .select(`
+  *,
+  supplier:suppliers!inner(*)
+  `)
+.eq('suppliers.business_id', bussinessId)
     .range(from, to)
     .order(sortColumn, { ascending: sortDirection === 'asc' })
 
