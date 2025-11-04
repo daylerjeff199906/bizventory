@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Download, FileText } from 'lucide-react'
 import type { PurchaseList } from '@/types'
 import type { CombinedResultExtended } from '@/apis/app/productc.variants.list'
+import { useState, useEffect } from 'react'
 
 // Estilos para el PDF
 const styles = StyleSheet.create({
@@ -140,16 +141,6 @@ const styles = StyleSheet.create({
     fontSize: 8,
     color: '#64748b',
     textAlign: 'center'
-  },
-  statusBadge: {
-    backgroundColor: '#dcfce7',
-    color: '#166534',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 10,
-    fontSize: 8,
-    fontWeight: 'bold',
-    marginLeft: 5
   }
 })
 
@@ -187,6 +178,7 @@ const getProductDescription = (item: CombinedResultExtended) => {
     return parts.join(' - ')
   }
 }
+
 // Componente del documento PDF
 const PurchasePDF = ({
   purchase,
@@ -447,28 +439,41 @@ export default function PurchasePDFGenerator({
   items = [],
   fileName = `compra-${purchase.code || purchase.id}`
 }: PurchasePDFGeneratorProps) {
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
   return (
     <div className="flex gap-2">
-      <PDFDownloadLink
-        document={<PurchasePDF purchase={purchase} items={items} />}
-        fileName={`${fileName}.pdf`}
-      >
-        {({ blob, url, loading, error }) => (
-          <Button disabled={loading} className="flex items-center gap-2">
-            {loading ? (
-              <>
-                <FileText className="h-4 w-4 animate-spin" />
-                Generando PDF...
-              </>
-            ) : (
-              <>
-                <Download className="h-4 w-4" />
-                Descargar Comprobante PDF
-              </>
-            )}
-          </Button>
-        )}
-      </PDFDownloadLink>
+      {isClient ? (
+        <PDFDownloadLink
+          document={<PurchasePDF purchase={purchase} items={items} />}
+          fileName={`${fileName}.pdf`}
+        >
+          {({ loading, error }) => (
+            <Button disabled={loading} className="flex items-center gap-2">
+              {loading ? (
+                <>
+                  <FileText className="h-4 w-4 animate-spin" />
+                  Generando PDF...
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4" />
+                  Descargar Comprobante PDF
+                </>
+              )}
+            </Button>
+          )}
+        </PDFDownloadLink>
+      ) : (
+        <Button disabled className="flex items-center gap-2">
+          <FileText className="h-4 w-4" />
+          Preparando PDF...
+        </Button>
+      )}
     </div>
   )
 }
