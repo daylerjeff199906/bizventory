@@ -23,7 +23,7 @@ export default async function Layout(props: LayoutProps) {
           hidden: false
         }}
       />
-      {children}
+      <div className="w-full max-w-4xl mx-auto pt-4">{children}</div>
     </LayoutWrapper>
   )
 }

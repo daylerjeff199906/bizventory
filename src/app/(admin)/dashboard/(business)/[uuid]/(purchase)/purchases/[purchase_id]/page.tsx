@@ -1,16 +1,16 @@
 import { Params } from '@/types'
 import { getPurchaseById } from '@/apis/app'
-import { PurchaseInvoice } from '@/modules/purchases'
+import DemoPage from '@/modules/purchases/page/demo-page'
 
-interface LayoutProps {
+interface Props {
   params: Params
 }
 
-export default async function Page(props: LayoutProps) {
+export default async function Page(props: Props) {
   const params = await props.params
-  const purchase = params.purchase_id
+  const purchase_id = params.purchase_id
 
-  const response = await getPurchaseById(String(purchase))
+  const response = await getPurchaseById(String(purchase_id))
 
   if (!response) {
     return <div>Purchase not found</div>
@@ -18,7 +18,7 @@ export default async function Page(props: LayoutProps) {
 
   return (
     <>
-      <PurchaseInvoice purchase={response} items={response.items} />
+      <DemoPage purchase={response} items={response.items} />
     </>
   )
 }
