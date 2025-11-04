@@ -13,7 +13,6 @@ export const PurchaseItemSchema = z
     product_variant_id: z.string().uuid().nullable().optional(),
     quantity: z.number().int().positive('La cantidad debe ser mayor a 0'),
     price: z.number().positive('El precio debe ser mayor a 0').max(99999999.99),
-    code: z.string().nullable().optional(),
     bar_code: z.string().nullable().optional(),
     discount: z.number().min(0).max(100).nullable().optional(),
     variant_attributes: z.array(VariantAttributeSchema).nullable().optional(),

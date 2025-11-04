@@ -35,9 +35,6 @@ export async function createPurchaseWithItems({
 }> {
   const supabase = await getSupabase()
   let purchaseId: string | null = null
-
-  console.log('Creating purchase with data:', purchaseData.code)
-
   try {
     // 1. Validar datos de la compra (sin items)
     const validatedPurchase = PurchaseSchema.omit({ items: true }).parse(
@@ -54,6 +51,7 @@ export async function createPurchaseWithItems({
         original_variant_name: item.original_variant_name || null
       }
     })
+
 
     // 3. Crear la compra con estado inicial
     const { data: purchase, error: purchaseError } = await supabase
@@ -98,7 +96,7 @@ export async function createPurchaseWithItems({
         'update_product_stock_after_purchase',
         {
           p_movement_type: PurchaseMovementTypeEnum.ENTRY,
-          p_purchase_id: purchase.id
+          p_reference: purchase.id
         }
       )
 
