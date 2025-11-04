@@ -32,6 +32,7 @@ import {
 import { PurchaseList } from '@/types'
 import { APP_URLS } from '@/config/app-urls'
 import { StatusBadge } from '../components'
+import { isNumberForRender } from '@/utils'
 
 type SortField = 'code' | 'date' | 'subtotal' | 'created_at' | 'updated_at'
 type SortDirection = 'asc' | 'desc'
@@ -249,9 +250,9 @@ export const PurchasesList = ({
                   <div className="font-medium text-sm">
                     {formatCurrency(purchase.subtotal || 0)}
                   </div>
-                  {purchase.discount && purchase.discount > 0 && (
-                    <div className="text-xs text-red-600">
-                      -{formatCurrency(purchase.discount)}
+                  {isNumberForRender(purchase.discount) && (
+                    <div className="text-xs text-muted-foreground">
+                      Desc.: {formatCurrency(Number(purchase.discount))}
                     </div>
                   )}
                 </TableCell>
@@ -259,9 +260,9 @@ export const PurchasesList = ({
                   <div className="font-bold text-sm">
                     {formatCurrency(purchase.total_amount || 0)}
                   </div>
-                  {purchase.tax_amount && purchase.tax_amount > 0 && (
+                  {isNumberForRender(purchase.tax_amount) && (
                     <div className="text-xs text-muted-foreground">
-                      IGV: {formatCurrency(purchase.tax_amount)}
+                      IGV: {formatCurrency(Number(purchase.tax_amount))}
                     </div>
                   )}
                 </TableCell>

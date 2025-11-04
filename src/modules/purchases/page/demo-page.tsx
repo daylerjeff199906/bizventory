@@ -53,7 +53,8 @@ export default function PurchaseInvoice(props: PurchaseInvoiceProps) {
   const getProductDescription = (item: CombinedResultExtended) => {
     const parts = []
     if (item?.brand?.name) parts.push(item.brand.name)
-    if (item.description) parts.push(item.description)
+    if (item.name) parts.push(item.name)
+    if (item.description) parts.push(item.description.substring(0, 50))
     if (item.variants && item.variants.length > 0) {
       const variantNames = item.variants
         .map((v) => {
@@ -97,7 +98,7 @@ export default function PurchaseInvoice(props: PurchaseInvoiceProps) {
       </Alert>
 
       {/* Actions PDF */}
-      <Card className="mb-6 shadow-none rounded-md border sticky top-20">
+      <Card className="mb-6 rounded-md border sticky top-20 shadow-lg">
         <CardContent>
           <div className="flex flex-col md:flex-row md:justify-end gap-2">
             <p className="text-sm text-gray-600 mr-auto">
@@ -331,19 +332,22 @@ export default function PurchaseInvoice(props: PurchaseInvoiceProps) {
                       )}
                     </span>
                   </div>
-
-                  {purchase.discount && purchase.discount > 0 && (
-                    <div className="flex justify-between text-base">
-                      <span className="text-gray-600">Descuento Global:</span>
-                      <span className="text-red-600 font-medium">
-                        -
-                        {formatCurrency(
-                          purchase.discount,
-                          purchase.supplier?.currency
-                        )}
-                      </span>
-                    </div>
-                  )}
+                  {(() => {
+                    const discount = Number(purchase.discount ?? 0)
+                    if (!Number.isFinite(discount) || discount <= 0) return null
+                    return (
+                      <div className="flex justify-between text-base">
+                        <span className="text-gray-600">Descuento Global:</span>
+                        <span className="text-red-600 font-medium">
+                          -
+                          {formatCurrency(
+                            discount,
+                            purchase.supplier?.currency
+                          )}
+                        </span>
+                      </div>
+                    )
+                  })()}
 
                   {purchase.tax_amount && purchase.tax_amount > 0 && (
                     <div className="flex justify-between text-base">
