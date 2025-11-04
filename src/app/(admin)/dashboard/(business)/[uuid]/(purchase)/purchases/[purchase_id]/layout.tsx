@@ -15,15 +15,16 @@ export default async function Layout(props: LayoutProps) {
 
   return (
     <LayoutWrapper>
-      <PageHeader
-        title="Detalles de Compra"
-        description="Aquí puedes ver los detalles de la compra, incluyendo los productos adquiridos y sus cantidades."
-        backButton={{
-          href: APP_URLS.ORGANIZATION.PURCHASES.LIST(uuid?.toString() || ''),
-          hidden: false
-        }}
-      />
-      <div className="flex flex-col gap-4 container max-w-5xl mx-auto">
+      <div className="flex flex-col gap-4 container max-w-5xl mx-auto md:gap-6">
+        <PageHeader
+          title="Detalles de Compra"
+          description="Aquí puedes ver los detalles de la compra, incluyendo los productos adquiridos y sus cantidades."
+          backButton={{
+            href: APP_URLS.ORGANIZATION.PURCHASES.LIST(uuid?.toString() || ''),
+            hidden: false
+          }}
+        />
+
         {children}
       </div>
     </LayoutWrapper>

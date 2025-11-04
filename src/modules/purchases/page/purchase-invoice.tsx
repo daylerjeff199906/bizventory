@@ -273,7 +273,7 @@ export default function PurchaseInvoice({
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-100">
-                      {items && items.length > 0 ? (
+                      {/* {items && items.length > 0 ? (
                         items.map((item: CombinedResultExtended, index) => (
                           <tr key={index} className="hover:bg-gray-50">
                             <td className="py-4 px-4">
@@ -345,7 +345,7 @@ export default function PurchaseInvoice({
                             No hay productos en esta compra
                           </td>
                         </tr>
-                      )}
+                      )} */}
                     </tbody>
                   </table>
                 </div>
