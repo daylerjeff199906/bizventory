@@ -12,12 +12,15 @@ export default async function Layout(props: LayoutProps) {
   const { children } = props
   const params = await props.params
   const uuid = params.uuid
+  const purchase_id = params.purchase_id
+
+  const title = purchase_id ? `Editar Compra` : 'Detalles de Compra'
 
   return (
     <LayoutWrapper>
       <div className="flex flex-col gap-4 container max-w-5xl mx-auto md:gap-6">
         <PageHeader
-          title="Detalles de Compra"
+          title={title}
           description="Aquí puedes ver los detalles de la compra, incluyendo los productos adquiridos y sus cantidades."
           backButton={{
             href: APP_URLS.ORGANIZATION.PURCHASES.LIST(uuid?.toString() || ''),
