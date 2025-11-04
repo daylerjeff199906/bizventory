@@ -70,7 +70,6 @@ import {
   type CreatePurchaseData,
   type PurchaseItem
 } from '@/modules/purchases/schemas'
-import { generatePurchaseCode } from './generate-code'
 import { ProductSelectorModal } from './product-selector-modal'
 import { toast } from 'react-toastify'
 import { ToastCustom } from '@/components/app/toast-custom'
@@ -336,17 +335,8 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
   })
 
   useEffect(() => {
-    generateCode()
-  }, [])
-
-  useEffect(() => {
     calculateTotals()
   }, [purchaseItems, form.watch('discount'), form.watch('tax_rate')])
-
-  const generateCode = () => {
-    const newCode = generatePurchaseCode()
-    form.setValue('code', newCode)
-  }
 
   const calculateTotals = () => {
     const subtotal = purchaseItems.reduce((sum, item) => {
