@@ -46,7 +46,6 @@ interface PurchasesListProps {
 export const PurchasesList = ({
   purchasesData = [],
   searchQuery = '',
-  isReceiptPage = false,
   businessId
 }: PurchasesListProps) => {
   const router = useRouter()
@@ -306,6 +305,7 @@ export const PurchasesList = ({
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
                           <Link
+<<<<<<< HEAD
                             href={
                               isReceiptPage
                                 ? APP_URLS.ORGANIZATION.PURCHASES.RECEIPT(
@@ -317,6 +317,12 @@ export const PurchasesList = ({
                                     purchase.id
                                   )
                             }
+=======
+                            href={APP_URLS.ORGANIZATION.PURCHASES.VIEW(
+                              businessId || '',
+                              purchase.id
+                            )}
+>>>>>>> b49c25c760906cab3b449ede14e6d7c2b36128c7
                             className="flex items-center"
                           >
                             <Eye className="h-4 w-4 mr-2" />

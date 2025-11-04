@@ -70,7 +70,6 @@ import {
   type CreatePurchaseData,
   type PurchaseItem
 } from '@/modules/purchases/schemas'
-import { generatePurchaseCode } from './generate-code'
 import { ProductSelectorModal } from './product-selector-modal'
 import { toast } from 'react-toastify'
 import { ToastCustom } from '@/components/app/toast-custom'
@@ -78,16 +77,6 @@ import { APP_URLS } from '@/config/app-urls'
 import { createPurchaseWithItems } from '@/apis/app'
 import type { CombinedResult } from '@/apis/app/productc.variants.list'
 import { formatCurrencySoles } from '@/utils'
-
-// Función para generar código de producto aleatorio
-const generateProductCode = (): string => {
-  const prefix = 'PROD'
-  const timestamp = Date.now().toString().slice(-4)
-  const random = Math.floor(Math.random() * 10000)
-    .toString()
-    .padStart(4, '0')
-  return `${prefix}-${timestamp}${random}`
-}
 
 interface EditItemDialogProps {
   item: PurchaseItem | null
@@ -111,7 +100,6 @@ const EditItemDialog = ({
         quantity: item.quantity,
         price: item.price,
         discount: item.discount || 0,
-        code: item.code || '',
         bar_code: item.bar_code || ''
       })
       setIncludeBarCode(!!item.bar_code)
@@ -126,7 +114,6 @@ const EditItemDialog = ({
       quantity: editData.quantity || item.quantity,
       price: editData.price || item.price,
       discount: editData.discount || 0,
-      code: editData.code,
       bar_code: includeBarCode ? editData.bar_code : undefined
     }
 
@@ -336,17 +323,8 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
   })
 
   useEffect(() => {
-    generateCode()
-  }, [])
-
-  useEffect(() => {
     calculateTotals()
   }, [purchaseItems, form.watch('discount'), form.watch('tax_rate')])
-
-  const generateCode = () => {
-    const newCode = generatePurchaseCode()
-    form.setValue('code', newCode)
-  }
 
   const calculateTotals = () => {
     const subtotal = purchaseItems.reduce((sum, item) => {
@@ -400,7 +378,6 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
           price: 0, // La cabecera no tiene precio
           discount: 0,
           purchase_id: null,
-          code: '',
           _temp_id: tempId,
           product: {
             id: product.id,
@@ -428,7 +405,6 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
         price: 0,
         discount: 0,
         purchase_id: null,
-        code: generateProductCode(),
         _temp_id: tempId,
         product: {
           id: product.id,
@@ -444,42 +420,6 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
       setPurchaseItems((prev) => [...prev, newItem])
     }
   }
-
-  // const handleAddVariant = (
-  //   product: CombinedResult,
-  //   variant: ProductVariantItem
-  // ) => {
-  //   const tempId = `${variant.id}-variant-${Date.now()}`
-
-  //   const variantItem: PurchaseItem = {
-  //     product_id: product.id,
-  //     product_variant_id: variant.id,
-  //     quantity: 1,
-  //     price: 0,
-  //     discount: 0,
-  //     purchase_id: null,
-  //     code: generateProductCode(),
-  //     _temp_id: tempId,
-  //     product: {
-  //       id: product.id,
-  //       name: product.name,
-  //       unit: product.unit,
-  //       brand: product.brand?.name || 'Sin marca',
-  //       description: product.description || null
-  //     },
-  //     variant: {
-  //       id: variant.id,
-  //       name: variant.name,
-  //       attributes: variant.attributes || []
-  //     },
-  //     original_product_name: product.description,
-  //     original_variant_name: variant.name,
-  //     variant_attributes: variant.attributes || [],
-  //     has_variants: true
-  //   }
-
-  //   setPurchaseItems((prev) => [...prev, variantItem])
-  // }
 
   const handleEditItem = (item: PurchaseItem, index: number) => {
     // No permitir editar cabeceras de productos
@@ -592,8 +532,8 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
         )
         if (response.data) {
           router.push(
-            APP_URLS.ORGANIZATION.PURCHASES.DETAIL(
-              businessId!,
+            APP_URLS.ORGANIZATION.PURCHASES.VIEW(
+              businessId || '',
               response.data.id
             )
           )

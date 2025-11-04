@@ -17,13 +17,14 @@ import { Info } from 'lucide-react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { CombinedResultExtended } from '@/apis/app/productc.variants.list'
+import { Label } from '@/components/ui/label'
 
 interface PurchaseInvoiceProps {
   purchase: PurchaseList
   items?: CombinedResultExtended[]
 }
 
-export default function DemoPage(props: PurchaseInvoiceProps) {
+export default function PurchaseInvoice(props: PurchaseInvoiceProps) {
   const { purchase, items = [] } = props
 
   const formatDate = (date: Date | string | null | undefined) => {
@@ -49,44 +50,133 @@ export default function DemoPage(props: PurchaseInvoiceProps) {
     return subtotal - discount
   }
 
+  const getProductDescription = (item: CombinedResultExtended) => {
+    const parts = []
+    if (item?.brand?.name) parts.push(item.brand.name)
+    if (item.description) parts.push(item.description)
+    if (item.variants && item.variants.length > 0) {
+      const variantNames = item.variants
+        .map((v) => {
+          const attrs = v.attributes
+          let attrsStr = ''
+          if (Array.isArray(attrs) && attrs.length > 0) {
+            attrsStr =
+              ' (' +
+              attrs
+                .map((a) => {
+                  const value = a.attribute_value ?? ''
+                  const name = a.attribute_type ?? a.attribute_value ?? ''
+                  return name ? `${name}: ${value}` : `${value}`
+                })
+                .filter(Boolean)
+                .join(', ') +
+              ')'
+          }
+          return `${v.name ?? ''}${attrsStr}`.trim()
+        })
+        .filter(Boolean)
+        .join('; ')
+      if (variantNames) parts.push(variantNames)
+
+      return parts.join(' - ')
+    } else {
+      return parts.join(' - ')
+    }
+  }
+
   return (
-    <div className="container mx-auto p-4 max-w-5xl">
+    <div className="container mx-auto p-4 max-w-6xl">
       {/* Alert informativo */}
-      <Alert className="mb-6">
-        <Info className="h-4 w-4" />
-        <AlertDescription>
-          Este documento PDF incluye toda la información de la compra: datos del
+      <Alert className="mb-6 bg-blue-50 border-blue-200">
+        <Info className="h-4 w-4 text-blue-600" />
+        <AlertDescription className="text-blue-700">
+          Este documento incluye toda la información de la compra: datos del
           proveedor, detalle de productos con precios y descuentos, y totales
-          calculados. Ideal para registros contables y control de inventario.
+          calculados.
         </AlertDescription>
       </Alert>
 
-      {/* Información principal */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Información de la Compra</CardTitle>
+      {/* Actions PDF */}
+      <Card className="mb-6 shadow-none rounded-md border sticky top-20">
+        <CardContent>
+          <div className="flex flex-col md:flex-row md:justify-end gap-2">
+            <p className="text-sm text-gray-600 mr-auto">
+              Generar PDF de la compra para impresión o envío por correo.
+            </p>
+            <PurchasePDFGenerator purchase={purchase} items={items} />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Información principal de la compra */}
+      <Card className="mb-6 shadow-none rounded-md border">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">Información de la Compra</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div>
+          <div className="mb-4 flex flex-col gap-2">
+            <Label className="text-sm font-medium text-gray-500">
+              Estado de la Compra
+            </Label>
+            <div className="flex gap-2">
+              <Badge
+                variant={
+                  purchase.status === 'completed' ? 'default' : 'secondary'
+                }
+                className="rounded-full"
+              >
+                {purchase.status === 'completed'
+                  ? 'Completado'
+                  : purchase.status === 'pending'
+                  ? 'Pendiente'
+                  : purchase.status === 'cancelled'
+                  ? 'Cancelado'
+                  : 'No especificado'}
+              </Badge>
+              <Badge
+                variant={
+                  purchase.payment_status === 'paid' ? 'default' : 'outline'
+                }
+                className="rounded-full"
+              >
+                {purchase.payment_status === 'paid'
+                  ? 'Pagado'
+                  : purchase.payment_status === 'pending'
+                  ? 'Pendiente'
+                  : purchase.payment_status === 'partially_paid'
+                  ? 'Pago Parcial'
+                  : purchase.payment_status === 'cancelled'
+                  ? 'Cancelado'
+                  : 'No especificado'}
+              </Badge>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="space-y-1">
               <label className="text-sm font-medium text-gray-500">
-                Código
+                Código de Compra
               </label>
-              <p className="font-semibold">{purchase.code || 'No asignado'}</p>
+              <p className="font-semibold text-gray-900">
+                {purchase.code || 'No asignado'}
+              </p>
             </div>
-            <div>
-              <label className="text-sm font-medium text-gray-500">Fecha</label>
-              <p className="font-semibold">{formatDate(purchase.date)}</p>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-500">
+                Fecha de Compra
+              </label>
+              <p className="font-semibold text-gray-900">
+                {formatDate(purchase.date)}
+              </p>
             </div>
-            <div>
+            <div className="space-y-1">
               <label className="text-sm font-medium text-gray-500">
                 Guía N°
               </label>
-              <p className="font-semibold">
+              <p className="font-semibold text-gray-900">
                 {purchase.guide_number || 'No especificada'}
               </p>
             </div>
-            <div>
+            <div className="space-y-1">
               <label className="text-sm font-medium text-gray-500">Total</label>
               <p className="text-lg font-bold text-green-600">
                 {formatCurrency(
@@ -99,21 +189,40 @@ export default function DemoPage(props: PurchaseInvoiceProps) {
 
           {/* Información del proveedor */}
           {purchase.supplier && (
-            <div className="border-t pt-4">
-              <h3 className="font-semibold mb-3">Proveedor</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="font-medium">{purchase.supplier.name}</p>
-                  <p className="text-gray-600">{purchase.supplier.contact}</p>
-                  <p className="text-gray-600">{purchase.supplier.email}</p>
+            <div className="mt-6 pt-4 border-t">
+              <h3 className="font-semibold text-gray-900 mb-3">
+                Información del Proveedor
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <div>
+                    <p className="font-medium text-gray-900">
+                      {purchase.supplier.name}
+                    </p>
+                    <p className="text-gray-600 text-sm">
+                      {purchase.supplier.contact}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-gray-600 text-sm">
+                      {purchase.supplier.email}
+                    </p>
+                    <p className="text-gray-600 text-sm">
+                      {purchase.supplier.phone}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-gray-600">{purchase.supplier.phone}</p>
-                  <p className="text-gray-600">{purchase.supplier.address}</p>
-                  <div className="flex gap-2 mt-2">
+                <div className="space-y-2">
+                  <p className="text-gray-600 text-sm">
+                    {purchase.supplier.address}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
                     <Badge variant="outline" className="text-xs">
                       {purchase.supplier.document_type}:{' '}
                       {purchase.supplier.document_number}
+                    </Badge>
+                    <Badge variant="outline" className="text-xs">
+                      Moneda: {purchase.supplier.currency}
                     </Badge>
                   </div>
                 </div>
@@ -124,9 +233,12 @@ export default function DemoPage(props: PurchaseInvoiceProps) {
       </Card>
 
       {/* Tabla de productos */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Productos ({items.length} items)</CardTitle>
+      <Card className="mb-6 shadow-none rounded-md border">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">
+            Detalle de Productos ({items.length}{' '}
+            {items.length === 1 ? 'item' : 'items'})
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {items.length > 0 ? (
@@ -135,12 +247,12 @@ export default function DemoPage(props: PurchaseInvoiceProps) {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[100px]">Código</TableHead>
-                    <TableHead className="w-[120px]">Producto</TableHead>
+                    <TableHead>Producto</TableHead>
                     <TableHead className="w-[80px] text-center">
                       Cant.
                     </TableHead>
                     <TableHead className="w-[100px] text-right">
-                      Precio
+                      Precio Unit.
                     </TableHead>
                     <TableHead className="w-[100px] text-right">
                       Descuento
@@ -151,25 +263,25 @@ export default function DemoPage(props: PurchaseInvoiceProps) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {items.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-mono text-xs">
+                  {items.map((item, index) => (
+                    <TableRow
+                      key={item.id || index}
+                      className="hover:bg-gray-50"
+                    >
+                      <TableCell className="font-mono text-sm">
                         {item.code || 'N/A'}
                       </TableCell>
                       <TableCell>
-                        {item?.brand?.name || ''} {item.description}{' '}
-                        {item?.variant_name}{' '}
-                        {item?.attributes &&
-                          item?.attributes?.length > 0 &&
-                          item.attributes
-                            .map((attr) => ` ${attr.attribute_value}`)
-                            .join(', ')}
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-gray-900 break-words whitespace-normal max-w-full">
+                            {getProductDescription(item)}
+                          </p>
+                        </div>
                       </TableCell>
-
                       <TableCell className="text-center font-semibold">
                         {item.quantity}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right font-medium">
                         {formatCurrency(
                           item?.price ?? 0,
                           purchase.supplier?.currency
@@ -188,7 +300,7 @@ export default function DemoPage(props: PurchaseInvoiceProps) {
                           <span className="text-gray-400">-</span>
                         )}
                       </TableCell>
-                      <TableCell className="text-right font-semibold">
+                      <TableCell className="text-right font-semibold text-gray-900">
                         {formatCurrency(
                           calculateItemTotal(item),
                           purchase.supplier?.currency
@@ -208,21 +320,22 @@ export default function DemoPage(props: PurchaseInvoiceProps) {
           {/* Resumen de totales */}
           {items.length > 0 && (
             <div className="mt-6 pt-4 border-t">
-              <div className="flex flex-col sm:flex-row sm:justify-end gap-4">
-                <div className="space-y-2 min-w-[250px]">
-                  <div className="flex justify-between text-sm">
-                    <span>Subtotal:</span>
-                    <span>
+              <div className="flex justify-end">
+                <div className="space-y-3 min-w-[280px]">
+                  <div className="flex justify-between text-base">
+                    <span className="text-gray-600">Subtotal:</span>
+                    <span className="font-medium">
                       {formatCurrency(
                         purchase.subtotal,
                         purchase.supplier?.currency
                       )}
                     </span>
                   </div>
+
                   {purchase.discount && purchase.discount > 0 && (
-                    <div className="flex justify-between text-sm text-red-600">
-                      <span>Descuento:</span>
-                      <span>
+                    <div className="flex justify-between text-base">
+                      <span className="text-gray-600">Descuento Global:</span>
+                      <span className="text-red-600 font-medium">
                         -
                         {formatCurrency(
                           purchase.discount,
@@ -231,10 +344,13 @@ export default function DemoPage(props: PurchaseInvoiceProps) {
                       </span>
                     </div>
                   )}
+
                   {purchase.tax_amount && purchase.tax_amount > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span>Impuesto ({purchase.tax_rate}%):</span>
-                      <span>
+                    <div className="flex justify-between text-base">
+                      <span className="text-gray-600">
+                        IGV ({purchase.tax_rate}%):
+                      </span>
+                      <span className="font-medium">
                         {formatCurrency(
                           purchase.tax_amount,
                           purchase.supplier?.currency
@@ -242,8 +358,9 @@ export default function DemoPage(props: PurchaseInvoiceProps) {
                       </span>
                     </div>
                   )}
-                  <div className="flex justify-between font-bold text-lg border-t pt-2">
-                    <span>Total:</span>
+
+                  <div className="flex justify-between text-lg font-semibold border-t pt-3">
+                    <span className="text-gray-900">Total a Pagar:</span>
                     <span className="text-green-600">
                       {formatCurrency(
                         purchase.total_amount,
@@ -257,15 +374,6 @@ export default function DemoPage(props: PurchaseInvoiceProps) {
           )}
         </CardContent>
       </Card>
-
-      {/* Botón de descarga */}
-      <div className="flex justify-center fixed bottom-4 right-4 leading-4 left-1/2 transform -translate-x-1/3 p-4 bg-white shadow-lg rounded-lg z-10">
-        <PurchasePDFGenerator
-          purchase={purchase}
-          items={items}
-          fileName={`boleta-${purchase.code || purchase.id}`}
-        />
-      </div>
     </div>
   )
 }

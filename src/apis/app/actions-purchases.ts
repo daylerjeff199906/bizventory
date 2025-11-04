@@ -3,28 +3,10 @@ import { createClient } from '@/utils/supabase/server'
 import { Purchase, PurchaseItem } from '@/types'
 import { revalidatePath } from 'next/cache'
 import { APP_URLS } from '@/config/app-urls'
-import { PurchaseItemSchema, PurchaseSchema } from '@/modules/purchases'
+import { PurchaseItemSchema, PurchaseMovementTypeEnum, PurchaseSchema, StatusPurchaseEnum } from '@/modules/purchases'
 import { z } from 'zod'
 
-// const supabase = await createClient();
 
-// const { data, error } = await supabase.rpc(
-//   'process_complete_purchase_with_validation',
-//   {
-//     p_supplier_id: 'supplier-uuid',
-//     p_purchase_date: new Date().toISOString(),
-//     p_items: [
-//       { product_id: 'product1-uuid', quantity: 10, price: 15.99 },
-//       { product_id: 'invalid-uuid', quantity: 5, price: 22.5 } // Este fallará
-//     ]
-//   }
-// );
-
-// if (error) {
-//   console.error('Error processing purchase:', error);
-// } else {
-//   console.log('Purchase processed:', data);
-// }
 /**
  * Instancia de Supabase en contexto de servidor
  */
@@ -53,7 +35,6 @@ export async function createPurchaseWithItems({
 }> {
   const supabase = await getSupabase()
   let purchaseId: string | null = null
-
   try {
     // 1. Validar datos de la compra (sin items)
     const validatedPurchase = PurchaseSchema.omit({ items: true }).parse(
@@ -70,6 +51,7 @@ export async function createPurchaseWithItems({
         original_variant_name: item.original_variant_name || null
       }
     })
+
 
     // 3. Crear la compra con estado inicial
     const { data: purchase, error: purchaseError } = await supabase
@@ -111,12 +93,12 @@ export async function createPurchaseWithItems({
     }
 
     // 5. Si la compra está completada, actualizar inventario
-    if (validatedPurchase.status === 'completed') {
+    if (validatedPurchase.status === StatusPurchaseEnum.COMPLETED) {
       const { error: stockError } = await supabase.rpc(
         'update_product_stock_after_purchase',
         {
-          p_movement_type: 'entry', // Entrada de inventario
-          p_purchase_id: purchase.id
+          p_movement_type: PurchaseMovementTypeEnum.ENTRY,
+          p_reference: purchase.id
         }
       )
 

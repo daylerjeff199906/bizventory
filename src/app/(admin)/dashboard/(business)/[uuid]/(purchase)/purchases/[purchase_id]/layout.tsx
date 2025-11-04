@@ -4,8 +4,8 @@ import { APP_URLS } from '@/config/app-urls'
 import { Params } from '@/types'
 
 interface LayoutProps {
-  children: React.ReactNode
   params: Params
+  children: React.ReactNode
 }
 
 export default async function Layout(props: LayoutProps) {
@@ -14,16 +14,19 @@ export default async function Layout(props: LayoutProps) {
   const uuid = params.uuid
 
   return (
-    <LayoutWrapper sectionTitle="Gestión de compras">
-      <PageHeader
-        title="Detalles de Compra"
-        description="Aquí puedes ver los detalles de la compra, incluyendo los productos adquiridos y sus cantidades."
-        backButton={{
-          href: APP_URLS.ORGANIZATION.PURCHASES.LIST(uuid?.toString() || ''),
-          hidden: false
-        }}
-      />
-      <div className="w-full max-w-4xl mx-auto pt-4">{children}</div>
+    <LayoutWrapper>
+      <div className="flex flex-col gap-4 container max-w-5xl mx-auto md:gap-6">
+        <PageHeader
+          title="Detalles de Compra"
+          description="Aquí puedes ver los detalles de la compra, incluyendo los productos adquiridos y sus cantidades."
+          backButton={{
+            href: APP_URLS.ORGANIZATION.PURCHASES.LIST(uuid?.toString() || ''),
+            hidden: false
+          }}
+        />
+
+        {children}
+      </div>
     </LayoutWrapper>
   )
 }

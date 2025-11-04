@@ -1,6 +1,7 @@
 import { Params } from '@/types'
 import { getPurchaseById } from '@/apis/app'
-import DemoPage from '@/modules/purchases/page/demo-page'
+import { EmptyState } from '@/components/miscellaneous/empty-state'
+import { PurchaseInvoice } from '@/modules/purchases'
 
 interface Props {
   params: Params
@@ -8,17 +9,22 @@ interface Props {
 
 export default async function Page(props: Props) {
   const params = await props.params
-  const purchase_id = params.purchase_id
+  const purchase_id = await params.purchase_id
 
   const response = await getPurchaseById(String(purchase_id))
 
   if (!response) {
-    return <div>Purchase not found</div>
+    return (
+      <EmptyState
+        title="Compra no encontrada"
+        description="La compra que estás buscando no existe o ha sido eliminada."
+      />
+    )
   }
 
   return (
     <>
-      <DemoPage purchase={response} items={response.items} />
+      <PurchaseInvoice purchase={response} items={response.items} />
     </>
   )
 }

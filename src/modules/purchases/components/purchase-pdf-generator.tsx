@@ -138,6 +138,40 @@ const PurchasePDF = ({
     }).format(amount)
   }
 
+  const getProductDescription = (item: CombinedResultExtended) => {
+    const parts = []
+    if (item?.brand?.name) parts.push(item.brand.name)
+    if (item.description) parts.push(item.description)
+    if (item.variants && item.variants.length > 0) {
+      const variantNames = item.variants
+        .map((v) => {
+          const attrs = v.attributes
+          let attrsStr = ''
+          if (Array.isArray(attrs) && attrs.length > 0) {
+            attrsStr =
+              ' (' +
+              attrs
+                .map((a) => {
+                  const value = a.attribute_value ?? ''
+                  const name = a.attribute_type ?? a.attribute_value ?? ''
+                  return name ? `${name}: ${value}` : `${value}`
+                })
+                .filter(Boolean)
+                .join(', ') +
+              ')'
+          }
+          return `${v.name ?? ''}${attrsStr}`.trim()
+        })
+        .filter(Boolean)
+        .join('; ')
+      if (variantNames) parts.push(variantNames)
+
+      return parts.join(' - ')
+    } else {
+      return parts.join(' - ')
+    }
+  }
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -211,15 +245,7 @@ const PurchasePDF = ({
             <View key={item.id || index} style={styles.tableRow}>
               <Text style={styles.col1}>{index + 1}</Text>
               <Text style={styles.col2}>{item.code || 'N/A'}</Text>
-              {/* <Text style={styles.col3}>
-                {item.brand?.name || ''} {item.name || `Producto #${index + 1}`}
-                {item.variant_name && ` - ${item.variant_name}`}
-                {item.attributes &&
-                  item.attributes.length > 0 &&
-                  ` (${item.attributes
-                    .map((attr) => attr.attribute_value)
-                    .join(', ')})`}
-              </Text> */}
+              <Text style={styles.col3}>{getProductDescription(item)}</Text>
               <Text style={styles.col4}>{item.quantity || 0}</Text>
               <Text style={styles.col5}>
                 {formatCurrency(

@@ -13,7 +13,6 @@ export const PurchaseItemSchema = z
     product_variant_id: z.string().uuid().nullable().optional(),
     quantity: z.number().int().positive('La cantidad debe ser mayor a 0'),
     price: z.number().positive('El precio debe ser mayor a 0').max(99999999.99),
-    code: z.string().nullable().optional(),
     bar_code: z.string().nullable().optional(),
     discount: z.number().min(0).max(100).nullable().optional(),
     variant_attributes: z.array(VariantAttributeSchema).nullable().optional(),
@@ -27,6 +26,40 @@ export const PurchaseItemSchema = z
       path: ['product_id']
     }
   )
+
+export type StatusPurchase = 
+  | 'draft'
+  | 'pending'
+  | 'completed'
+  | 'cancelled' 
+
+export enum StatusPurchaseEnum {
+    DRAFT = 'draft',
+    PENDING = 'pending',
+    COMPLETED = 'completed',
+    CANCELLED = 'cancelled'
+}
+
+export type PaymentStatusPurchase = 
+  | 'pending'
+  | 'paid'
+  | 'partially_paid'
+  | 'cancelled'
+
+  export enum PaymentStatusPurchaseEnum {
+    PENDING = 'pending',
+    PAID = 'paid',
+    PARTIALLY_PAID = 'partially_paid',
+    CANCELLED = 'cancelled'
+}
+
+export enum PurchaseMovementTypeEnum {
+    ENTRY = 'entry',
+    EXIT = 'exit',
+    PURCHASE = 'purchase',
+    SALE = 'sale',
+    PURCHASE_RETURN = 'purchase_return'
+}
 
 // Esquema para el formulario (permite items vacíos)
 export const PurchaseFormSchema = z.object({
