@@ -1,7 +1,7 @@
 import { Params } from '@/types'
 import { getPurchaseById } from '@/apis/app'
 import { EmptyState } from '@/components/miscellaneous/empty-state'
-import DemoPage from '@/modules/purchases/page/demo-page'
+import { PurchaseInvoice } from '@/modules/purchases'
 
 interface Props {
   params: Params
@@ -24,7 +24,7 @@ export default async function Page(props: Props) {
 
   return (
     <>
-      <DemoPage purchase={response} items={response.items} />
+      <PurchaseInvoice purchase={response} items={response.items} />
     </>
   )
 }
