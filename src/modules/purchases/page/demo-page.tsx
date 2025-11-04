@@ -96,6 +96,13 @@ export default function PurchaseInvoice(props: PurchaseInvoiceProps) {
         </AlertDescription>
       </Alert>
 
+      {/* Actions PDF */}
+      <Card className="mb-6 shadow-none rounded-md border sticky top-20">
+        <CardContent>
+          <PurchasePDFGenerator purchase={purchase} items={items} />
+        </CardContent>
+      </Card>
+
       {/* Información principal de la compra */}
       <Card className="mb-6 shadow-none rounded-md border">
         <CardHeader className="pb-3">
@@ -362,17 +369,6 @@ export default function PurchaseInvoice(props: PurchaseInvoiceProps) {
           )}
         </CardContent>
       </Card>
-
-      {/* Botón de descarga */}
-      <div className="flex justify-center sticky bottom-4 z-10">
-        <div className="bg-white rounded-lg shadow-lg border p-4">
-          <PurchasePDFGenerator
-            purchase={purchase}
-            items={items}
-            fileName={`compra-${purchase.code || purchase.id}`}
-          />
-        </div>
-      </div>
     </div>
   )
 }
