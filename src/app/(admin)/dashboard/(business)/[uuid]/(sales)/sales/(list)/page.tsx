@@ -32,6 +32,7 @@ export default async function Page(props: Props) {
   return (
     <>
       <SalesList
+        businessId={uuid?.toString() || ''}
         salesData={sales}
         searchQuery={searchParams.searchQuery?.toString()}
       />
