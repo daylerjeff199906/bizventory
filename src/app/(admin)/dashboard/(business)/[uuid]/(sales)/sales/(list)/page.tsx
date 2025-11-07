@@ -1,13 +1,17 @@
 import { getSales } from '@/apis/app/sales'
 import { SalesList } from '@/modules/sales/pages/sales-list'
-import { SearchParams } from '@/types'
+import { Params, SearchParams } from '@/types'
 
 interface Props {
   searchParams: SearchParams
+  params: Params
 }
 
 export default async function Page(props: Props) {
   const searchParams = await props.searchParams
+  const params = await props.params
+
+  const uuid = params.uuid
   const sortBy = searchParams.sortBy
 
   let sortField: string | undefined
@@ -20,6 +24,7 @@ export default async function Page(props: Props) {
   }
 
   const sales = await getSales({
+    businessId: uuid?.toString(),
     sortBy: sortField ?? 'id',
     sortDirection: sortOrder ?? 'asc'
   })
