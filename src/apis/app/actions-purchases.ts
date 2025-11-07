@@ -173,7 +173,6 @@ export async function createPurchaseWithItems({
   }
 }
 
-// En tu archivo de APIs (apis/app.ts)
 export async function updatePurchaseWithItems({
   purchaseId,
   purchaseData,
@@ -196,9 +195,15 @@ export async function updatePurchaseWithItems({
       purchaseData
     )
 
-    // 2. Validar items
+    // 2. Validar items y asegurar que tengan al menos product_id o product_variant_id
     const validatedItems = itemsData.map((item) => {
       const parsed = PurchaseItemSchema.parse(item)
+      
+      // Validar la constraint de la base de datos
+      if (!parsed.product_id && !parsed.product_variant_id) {
+        throw new Error('Each item must have either product_id or product_variant_id')
+      }
+
       return {
         ...parsed,
         purchase_id: purchaseId,
@@ -206,6 +211,8 @@ export async function updatePurchaseWithItems({
         original_variant_name: item.original_variant_name || null
       }
     })
+
+    console.log('Validated items for update:', validatedItems)
 
     // 3. Actualizar la compra
     const { data: purchase, error: purchaseError } = await supabase
@@ -222,30 +229,82 @@ export async function updatePurchaseWithItems({
       throw purchaseError || new Error('Failed to update purchase')
     }
 
-    // 4. Eliminar items existentes y crear nuevos
-    const { error: deleteError } = await supabase
-      .from('purchase_items')
-      .delete()
-      .eq('purchase_id', purchaseId)
+    // 4. Separar items en existentes (con ID) y nuevos (sin ID)
+    const existingItems = validatedItems.filter(item => item.id)
+    const newItems = validatedItems.filter(item => !item.id)
 
-    if (deleteError) {
-      throw deleteError
-    }
-
-    // 5. Crear nuevos items
-    const { data: createdItems, error: itemsError } = await supabase
-      .from('purchase_items')
-      .insert(validatedItems)
-      .select(
-        '*, product:products(*), variant:product_variants(*), purchase:purchases(*)'
+    // 5. Actualizar items existentes
+    if (existingItems.length > 0) {
+      const updatePromises = existingItems.map(item => 
+        supabase
+          .from('purchase_items')
+          .update({
+            product_id: item.product_id,
+            product_variant_id: item.product_variant_id,
+            quantity: item.quantity,
+            price: item.price,
+            bar_code: item.bar_code,
+            discount: item.discount,
+            variant_attributes: item.variant_attributes,
+            original_product_name: item.original_product_name,
+            original_variant_name: item.original_variant_name,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', item.id)
+          .eq('purchase_id', purchaseId)
+          .select()
+          .single()
       )
 
-    if (itemsError || !createdItems) {
-      throw itemsError || new Error('Failed to create purchase items')
+      const updateResults = await Promise.all(updatePromises)
+      
+      // Verificar errores en las actualizaciones
+      for (const result of updateResults) {
+        if (result.error) {
+          console.error('Error updating item:', result.error)
+          throw result.error
+        }
+      }
     }
 
-    // 6. Si la compra está completada, actualizar inventario
-        if (validatedPurchase.status === StatusPurchaseEnum.COMPLETED) {
+    // 6. Crear nuevos items
+    if (newItems.length > 0) {
+      const { data: createdItems, error: itemsError } = await supabase
+        .from('purchase_items')
+        .insert(newItems)
+        .select(
+          '*, product:products(*), variant:product_variants(*), purchase:purchases(*)'
+        )
+
+      if (itemsError || !createdItems) {
+        throw itemsError || new Error('Failed to create new purchase items')
+      }
+    }
+
+    // 7. Eliminar items que ya no están en la lista
+    // Primero obtenemos los IDs de todos los items que deberían permanecer
+    const allItemIds = validatedItems.map(item => item.id).filter(Boolean)
+    
+    if (allItemIds.length > 0) {
+      const {  } = await supabase
+        .from('purchase_items')
+        .delete()
+        .eq('purchase_id', purchaseId)
+        .not('id', 'in', `(${allItemIds.join(',')})`)
+    } else {
+      // Si no hay items con ID, eliminamos todos los items existentes
+      const { error: deleteError } = await supabase
+        .from('purchase_items')
+        .delete()
+        .eq('purchase_id', purchaseId)
+
+      if (deleteError) {
+        throw deleteError
+      }
+    }
+
+    // 8. Si la compra está completada, actualizar inventario
+    if (validatedPurchase.status === StatusPurchaseEnum.COMPLETED) {
       const { error: stockError } = await supabase.rpc(
         'update_product_stock_after_purchase',
         {
@@ -260,7 +319,7 @@ export async function updatePurchaseWithItems({
       }
     }
 
-    // 7. Obtener la compra completa actualizada
+    // 9. Obtener la compra completa actualizada
     const { data: completePurchase, error: fetchError } = await supabase
       .from('purchases')
       .select(
@@ -286,7 +345,7 @@ export async function updatePurchaseWithItems({
       }
     }
 
-    // 8. Revalidar rutas
+    // 10. Revalidar rutas
     revalidatePath(APP_URLS.PURCHASES.LIST)
     revalidatePath(`${APP_URLS.PURCHASES.EDIT}/${purchaseId}`)
 
