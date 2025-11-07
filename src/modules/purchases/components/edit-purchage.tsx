@@ -361,6 +361,9 @@ export const EditPurchasePage = (props: EditPurchasePageProps) => {
             _temp_id: item.id || `${item.product_id}-${Date.now()}`,
             discount: item.discount || 0,
             bar_code: item.bar_code || undefined,
+            id: item.id,
+            product_id: item.product_id,
+            product_variant_id: item.product_variant_id,
             original_product_name: item.original_product_name || null,
             original_variant_name: item.original_variant_name || null
           }))
@@ -550,6 +553,7 @@ export const EditPurchasePage = (props: EditPurchasePageProps) => {
     try {
       // Filtrar solo los items que no son cabeceras
       const validItems = purchaseItems.filter((item) => !item.is_product_header)
+      console.log('Valid items to submit:', validItems)
 
       const purchaseData: CreatePurchaseData = {
         ...data,

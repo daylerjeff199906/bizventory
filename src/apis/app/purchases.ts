@@ -171,6 +171,7 @@ export async function getPurchaseById(
         ...baseProduct,
         ...variantData,
         // Campos específicos del purchase_item
+        id: item.id,
         quantity: item.quantity,
         price: item.price,
         discount: item.discount,

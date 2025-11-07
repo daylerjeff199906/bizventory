@@ -195,26 +195,64 @@ export async function updatePurchaseWithItems({
       purchaseData
     )
 
-    // 2. Validar items y asegurar que tengan al menos product_id o product_variant_id
-    const validatedItems = itemsData.map((item) => {
-      const parsed = PurchaseItemSchema.parse(item)
-      
-      // Validar la constraint de la base de datos
-      if (!parsed.product_id && !parsed.product_variant_id) {
-        throw new Error('Each item must have either product_id or product_variant_id')
-      }
+    console.log('Raw items data received:', itemsData)
 
-      return {
-        ...parsed,
-        purchase_id: purchaseId,
-        original_product_name: item.original_product_name || null,
-        original_variant_name: item.original_variant_name || null
+    // 2. Separar items en existentes (con ID) y nuevos (sin ID) ANTES de validar
+    const existingItems = itemsData.filter(item => item.id)
+    const newItems = itemsData.filter(item => !item.id)
+
+    console.log(`Existing items: ${existingItems.length}, New items: ${newItems.length}`)
+
+    // 3. Validar solo los nuevos items (deben tener product_id o product_variant_id)
+    const validatedNewItems = newItems.map((item, index) => {
+      try {
+        const parsed = PurchaseItemSchema.parse(item)
+        
+        console.log(`Processing NEW item ${index}:`, {
+          product_id: parsed.product_id,
+          product_variant_id: parsed.product_variant_id
+        })
+
+        // Solo validar constraint para nuevos items
+        if (!parsed.product_id && !parsed.product_variant_id) {
+          throw new Error(`New item at position ${index} must have either product_id or product_variant_id`)
+        }
+
+        return {
+          ...parsed,
+          purchase_id: purchaseId,
+          original_product_name: item.original_product_name || null,
+          original_variant_name: item.original_variant_name || null
+        }
+      } catch (error) {
+        console.error(`Error validating new item at index ${index}:`, item, error)
+        throw new Error(`Invalid new item at position ${index + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`)
       }
     })
 
-    console.log('Validated items for update:', validatedItems)
+    // 4. Validar items existentes (solo campos actualizables)
+    const validatedExistingItems = existingItems.map((item, index) => {
+      try {
+        const parsed = PurchaseItemSchema.parse(item)
+        
+        console.log(`Processing EXISTING item ${index}:`, {
+          id: parsed.id,
+          quantity: parsed.quantity,
+          price: parsed.price
+        })
 
-    // 3. Actualizar la compra
+        return {
+          ...parsed,
+          purchase_id: purchaseId
+          // No incluimos product_id/product_variant_id porque ya existen en la BD
+        }
+      } catch (error) {
+        console.error(`Error validating existing item at index ${index}:`, item, error)
+        throw new Error(`Invalid existing item at position ${index + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      }
+    })
+
+    // 5. Actualizar la compra
     const { data: purchase, error: purchaseError } = await supabase
       .from('purchases')
       .update({
@@ -229,26 +267,18 @@ export async function updatePurchaseWithItems({
       throw purchaseError || new Error('Failed to update purchase')
     }
 
-    // 4. Separar items en existentes (con ID) y nuevos (sin ID)
-    const existingItems = validatedItems.filter(item => item.id)
-    const newItems = validatedItems.filter(item => !item.id)
-
-    // 5. Actualizar items existentes
-    if (existingItems.length > 0) {
-      const updatePromises = existingItems.map(item => 
+    // 6. Actualizar items existentes (solo campos modificables)
+    if (validatedExistingItems.length > 0) {
+      const updatePromises = validatedExistingItems.map(item => 
         supabase
           .from('purchase_items')
           .update({
-            product_id: item.product_id,
-            product_variant_id: item.product_variant_id,
+            // Solo actualizamos campos que pueden cambiar
             quantity: item.quantity,
             price: item.price,
-            bar_code: item.bar_code,
             discount: item.discount,
-            variant_attributes: item.variant_attributes,
-            original_product_name: item.original_product_name,
-            original_variant_name: item.original_variant_name,
-            updated_at: new Date().toISOString()
+            bar_code: item.bar_code,
+            // NO actualizamos product_id, product_variant_id, variant_attributes, etc.
           })
           .eq('id', item.id)
           .eq('purchase_id', purchaseId)
@@ -261,36 +291,41 @@ export async function updatePurchaseWithItems({
       // Verificar errores en las actualizaciones
       for (const result of updateResults) {
         if (result.error) {
-          console.error('Error updating item:', result.error)
+          console.error('Error updating existing item:', result.error)
           throw result.error
         }
       }
     }
 
-    // 6. Crear nuevos items
-    if (newItems.length > 0) {
+    // 7. Crear nuevos items
+    if (validatedNewItems.length > 0) {
       const { data: createdItems, error: itemsError } = await supabase
         .from('purchase_items')
-        .insert(newItems)
+        .insert(validatedNewItems)
         .select(
           '*, product:products(*), variant:product_variants(*), purchase:purchases(*)'
         )
 
       if (itemsError || !createdItems) {
+        console.error('Error creating new items:', itemsError)
         throw itemsError || new Error('Failed to create new purchase items')
       }
     }
 
-    // 7. Eliminar items que ya no están en la lista
-    // Primero obtenemos los IDs de todos los items que deberían permanecer
-    const allItemIds = validatedItems.map(item => item.id).filter(Boolean)
+    // 8. Eliminar items que ya no están en la lista
+    const allItemIds = itemsData.map(item => item.id).filter(Boolean)
     
     if (allItemIds.length > 0) {
-      const {  } = await supabase
+      const { error: deleteError } = await supabase
         .from('purchase_items')
         .delete()
         .eq('purchase_id', purchaseId)
         .not('id', 'in', `(${allItemIds.join(',')})`)
+
+      if (deleteError) {
+        console.error('Error deleting removed items:', deleteError)
+        throw deleteError
+      }
     } else {
       // Si no hay items con ID, eliminamos todos los items existentes
       const { error: deleteError } = await supabase
@@ -303,7 +338,7 @@ export async function updatePurchaseWithItems({
       }
     }
 
-    // 8. Si la compra está completada, actualizar inventario
+    // 9. Si la compra está completada, actualizar inventario
     if (validatedPurchase.status === StatusPurchaseEnum.COMPLETED) {
       const { error: stockError } = await supabase.rpc(
         'update_product_stock_after_purchase',
@@ -319,7 +354,7 @@ export async function updatePurchaseWithItems({
       }
     }
 
-    // 9. Obtener la compra completa actualizada
+    // 10. Obtener la compra completa actualizada
     const { data: completePurchase, error: fetchError } = await supabase
       .from('purchases')
       .select(
@@ -345,7 +380,7 @@ export async function updatePurchaseWithItems({
       }
     }
 
-    // 10. Revalidar rutas
+    // 11. Revalidar rutas
     revalidatePath(APP_URLS.PURCHASES.LIST)
     revalidatePath(`${APP_URLS.PURCHASES.EDIT}/${purchaseId}`)
 
