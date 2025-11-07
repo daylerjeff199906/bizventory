@@ -1,3 +1,5 @@
+import { format } from "date-fns"
+import { es } from "date-fns/locale"
 export interface FormatCurrencyOptions {
   locale?: string // default 'es-PE'
   includeSymbol?: boolean // default true
@@ -78,4 +80,73 @@ Example usages:
 formatCurrencySoles(1234.5)           // "S/ 1,234.50" (locale may vary)
 formatCurrencySoles("1.234,56")       // "S/ 1,234.56"
 formatCurrencySoles("1234.56", { includeSymbol: false }) // "1,234.56"
+*/
+
+export interface FormatDateOptions {
+  locale?: string // default 'es-PE'
+  dateStyle?: 'short' | 'medium' | 'long' | 'full' // default 'medium'
+  timeStyle?: 'short' | 'medium' | 'long' | 'full' | undefined
+  timeZone?: string
+  includeTime?: boolean // if true and timeStyle not provided, defaults to 'short'
+}
+
+/** Try to parse various date inputs into a Date, return null if invalid */
+function parseDate(input: string | Date | null | undefined): Date | null {
+  if (input == null) return null
+  if (input instanceof Date) return isFinite(input.getTime()) ? input : null
+  const d = new Date(String(input))
+  return isFinite(d.getTime()) ? d : null
+}
+
+/**
+ * Format an ISO date/time (e.g. "2025-11-04T00:00:00+00:00") or Date into a localized string.
+ * Returns empty string for null/undefined/invalid inputs.
+ */
+export function formatDateString(
+  value: string | Date | null | undefined,
+  opts: FormatDateOptions = {}
+): string {
+  const {
+    locale = 'es-PE',
+    dateStyle = 'medium',
+    timeStyle,
+    includeTime = false
+  } = opts
+
+  const date = parseDate(value)
+  if (!date) return ''
+
+  // Map dateStyle/timeStyle to date-fns tokens (P/PP/PPP/PPPP for localized date, p/pp/pppp for time)
+  const dateMap: Record<string, string> = {
+    short: 'P',
+    medium: 'PP',
+    long: 'PPP',
+    full: 'PPPP'
+  }
+  const timeMap: Record<string, string> = {
+    short: 'p',
+    medium: 'pp',
+    long: 'pppp',
+    full: 'pppp'
+  }
+
+  const dateToken = dateMap[dateStyle] ?? dateMap['medium']
+  const chosenTimeStyle = timeStyle ?? (includeTime ? 'short' : undefined)
+  const timeToken = chosenTimeStyle ? (timeMap[chosenTimeStyle] ?? timeMap['short']) : ''
+
+  const pattern = timeToken ? `${dateToken} ${timeToken}` : dateToken
+
+  // Use date-fns locale when possible; fall back to default formatting if locale unsupported
+  const dfLocale = locale && locale.startsWith('es') ? es : undefined
+
+  // date-fns does not handle arbitrary time zones without additional libraries (date-fns-tz);
+  // for simplicity we ignore opts.timeZone here. If timeZone support is required, replace with date-fns-tz usage.
+  return format(date, pattern, { locale: dfLocale })
+}
+
+/*
+Examples:
+formatDateString('2025-11-04T00:00:00+00:00')                // "4 nov 2025" (es-PE, medium)
+formatDateString('2025-11-04T00:00:00+00:00', { dateStyle: 'short' }) // "04/11/25"
+formatDateString('2025-11-04T00:00:00+00:00', { includeTime: true }) // "4 nov 2025 00:00"
 */

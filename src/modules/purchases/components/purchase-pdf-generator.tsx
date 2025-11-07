@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Download, FileText } from 'lucide-react'
 import type { PurchaseList } from '@/types'
 import type { CombinedResultExtended } from '@/apis/app/productc.variants.list'
+import { getProductDescription } from '../utils/generate-name'
 
 // Estilos para el PDF
 const styles = StyleSheet.create({
@@ -136,40 +137,6 @@ const PurchasePDF = ({
       style: 'currency',
       currency: currency
     }).format(amount)
-  }
-
-  const getProductDescription = (item: CombinedResultExtended) => {
-    const parts = []
-    if (item?.brand?.name) parts.push(item.brand.name)
-    if (item.description) parts.push(item.description)
-    if (item.variants && item.variants.length > 0) {
-      const variantNames = item.variants
-        .map((v) => {
-          const attrs = v.attributes
-          let attrsStr = ''
-          if (Array.isArray(attrs) && attrs.length > 0) {
-            attrsStr =
-              ' (' +
-              attrs
-                .map((a) => {
-                  const value = a.attribute_value ?? ''
-                  const name = a.attribute_type ?? a.attribute_value ?? ''
-                  return name ? `${name}: ${value}` : `${value}`
-                })
-                .filter(Boolean)
-                .join(', ') +
-              ')'
-          }
-          return `${v.name ?? ''}${attrsStr}`.trim()
-        })
-        .filter(Boolean)
-        .join('; ')
-      if (variantNames) parts.push(variantNames)
-
-      return parts.join(' - ')
-    } else {
-      return parts.join(' - ')
-    }
   }
 
   return (

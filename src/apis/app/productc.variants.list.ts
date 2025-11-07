@@ -47,6 +47,8 @@ export interface CombinedResultExtended extends CombinedResult {
   price?: number
   bar_code?: string
   discount?: number
+  original_product_name?: string | null
+  original_variant_name?: string | null
 }
 export interface CombinedResultExtendedSales extends CombinedResult {
   quantity?: number

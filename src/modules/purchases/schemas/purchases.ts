@@ -87,6 +87,7 @@ export const PurchaseSchema = PurchaseFormSchema.extend({
   items: z.array(PurchaseItemSchema).min(1, 'Debe agregar al menos un producto')
 })
 
+
 export type PurchaseItem = z.infer<typeof PurchaseItemSchema> & {
   _temp_id?: string // Para manejar IDs temporales en el frontend
   _index?: number // Para manejar el índice del item en el formulario
