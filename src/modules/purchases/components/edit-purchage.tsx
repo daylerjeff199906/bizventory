@@ -1278,10 +1278,10 @@ export const EditPurchasePage = (props: EditPurchasePageProps) => {
                 ¿Estás seguro que deseas actualizar esta compra por un total de
                 S/ {(form.watch('total_amount') || 0).toFixed(2)}?
                 {form.watch('status') === 'completed' && (
-                  <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                  <span className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
                     <strong>Nota:</strong> Al estar en estado {`"Completada"`},
                     los cambios afectarán el inventario.
-                  </div>
+                  </span>
                 )}
               </AlertDialogDescription>
             </AlertDialogHeader>

@@ -12,7 +12,6 @@ export default async function Page(props: Props) {
   const purchase_id = await params.purchase_id
 
   const response = await getPurchaseById(String(purchase_id))
-  console.log('Purchase to edit:', response?.items)
 
   if (!response) {
     return (

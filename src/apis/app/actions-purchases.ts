@@ -85,7 +85,6 @@ export async function createPurchaseWithItems({
         '*, product:products(*), variant:product_variants(*), purchase:purchases(*)'
       )
 
-    console.log('Created items:', createdItems)
 
     if (itemsData.length === 0) {
       throw new Error('Debe haber al menos un item en la compra.')
@@ -246,7 +245,7 @@ export async function updatePurchaseWithItems({
     }
 
     // 6. Si la compra está completada, actualizar inventario
-    if (validatedPurchase.status === StatusPurchaseEnum.COMPLETED) {
+        if (validatedPurchase.status === StatusPurchaseEnum.COMPLETED) {
       const { error: stockError } = await supabase.rpc(
         'update_product_stock_after_purchase',
         {
