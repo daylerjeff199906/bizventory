@@ -12,7 +12,7 @@ export const useProductsAndVariants = ({
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<Error | null>(null)
 
-  const fetchItems = async (searchTerm: string = '', limit: number = 10) => {
+  const fetchItems = async (searchTerm: string = '', limit: number = 15) => {
     try {
       setLoading(true)
       setError(null)

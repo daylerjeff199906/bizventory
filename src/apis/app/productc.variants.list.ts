@@ -1,7 +1,7 @@
 // products.ts
 // Añade estas funciones a tu archivo existente
 'use server'
-import { Product, ProductDetails, ProductVariant } from '@/types'
+import { ProductDetails, ProductVariant } from '@/types'
 import { createClient } from '@/utils/supabase/server'
 
 /**
@@ -24,12 +24,16 @@ interface VariantAttribute {
   attribute_value: string
 }
 
+export interface ProductVariantItem {
+  id: string
+  name: string
+  description: string | null
+  code: string
+  attributes: VariantAttribute[]
+}
+
 export interface CombinedResult extends ProductDetails {
-  variant_id?: string
-  variant_name?: string
-  variant_description?: string | null
-  variant_code?: string
-  attributes?: VariantAttribute[]
+  variants?: ProductVariantItem[]
 }
 
 export interface CombinedResultPrice extends CombinedResult {
@@ -43,6 +47,8 @@ export interface CombinedResultExtended extends CombinedResult {
   price?: number
   bar_code?: string
   discount?: number
+  original_product_name?: string | null
+  original_variant_name?: string | null
 }
 export interface CombinedResultExtendedSales extends CombinedResult {
   quantity?: number
@@ -62,22 +68,36 @@ export async function getProductsAndVariantsForPurchase({
 }): Promise<CombinedResult[]> {
   const supabase = await getSupabase()
 
-  // Fetch products without variants
+  // Primero obtener las marcas del negocio
+  const { data: businessBrands } = await supabase
+    .from('brands')
+    .select('id')
+    .eq('business_id', businessId)
+
+  const brandIds = businessBrands?.map((brand) => brand.id) || []
+
+  // Luego obtener productos de esas marcas
   const { data: productsWithoutVariants } = await supabase
     .from('products')
     .select('*, brand:brand_id(*)')
-    .eq('business_id', businessId)
-    .eq('has_variants', false)
+    .in('brand_id', brandIds)
     .or(
       `name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,code.ilike.%${searchTerm}%`
     )
     .limit(limit)
 
-  // Fetch products with variants
-  const { data: productsWithVariants } = await supabase
-    .from('product_variants')
-    .select(
-      `
+  // Obtener IDs de productos del negocio para usar en la consulta de variantes
+  const businessProductIds =
+    productsWithoutVariants?.map((product) => product.id) || []
+
+  // Obtener variantes de productos del negocio
+  let productsWithVariants: ProductVariant[] | null = []
+
+  if (businessProductIds.length > 0) {
+    const { data, error } = await supabase
+      .from('product_variants')
+      .select(
+        `
       *,
       product:product_id(
         *,
@@ -88,105 +108,36 @@ export async function getProductsAndVariantsForPurchase({
         attribute_value
       )
     `
-    )
-    .eq('product.business_id', businessId)
-    .or(
-      `name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,code.ilike.%${searchTerm}%`
-    )
-    .limit(limit)
+      )
+      // .in('product_id', businessProductIds)
+      .eq('product.brand.business_id', businessId)
+      .or(`product_id.in.(${businessProductIds.join(',')})`)
+
+    if (error) {
+      console.error('Error fetching variants:', error)
+      productsWithVariants = []
+    } else {
+      productsWithVariants = data as ProductVariant[]
+    }
+  } else {
+    productsWithVariants = []
+  }
 
   // Combine results with proper typing
-  const combinedResults: CombinedResult[] = [
-    ...((productsWithoutVariants || []) as Product[]),
-    ...(productsWithVariants || ([] as ProductVariant[])).map((variant) => ({
-      ...variant.product,
-      is_variant: true,
-      variant_id: variant.id,
-      variant_name: variant.name,
-      variant_description: variant.description,
-      variant_code: variant.code,
-      attributes: variant.product_variant_attributes
-    }))
-  ]
-    .sort(
-      (a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    )
-    .slice(0, limit)
+  const combinedResults: CombinedResult[] =
+    productsWithoutVariants?.map((product) => ({
+      ...product,
+
+      variants: productsWithVariants
+        .filter((variant) => variant.product_id === product.id)
+        .map((variant) => ({
+          id: variant.id,
+          name: variant.name,
+          description: variant.description,
+          code: variant.code,
+          attributes: variant.attributes
+        }))
+    })) || []
+
   return combinedResults
 }
-
-// /**
-//  * Obtiene un producto o variante por ID para compras
-//  * @param id - ID del producto o variante
-//  * @param type - 'product' o 'variant'
-//  */
-// export async function getProductOrVariantForPurchase(
-//   id: string,
-//   type: 'product' | 'variant'
-// ): Promise<PurchaseItem | null> {
-//   const supabase = await getSupabase()
-
-//   if (type === 'product') {
-//     const { data: product, error } = await supabase
-//       .from('products')
-//       .select('id, name, code, unit, brand:brands(name), description, price')
-//       .eq('id', id)
-//       .single()
-
-//     if (error || !product) return null
-
-//     return {
-//       product_id: product.id,
-//       quantity: 1,
-//       price: product.price || 0,
-//       code: product.code,
-//       original_product_name: product.name,
-//       product: {
-//         id: product.id,
-//         name: product.name,
-//         unit: product.unit,
-//         brand: product.brand?.name || null,
-//         description: product.description || null
-//       }
-//     }
-//   } else {
-//     const { data: variant, error } = await supabase
-//       .from('product_variants')
-//       .select(
-//         `
-//         id,
-//         name,
-//         attributes,
-//         price,
-//         product:products(id, name, code, unit, brand:brands(name), description
-//       `
-//       )
-//       .eq('id', id)
-//       .single()
-
-//     if (error || !variant) return null
-
-//     return {
-//       product_variant_id: variant.id,
-//       variant_attributes: variant.attributes,
-//       quantity: 1,
-//       price: variant.price || 0,
-//       code: variant.product.code,
-//       original_variant_name: variant.name,
-//       original_product_name: variant.product.name,
-//       product: {
-//         id: variant.product.id,
-//         name: variant.product.name,
-//         unit: variant.product.unit,
-//         brand: variant.product.brand?.name || null,
-//         description: variant.product.description || null
-//       },
-//       variant: {
-//         id: variant.id,
-//         name: variant.name,
-//         attributes: variant.attributes
-//       }
-//     }
-//   }
-// }

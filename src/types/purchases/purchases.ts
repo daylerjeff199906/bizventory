@@ -3,6 +3,7 @@ import { Supplier } from '../suppliers'
 export interface Purchase {
   id: string // UUID
   date?: Date | null
+  business_id?: string // UUID referencing businesses.id
   supplier_id: string // UUID referencing suppliers.id
   total_amount: number
   code?: string | null

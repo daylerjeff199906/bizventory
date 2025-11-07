@@ -16,7 +16,7 @@ export default async function Layout(props: LayoutProps) {
 
   return (
     <>
-      <LayoutWrapper>
+      <LayoutWrapper sectionTitle="Gestión de compras">
         <PageHeader
           title="Compras realizadas"
           description="Aquí puedes ver todas las compras realizadas por los clientes."
@@ -28,7 +28,7 @@ export default async function Layout(props: LayoutProps) {
             icon: <Plus className="h-4 w-4 mr-2" />
           }}
         />
-        <div className="flex flex-col gap-4">{children}</div>
+        {children}
       </LayoutWrapper>
     </>
   )

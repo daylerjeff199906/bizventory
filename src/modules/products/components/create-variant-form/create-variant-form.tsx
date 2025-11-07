@@ -209,7 +209,7 @@ export const CreateVariantForm = ({
           ]
         })
         setVariantCreated(false)
-
+        window.location.reload()
         router.push(
           APP_URLS.ORGANIZATION.PRODUCTS.CREATE_VARIANT(
             String(businessId),
@@ -262,6 +262,7 @@ export const CreateVariantForm = ({
             message="Las variantes del producto se han actualizado correctamente."
           />
         )
+        window.location.reload()
       }
     } catch (error) {
       console.error('Error al actualizar las variantes:', error)

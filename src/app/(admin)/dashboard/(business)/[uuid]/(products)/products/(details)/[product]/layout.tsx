@@ -20,6 +20,14 @@ export default async function Layout(props: LayoutsProps) {
         title="Opciones de producto"
         items={[
           {
+            name: 'Volver a Productos',
+            url: APP_URLS.ORGANIZATION.PRODUCTS.LIST(String(uuid))
+          },
+          {
+            name: 'Agregar Producto',
+            url: APP_URLS.ORGANIZATION.PRODUCTS.CREATE(String(uuid))
+          },
+          {
             name: 'Editar Producto',
             url: APP_URLS.ORGANIZATION.PRODUCTS.EDIT(
               String(uuid),

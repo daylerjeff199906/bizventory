@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Download, FileText } from 'lucide-react'
 import type { PurchaseList } from '@/types'
 import type { CombinedResultExtended } from '@/apis/app/productc.variants.list'
+import { getProductDescription } from '../utils/generate-name'
 
 // Estilos para el PDF
 const styles = StyleSheet.create({
@@ -211,15 +212,7 @@ const PurchasePDF = ({
             <View key={item.id || index} style={styles.tableRow}>
               <Text style={styles.col1}>{index + 1}</Text>
               <Text style={styles.col2}>{item.code || 'N/A'}</Text>
-              <Text style={styles.col3}>
-                {item.brand?.name || ''} {item.name || `Producto #${index + 1}`}
-                {item.variant_name && ` - ${item.variant_name}`}
-                {item.attributes &&
-                  item.attributes.length > 0 &&
-                  ` (${item.attributes
-                    .map((attr) => attr.attribute_value)
-                    .join(', ')})`}
-              </Text>
+              <Text style={styles.col3}>{getProductDescription(item)}</Text>
               <Text style={styles.col4}>{item.quantity || 0}</Text>
               <Text style={styles.col5}>
                 {formatCurrency(

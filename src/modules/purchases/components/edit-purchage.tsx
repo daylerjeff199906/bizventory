@@ -68,13 +68,14 @@ import {
   PurchaseSchema,
   type PurchaseFormData,
   type CreatePurchaseData,
-  type PurchaseItem
+  type PurchaseItem,
+  Purchase
 } from '@/modules/purchases/schemas'
 import { ProductSelectorModal } from './product-selector-modal'
 import { toast } from 'react-toastify'
 import { ToastCustom } from '@/components/app/toast-custom'
 import { APP_URLS } from '@/config/app-urls'
-import { createPurchaseWithItems } from '@/apis/app'
+import { updatePurchaseWithItems } from '@/apis/app'
 import type { CombinedResult } from '@/apis/app/productc.variants.list'
 import { formatCurrencySoles } from '@/utils'
 
@@ -277,12 +278,14 @@ const EditItemDialog = ({
   )
 }
 
-interface NewPurchasePageProps {
+interface EditPurchasePageProps {
   businessId?: string
+  purchaseId: string
+  defaultPurchase?: Purchase // Tipo específico según tu estructura de compra
 }
 
-export const NewPurchasePage = (props: NewPurchasePageProps) => {
-  const { businessId } = props
+export const EditPurchasePage = (props: EditPurchasePageProps) => {
+  const { businessId, purchaseId, defaultPurchase } = props
   const [isLoading, setIsLoading] = useState(false)
   const [purchaseItems, setPurchaseItems] = useState<PurchaseItem[]>([])
   const [productModalOpen, setProductModalOpen] = useState(false)
@@ -293,6 +296,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
   const [expandedProducts, setExpandedProducts] = useState<Set<string>>(
     new Set()
   )
+  const [isInitialized, setIsInitialized] = useState(false)
 
   const router = useRouter()
   const { suppliers } = useSuppliers({ businessId })
@@ -322,12 +326,61 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
     }
   })
 
+  // Inicializar con datos por defecto
+  useEffect(() => {
+    if (defaultPurchase && !isInitialized) {
+      // Formatear fecha para input date
+      const purchaseDate = defaultPurchase.date
+        ? new Date(defaultPurchase.date).toISOString().split('T')[0]
+        : new Date().toISOString().split('T')[0]
+
+      // Establecer valores del formulario
+      form.reset({
+        date: purchaseDate,
+        business_id: businessId || defaultPurchase.business_id || '',
+        supplier_id: defaultPurchase.supplier_id || '',
+        guide_number: defaultPurchase.guide_number || '',
+        reference_number: defaultPurchase.reference_number || '',
+        subtotal: defaultPurchase.subtotal || 0,
+        discount: defaultPurchase.discount || 0,
+        tax_rate: defaultPurchase.tax_rate || 18,
+        tax_amount: defaultPurchase.tax_amount || 0,
+        total_amount: defaultPurchase.total_amount || 0,
+        status: defaultPurchase.status || 'draft',
+        payment_status: defaultPurchase.payment_status || 'pending',
+        notes: defaultPurchase.notes || '',
+        inventory_updated: defaultPurchase.inventory_updated || false,
+        items: defaultPurchase.items || []
+      })
+
+      // Establecer items de la compra
+      if (defaultPurchase.items && Array.isArray(defaultPurchase.items)) {
+        setPurchaseItems(
+          defaultPurchase.items.map((item) => ({
+            ...item,
+            _temp_id: item.id || `${item.product_id}-${Date.now()}`,
+            discount: item.discount || 0,
+            bar_code: item.bar_code || undefined,
+            id: item.id,
+            product_id: item.product_id,
+            product_variant_id: item.product_variant_id,
+            original_product_name: item.original_product_name || null,
+            original_variant_name: item.original_variant_name || null
+          }))
+        )
+      }
+
+      setIsInitialized(true)
+    }
+  }, [defaultPurchase, businessId, form, isInitialized])
+
   useEffect(() => {
     calculateTotals()
   }, [purchaseItems, form.watch('discount'), form.watch('tax_rate')])
 
   const calculateTotals = () => {
     const subtotal = purchaseItems.reduce((sum, item) => {
+      if (item.is_product_header) return sum // No contar cabeceras en el total
       const itemTotal = item.quantity * item.price - (item.discount || 0)
       return sum + itemTotal
     }, 0)
@@ -377,7 +430,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
           quantity: 0, // La cabecera no tiene cantidad
           price: 0, // La cabecera no tiene precio
           discount: 0,
-          purchase_id: null,
+          purchase_id: purchaseId,
           _temp_id: tempId,
           product: {
             id: product.id,
@@ -404,7 +457,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
         quantity: 1,
         price: 0,
         discount: 0,
-        purchase_id: null,
+        purchase_id: purchaseId,
         _temp_id: tempId,
         product: {
           id: product.id,
@@ -500,6 +553,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
     try {
       // Filtrar solo los items que no son cabeceras
       const validItems = purchaseItems.filter((item) => !item.is_product_header)
+      console.log('Valid items to submit:', validItems)
 
       const purchaseData: CreatePurchaseData = {
         ...data,
@@ -509,7 +563,9 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
         subtotal: form.getValues('subtotal')
       }
 
-      const response = await createPurchaseWithItems({
+      // Usar función de actualización en lugar de creación
+      const response = await updatePurchaseWithItems({
+        purchaseId,
         itemsData: validItems,
         purchaseData
       })
@@ -517,7 +573,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
       if (response.status === 'error') {
         toast.error(
           <ToastCustom
-            title="Error al registrar la compra"
+            title="Error al actualizar la compra"
             message={
               response.error || 'Ocurrió un error al procesar la compra.'
             }
@@ -526,8 +582,8 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
       } else {
         toast.success(
           <ToastCustom
-            title="Compra registrada"
-            message="La compra se ha registrado exitosamente."
+            title="Compra actualizada"
+            message="La compra se ha actualizado exitosamente."
           />
         )
         if (response.data) {
@@ -541,10 +597,10 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
       }
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : 'Error al registrar la compra'
+        error instanceof Error ? error.message : 'Error al actualizar la compra'
       toast.error(
         <ToastCustom
-          title="Error al registrar la compra"
+          title="Error al actualizar la compra"
           message={errorMessage}
         />
       )
@@ -572,35 +628,38 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
     }
   })
 
+  if (!isInitialized && defaultPurchase) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p>Cargando compra...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-white">
-      <div>
+      <div className="w-full max-w-6xl mx-auto p-6">
         {/* Indicaciones para el registro de compras */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <h3 className="font-semibold text-blue-800 mb-2">
-            Indicaciones para registrar una compra
+            Editando compra existente
           </h3>
           <ul className="list-disc pl-6 text-blue-900 space-y-1 text-sm">
             <li>
-              El <span className="font-medium">número de guía</span> debe
-              corresponder al documento de la compra (guía, boleta, factura,
-              etc).
+              Los cambios en productos y cantidades afectarán el inventario si
+              la compra está marcada como {`"Completada"`}.
             </li>
             <li>
-              El <span className="font-medium">estado de la compra</span>{' '}
-              controla si afecta el inventario: solo en estado{' '}
-              <span className="font-medium text-green-700">completada</span> se
-              actualiza el stock.
+              Al guardar los cambios, el sistema recalculará automáticamente los
+              totales.
             </li>
-            <li>
-              Los <span className="font-medium">productos con variantes</span>{' '}
-              aparecen como cabeceras. Haz clic para expandir y agregar
-              variantes específicas.
-            </li>
+            <li>Puedes agregar o eliminar productos según sea necesario.</li>
           </ul>
         </div>
-      </div>
-      <div className="w-full max-w-6xl mx-auto p-6">
+
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmitForm)}
@@ -790,9 +849,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                   <h2 className="text-xl font-semibold text-gray-900">
                     Productos
                   </h2>
-                  <p className="text-gray-600 mt-1">
-                    Agrega los productos de esta compra
-                  </p>
+                  <p className="text-gray-600 mt-1">Productos de esta compra</p>
                 </div>
                 <Button type="button" onClick={() => setProductModalOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
@@ -807,7 +864,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                       <TableRow className="bg-gray-50">
                         <TableHead className="w-8"></TableHead>
                         <TableHead>Producto</TableHead>
-                        <TableHead>Unidad</TableHead>
+                        {/* <TableHead>Unidad</TableHead> */}
                         <TableHead>Cantidad</TableHead>
                         <TableHead>Precio Unit.</TableHead>
                         <TableHead>Descuento</TableHead>
@@ -977,10 +1034,12 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                             <TableCell></TableCell>
                             <TableCell>
                               <p className="text-sm break-words whitespace-normal line-clamp-3 uppercase">
-                                {item.product?.brand || ''}{' '}
+                                {/* {item.product?.brand || ''}{' '}
                                 {item.product?.name && (
                                   <> {item.product.name}</>
-                                )}
+                                )} */}
+                                {item.original_product_name}{' '}
+                                {item.original_variant_name}
                               </p>
                               <p className="text-xs text-gray-500 break-words whitespace-normal line-clamp-2">
                                 {item.product?.description && (
@@ -988,7 +1047,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                                 )}
                               </p>
                             </TableCell>
-                            <TableCell>{item.product?.unit}</TableCell>
+                            {/* <TableCell>{item.product?.unit}</TableCell> */}
                             <TableCell className="font-medium">
                               {item.quantity}
                             </TableCell>
@@ -1167,7 +1226,9 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
 
             {/* Botones de acción */}
             <div className="flex justify-end gap-4 pt-8 border-t border-gray-200">
-              <Link href="/purchases">
+              <Link
+                href={APP_URLS.ORGANIZATION.PURCHASES.LIST(businessId || '')}
+              >
                 <Button type="button" variant="outline" size="lg">
                   Cancelar
                 </Button>
@@ -1185,12 +1246,12 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                 {isLoading ? (
                   <>
                     <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                    Registrando compra...
+                    Actualizando compra...
                   </>
                 ) : (
                   <>
                     <Save className="h-4 w-4 mr-2" />
-                    Registrar Compra
+                    Actualizar Compra
                   </>
                 )}
               </Button>
@@ -1216,16 +1277,22 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
         <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Confirmar compra</AlertDialogTitle>
+              <AlertDialogTitle>Confirmar actualización</AlertDialogTitle>
               <AlertDialogDescription>
-                ¿Estás seguro que deseas registrar esta compra por un total de
+                ¿Estás seguro que deseas actualizar esta compra por un total de
                 S/ {(form.watch('total_amount') || 0).toFixed(2)}?
+                {form.watch('status') === 'completed' && (
+                  <span className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                    <strong>Nota:</strong> Al estar en estado {`"Completada"`},
+                    los cambios afectarán el inventario.
+                  </span>
+                )}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancelar</AlertDialogCancel>
               <AlertDialogAction onClick={confirmPurchase}>
-                Confirmar
+                Confirmar Actualización
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
