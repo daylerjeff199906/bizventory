@@ -359,11 +359,10 @@ export const EditPurchasePage = (props: EditPurchasePageProps) => {
           defaultPurchase.items.map((item) => ({
             ...item,
             _temp_id: item.id || `${item.product_id}-${Date.now()}`,
-            // Asegurar que los campos opcionales estén definidos
             discount: item.discount || 0,
-            bar_code: item.bar_code || undefined
-            // is_product_header: item.is_product_header || false,
-            // has_variants: item.has_variants || false
+            bar_code: item.bar_code || undefined,
+            original_product_name: item.original_product_name || null,
+            original_variant_name: item.original_variant_name || null
           }))
         )
       }
@@ -861,7 +860,7 @@ export const EditPurchasePage = (props: EditPurchasePageProps) => {
                       <TableRow className="bg-gray-50">
                         <TableHead className="w-8"></TableHead>
                         <TableHead>Producto</TableHead>
-                        <TableHead>Unidad</TableHead>
+                        {/* <TableHead>Unidad</TableHead> */}
                         <TableHead>Cantidad</TableHead>
                         <TableHead>Precio Unit.</TableHead>
                         <TableHead>Descuento</TableHead>
@@ -1031,10 +1030,12 @@ export const EditPurchasePage = (props: EditPurchasePageProps) => {
                             <TableCell></TableCell>
                             <TableCell>
                               <p className="text-sm break-words whitespace-normal line-clamp-3 uppercase">
-                                {item.product?.brand || ''}{' '}
+                                {/* {item.product?.brand || ''}{' '}
                                 {item.product?.name && (
                                   <> {item.product.name}</>
-                                )}
+                                )} */}
+                                {item.original_product_name}{' '}
+                                {item.original_variant_name}
                               </p>
                               <p className="text-xs text-gray-500 break-words whitespace-normal line-clamp-2">
                                 {item.product?.description && (
@@ -1042,7 +1043,7 @@ export const EditPurchasePage = (props: EditPurchasePageProps) => {
                                 )}
                               </p>
                             </TableCell>
-                            <TableCell>{item.product?.unit}</TableCell>
+                            {/* <TableCell>{item.product?.unit}</TableCell> */}
                             <TableCell className="font-medium">
                               {item.quantity}
                             </TableCell>
