@@ -7,10 +7,8 @@ import {
   ArrowUp,
   ArrowDown,
   Edit,
-  MoreHorizontal,
   Loader2,
   PackageSearch,
-  PlusSquare,
   Trash,
   Eye
 } from 'lucide-react'
