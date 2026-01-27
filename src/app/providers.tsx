@@ -6,7 +6,7 @@ import 'react-toastify/dist/ReactToastify.css'
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <ThemeProvider attribute="class" enableSystem={true} defaultTheme="light">
+    <ThemeProvider attribute="class" enableSystem={true} defaultTheme="system">
       <ToastContainer theme="dark" position="bottom-right" />
       {children}
     </ThemeProvider>
