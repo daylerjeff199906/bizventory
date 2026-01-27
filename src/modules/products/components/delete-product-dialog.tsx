@@ -56,7 +56,7 @@ export function DeleteProductDialog({
             if (error instanceof Error) {
                 errorMessage = error.message
             } else if (typeof error === 'object' && error !== null && 'message' in error) {
-                errorMessage = String((error as any).message)
+                errorMessage = String((error as unknown as Error).message)
             }
 
             const isForeignKeyError = errorMessage.includes('inventory_movements') ||
