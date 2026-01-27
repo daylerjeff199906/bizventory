@@ -11,7 +11,8 @@ import {
   Loader2,
   PackageSearch,
   PlusSquare,
-  Trash
+  Trash,
+  Eye
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -24,16 +25,12 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
+
 import { Badge } from '@/components/ui/badge'
 import { ResApi, ProductDetails } from '@/types'
 import { APP_URLS } from '@/config/app-urls'
 import { cn } from '@/lib/utils'
+import { DeleteProductDialog } from '../components/delete-product-dialog'
 
 type SortField = 'name' | 'updated_at' | 'created_at' | 'price' | 'code'
 type SortDirection = 'asc' | 'desc'
@@ -62,6 +59,9 @@ export const ProductsList = ({
   const [sortDirection, setSortDirection] = useState<SortDirection>(
     (currentSort[1] as SortDirection) || 'asc'
   )
+
+  const [productToDelete, setProductToDelete] = useState<{ id: string, name: string } | null>(null)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('es-ES', {
@@ -104,10 +104,15 @@ export const ProductsList = ({
     )
   }
 
+  const confirmDelete = (product: ProductDetails) => {
+    setProductToDelete({ id: product.id, name: product.name })
+    setIsDeleteDialogOpen(true)
+  }
+
   return (
-    <div className="rounded-md border bg-white w-full">
+    <div className="rounded-md border w-full">
       <Table>
-        <TableHeader className="bg-muted">
+        <TableHeader className="">
           <TableRow>
             <TableHead className="w-[100px]">
               <Button
@@ -295,47 +300,49 @@ export const ProductsList = ({
                 </TableCell>
                 <TableCell>
                   <div className="flex justify-end items-center gap-2">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          className="h-8 w-8 p-0"
+                    <div className="flex justify-end items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+                        asChild
+                      >
+                        <Link
+                          href={APP_URLS.ORGANIZATION.PRODUCTS.CREATE_VARIANT(
+                            bussinessId,
+                            product.id
+                          )}
+                          title="Ver detalles"
                         >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild>
-                          <Link
-                            href={APP_URLS.ORGANIZATION.PRODUCTS.EDIT(
-                              bussinessId,
-                              product.id
-                            )}
-                            className="flex items-center"
-                          >
-                            <Edit className="h-4 w-4 mr-2" />
-                            Editar
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link
-                            href={APP_URLS.ORGANIZATION.PRODUCTS.CREATE_VARIANT(
-                              bussinessId,
-                              product.id
-                            )}
-                            className="flex items-center"
-                          >
-                            <PlusSquare className="h-4 w-4 mr-2" />
-                            Agregar variante
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600 focus:text-red-600">
-                          <Trash className="h-4 w-4 mr-2 text-red-600" />
-                          Eliminar
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                          <Eye className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-green-500 hover:text-green-700 hover:bg-green-50"
+                        asChild
+                      >
+                        <Link
+                          href={APP_URLS.ORGANIZATION.PRODUCTS.EDIT(
+                            bussinessId,
+                            product.id
+                          )}
+                          title="Editar producto"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => confirmDelete(product)}
+                        title="Eliminar producto"
+                      >
+                        <Trash className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </TableCell>
               </TableRow>
@@ -354,6 +361,19 @@ export const ProductsList = ({
             )}
         </div>
       )}
+
+      <DeleteProductDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => {
+          setIsDeleteDialogOpen(false)
+          setProductToDelete(null)
+        }}
+        productId={productToDelete?.id}
+        productName={productToDelete?.name || ''}
+        onSuccess={() => {
+          router.refresh()
+        }}
+      />
     </div>
   )
 }
