@@ -49,10 +49,16 @@ export function DeleteProductDialog({
 
             onSuccess?.()
             onClose()
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error al eliminar el producto:', error)
 
-            const errorMessage = error?.message || ''
+            let errorMessage = ''
+            if (error instanceof Error) {
+                errorMessage = error.message
+            } else if (typeof error === 'object' && error !== null && 'message' in error) {
+                errorMessage = String((error as any).message)
+            }
+
             const isForeignKeyError = errorMessage.includes('inventory_movements') ||
                 errorMessage.includes('violates foreign key constraint')
 
