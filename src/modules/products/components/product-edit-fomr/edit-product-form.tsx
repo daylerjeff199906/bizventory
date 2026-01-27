@@ -97,7 +97,7 @@ export const EditProductPage = (props: ProductFormProps) => {
       <div className="mb-4 flex justify-between items-center">
         <div className="flex items-center mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold">
               Editar Producto
             </h1>
             <p className=" uppercase">

@@ -97,14 +97,14 @@ export const SearchSelectPopover = ({
             role="combobox"
             size="sm"
             aria-expanded={open}
-            className="w-full justify-between flex gap-2 border rounded-md px-4 py-[18px] bg-white"
+            className="w-full justify-between flex gap-2 border rounded-md px-4 py-[18px]"
           >
             {selectedOption ? (
               <p className="text-sm font-medium truncate">
                 {selectedOption.name}
               </p>
             ) : (
-              <div className="text-sm text-gray-500">{placeholder}</div>
+              <div className="text-sm uppercase">{placeholder}</div>
             )}
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
@@ -123,7 +123,7 @@ export const SearchSelectPopover = ({
             <CommandList>
               {isLoading ? (
                 <div className="flex items-center justify-center py-4">
-                  <span className="text-sm font-medium text-gray-500">
+                  <span className="text-sm font-medium uppercase">
                     {loadingText}
                   </span>
                 </div>

@@ -80,12 +80,14 @@ async function getSupabase() {
  * @returns Promise<Sale[]>
  */
 export async function getSales({
+  businessId,
   filters,
   sortBy = 'date',
   sortDirection = 'desc',
   page,
   pageSize
 }: {
+  businessId?: string
   page?: number
   pageSize?: number
   filters?: Partial<Sale>
@@ -117,6 +119,7 @@ export async function getSales({
     .from('sales')
     // .select('*, customer:customers(*)')
     .select('*')
+    .eq('business_id', businessId)
     .range(from, to)
     .order(sortColumn, { ascending: sortDirection === 'asc' })
 

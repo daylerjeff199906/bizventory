@@ -18,7 +18,7 @@ export default async function Layout(props: LayoutProps) {
 
   return (
     <LayoutWrapper sectionTitle="Gestión de Productos">
-      <div className="flex flex-col gap-4  bg-white dark:bg-gray-800">
+      <div className="flex flex-col gap-4">
         <PageHeader
           title="Lista de Productos"
           description="Aquí puedes ver y gestionar todos los productos disponibles."

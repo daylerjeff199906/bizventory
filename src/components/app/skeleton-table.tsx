@@ -25,7 +25,7 @@ export const SkeletonTable = ({
           {Array.from({ length: rows }).map((_, rowIdx) => (
             <tr
               key={rowIdx}
-              className={rowIdx % 2 === 0 ? 'bg-white' : 'bg-muted'}
+              className={rowIdx % 2 === 0 ? '' : ''}
             >
               {Array.from({ length: columns }).map((_, colIdx) => (
                 <td key={colIdx} className="p-3">

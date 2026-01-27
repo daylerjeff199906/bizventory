@@ -187,9 +187,8 @@ export const CreateVariantForm = ({
         toast.error(
           <ToastCustom
             title="Error al crear variantes"
-            message={`${
-              response.error || 'Ocurrió un error al crear las variantes.'
-            }`}
+            message={`${response.error || 'Ocurrió un error al crear las variantes.'
+              }`}
           />
         )
         return
@@ -249,9 +248,8 @@ export const CreateVariantForm = ({
         toast.error(
           <ToastCustom
             title="Error al actualizar variantes"
-            message={`${
-              response.error || 'Ocurrió un error al actualizar las variantes.'
-            }`}
+            message={`${response.error || 'Ocurrió un error al actualizar las variantes.'
+              }`}
           />
         )
         return
@@ -278,16 +276,16 @@ export const CreateVariantForm = ({
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen">
       <div className="w-full max-w-5xl p-6">
         {/* Encabezado de la página */}
         <div className="mb-4 flex justify-between items-center">
           <div className="flex items-center mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-2xl font-bold">
                 Crear variantes
               </h1>
-              <p className="text-gray-600">
+              <p className="uppercase">
                 Producto: {productName} ({productCode})
               </p>
             </div>
@@ -418,7 +416,7 @@ export const CreateVariantForm = ({
               >
                 {fields.length > 0 && (
                   <div className="mb-2">
-                    <h3 className="text-sm font-semibold text-gray-900 mb-2">
+                    <h3 className="text-sm font-semibold mb-2">
                       Variantes del producto ({fields.length})
                     </h3>
                     <div className="space-y-2">

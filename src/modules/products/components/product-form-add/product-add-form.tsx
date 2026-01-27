@@ -151,7 +151,7 @@ export const NewProductForm = () => {
   }))
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen">
       <div className="w-full max-w-4xl mx-auto p-6">
         <Form {...form}>
           <form
@@ -161,10 +161,10 @@ export const NewProductForm = () => {
             {/* Información básica */}
             <section className="space-y-6">
               <div className="border-b border-gray-200 pb-4">
-                <h2 className="text-xl font-semibold text-gray-900">
+                <h2 className="text-xl font-semibold">
                   Información básica
                 </h2>
-                <p className="text-gray-600 mt-1">
+                <p className="uppercase mt-1">
                   Datos principales del producto
                 </p>
               </div>
@@ -326,7 +326,11 @@ export const NewProductForm = () => {
 
             {/* Botones de acción */}
             <div className="flex justify-end gap-4 pt-8 border-t border-gray-200">
-              <Link href={APP_URLS.PRODUCTS.LIST}>
+              <Link
+                href={APP_URLS.ORGANIZATION.PRODUCTS.LIST(
+                  params.uuid?.toString() || ''
+                )}
+              >
                 <Button type="button" variant="outline" size="lg">
                   Cancelar
                 </Button>

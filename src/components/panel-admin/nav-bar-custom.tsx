@@ -7,7 +7,7 @@ import { SectionElement, IMoreApp } from './sidebar'
 import { MENU_PROFILE } from './profile-menu'
 import { ProfilePopover } from './profile-popover'
 // import { SearchBar } from '../miscellaneous/search-bar'
-import { ModeToggle } from './mode-toggle'
+import { ModeToggle } from '@/components/mode-toggle'
 
 interface NavBarCustomProps {
   moreApps?: Array<IMoreApp>

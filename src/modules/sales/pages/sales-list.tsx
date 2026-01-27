@@ -40,11 +40,16 @@ type SortField =
 type SortDirection = 'asc' | 'desc'
 
 interface SalesListProps {
+  businessId: string
   salesData: ResApi<SaleList>
   searchQuery?: string
 }
 
-export const SalesList = ({ salesData, searchQuery = '' }: SalesListProps) => {
+export const SalesList = ({
+  salesData,
+  searchQuery = '',
+  businessId
+}: SalesListProps) => {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -299,7 +304,12 @@ export const SalesList = ({ salesData, searchQuery = '' }: SalesListProps) => {
                     size="sm"
                     className="h-8 w-8 p-0"
                   >
-                    <Link href={APP_URLS.SALES.VIEW(sale.id)}>
+                    <Link
+                      href={APP_URLS.ORGANIZATION.SALES.VIEW(
+                        businessId,
+                        sale.id
+                      )}
+                    >
                       <Eye className="h-4 w-4" />
                     </Link>
                   </Button>
