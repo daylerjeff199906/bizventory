@@ -35,6 +35,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from '@/components/ui/card'
 
 import {
   productVariantsSchema,
@@ -346,68 +353,58 @@ export const CreateVariantForm = ({
         {variantCreated && (
           <>
             {/* Configuración inicial */}
-            <div className="mb-6 p-3 bg-gray-50 rounded-lg">
-              <h3 className="text-sm font-semibold mb-3">
-                Configuración inicial
-              </h3>
-
-              {/* Atributos comunes */}
-              <div className="mb-3">
-                <label className="text-xs font-medium mb-2 block">
-                  Atributos comunes para todas las variantes:
-                </label>
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                  {Object.entries(ATTRIBUTE_TYPES).map(([key, label]) => (
-                    <div key={key} className="flex items-center space-x-1">
-                      <Checkbox
-                        id={key}
-                        checked={commonAttributes.includes(key)}
-                        onCheckedChange={(checked) =>
-                          handleCommonAttributeChange(key, checked as boolean)
-                        }
-                        className="h-3 w-3"
-                      />
-                      <label htmlFor={key} className="text-xs cursor-pointer">
-                        {label}
-                      </label>
-                    </div>
-                  ))}
+            {/* Configuración inicial */}
+            <Card className="mb-6">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Configuración inicial</CardTitle>
+                <CardDescription>Define los atributos base para las nuevas variantes</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {/* Atributos comunes */}
+                <div className="mb-6">
+                  <label className="text-sm font-medium mb-3 block text-foreground">
+                    Atributos comunes para todas las variantes:
+                  </label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                    {Object.entries(ATTRIBUTE_TYPES).map(([key, label]) => (
+                      <div key={key} className="flex items-center space-x-2 border rounded-md p-2 hover:bg-muted/50 transition-colors">
+                        <Checkbox
+                          id={key}
+                          checked={commonAttributes.includes(key)}
+                          onCheckedChange={(checked) =>
+                            handleCommonAttributeChange(key, checked as boolean)
+                          }
+                        />
+                        <label htmlFor={key} className="text-sm cursor-pointer select-none flex-1">
+                          {label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* Configuración de código */}
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="manual-code"
-                  checked={enableManualCode}
-                  // onCheckedChange={setEnableManualCode}
-                  onCheckedChange={(checked) => {
-                    setEnableManualCode(checked as boolean)
-                    if (checked) {
-                      // Si se habilita la edición manual, generar un nuevo código
-                      const newVariants = form
-                        .getValues()
-                        .variants.map((v) => ({
-                          ...v
-                        }))
-                      form.setValue('variants', newVariants)
-                    } else {
-                      // Si se deshabilita, regenerar códigos automáticos
-                      const newVariants = form
-                        .getValues()
-                        .variants.map((v) => ({
-                          ...v
-                        }))
-                      form.setValue('variants', newVariants)
-                    }
-                  }}
-                  className="h-3 w-3"
-                />
-                <label htmlFor="manual-code" className="text-xs cursor-pointer">
-                  Permitir edición manual de códigos
-                </label>
-              </div>
-            </div>
+                {/* Configuración de código */}
+                <div className="flex items-center space-x-2 p-2 rounded-md bg-muted/40 w-fit">
+                  <Checkbox
+                    id="manual-code"
+                    checked={enableManualCode}
+                    onCheckedChange={(checked) => {
+                      setEnableManualCode(checked as boolean)
+                      if (checked) {
+                        const newVariants = form.getValues().variants.map((v) => ({ ...v }))
+                        form.setValue('variants', newVariants)
+                      } else {
+                        const newVariants = form.getValues().variants.map((v) => ({ ...v }))
+                        form.setValue('variants', newVariants)
+                      }
+                    }}
+                  />
+                  <label htmlFor="manual-code" className="text-sm cursor-pointer font-medium">
+                    Permitir edición manual de códigos
+                  </label>
+                </div>
+              </CardContent>
+            </Card>
 
             <Form {...form}>
               <form
@@ -447,7 +444,7 @@ export const CreateVariantForm = ({
                 </div>
 
                 {/* Botones de acción */}
-                <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                <div className="flex justify-end gap-3 pt-6 border-t">
                   <Button
                     type="button"
                     variant="outline"
@@ -566,31 +563,31 @@ const VariantCard = ({
   })
 
   return (
-    <div className="border rounded overflow-hidden bg-white">
-      <div className="bg-gray-50 px-2 py-1 border-b flex justify-between items-center">
-        <span className="font-medium text-xs">Variante #{index + 1}</span>
+    <Card className="overflow-hidden border-l-4 border-l-primary/60">
+      <div className="px-4 py-3 border-b flex justify-between items-center bg-muted/40">
+        <span className="font-semibold text-sm">Variante #{index + 1}</span>
         {canRemove && (
           <Button
             type="button"
             variant="ghost"
             size="sm"
             onClick={onRemove}
-            className="text-red-500 hover:text-red-700 h-5 w-5 p-0"
+            className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 w-8 p-0"
           >
-            <Trash2 className="h-2 w-2" />
+            <Trash2 className="h-4 w-4" />
           </Button>
         )}
       </div>
-      <div className="p-2 space-y-2">
+      <CardContent className="p-4 space-y-4">
         {/* Información básica */}
         <FormField
           control={form.control}
           name={`variants.${index}.name`}
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-xs font-medium">Nombre *</FormLabel>
+              <FormLabel className="text-sm font-medium">Nombre *</FormLabel>
               <FormControl>
-                <Input placeholder="Nombre de la variante" {...field} />
+                <Input placeholder="Nombre de la variante" {...field} className="bg-background" />
               </FormControl>
               <FormMessage className="text-xs" />
             </FormItem>
@@ -599,26 +596,26 @@ const VariantCard = ({
 
         {/* Atributos comunes */}
         {commonAttrs.length > 0 && (
-          <div className="space-y-1">
-            <FormLabel className="text-xs font-medium text-blue-700">
-              Atributos comunes:
+          <div className="space-y-2">
+            <FormLabel className="text-xs font-medium text-primary uppercase tracking-wider">
+              Atributos comunes
             </FormLabel>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-3 bg-muted/30 rounded-lg border border-dashed">
               {commonAttrs.map((attrField) => {
                 const actualIndex = attributeFields.findIndex(
                   (f) => f.id === attrField.id
                 )
                 return (
-                  <div key={attrField.id} className="flex gap-1 items-center">
+                  <div key={attrField.id} className="flex gap-2 items-start">
                     <FormField
                       control={form.control}
                       name={`variants.${index}.attributes.${actualIndex}.attribute_type`}
                       render={({ field }) => (
-                        <FormItem className="flex-1">
+                        <FormItem className="w-1/3">
                           <FormControl>
                             <Input
                               placeholder="Tipo"
-                              className="bg-blue-50"
+                              className="bg-muted text-muted-foreground border-transparent"
                               {...field}
                               readOnly
                               value={
@@ -638,8 +635,8 @@ const VariantCard = ({
                           <FormControl>
                             <Input
                               placeholder="Valor"
-                              // className="text-xs h-5"
                               {...field}
+                              className="bg-background"
                             />
                           </FormControl>
                         </FormItem>
@@ -653,41 +650,42 @@ const VariantCard = ({
         )}
 
         {/* Atributos adicionales */}
-        <div className="space-y-1">
-          <div className="flex justify-between items-center">
-            <FormLabel className="text-xs font-medium">
-              Atributos adicionales:
+        <div className="space-y-3">
+          <div className="flex justify-between items-center border-b pb-2">
+            <FormLabel className="text-sm font-medium">
+              Atributos adicionales
             </FormLabel>
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={addAttribute}
+              className="h-8"
             >
-              <Plus className="h-2 w-2 mr-0.5" />
-              Agregar
+              <Plus className="h-3 w-3 mr-1" />
+              Agregar atributo
             </Button>
           </div>
 
-          {additionalAttrs.length > 0 && (
-            <div className="space-y-1">
+          {additionalAttrs.length > 0 ? (
+            <div className="space-y-3">
               {additionalAttrs.map((attrField) => {
                 const actualIndex = attributeFields.findIndex(
                   (f) => f.id === attrField.id
                 )
                 return (
-                  <div key={attrField.id} className="flex gap-1 items-center">
+                  <div key={attrField.id} className="flex gap-2 items-center">
                     <FormField
                       control={form.control}
                       name={`variants.${index}.attributes.${actualIndex}.attribute_type`}
                       render={({ field }) => (
-                        <FormItem className="flex-1">
+                        <FormItem className="w-1/3">
                           <FormControl>
                             <Select
                               onValueChange={field.onChange}
                               value={field.value}
                             >
-                              <SelectTrigger className="h-5 text-xs w-full">
+                              <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Tipo" />
                               </SelectTrigger>
                               <SelectContent>
@@ -713,7 +711,6 @@ const VariantCard = ({
                           <FormControl>
                             <Input
                               placeholder="Valor"
-                              // className="text-xs"
                               {...field}
                             />
                           </FormControl>
@@ -724,25 +721,23 @@ const VariantCard = ({
                     <Button
                       type="button"
                       variant="ghost"
-                      size="sm"
+                      size="icon"
                       onClick={() => removeAttribute(actualIndex)}
-                      className="text-red-500 hover:text-red-700 h-5 w-5 p-0"
+                      className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                     >
-                      <X className="h-2 w-2" />
+                      <X className="h-4 w-4" />
                     </Button>
                   </div>
                 )
               })}
             </div>
-          )}
-
-          {additionalAttrs.length === 0 && (
-            <p className="text-xs text-gray-500 italic">
-              Sin atributos adicionales
-            </p>
+          ) : (
+            <div className="text-center py-4 bg-muted/20 rounded-lg border border-dashed text-muted-foreground">
+              <span className="text-xs">No hay atributos adicionales configurados</span>
+            </div>
           )}
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }
