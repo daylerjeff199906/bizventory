@@ -109,9 +109,9 @@ export const PurchasesList = ({
   }
 
   return (
-    <div className="rounded-md border bg-white w-full overflow-x-auto">
+    <div className="rounded-md border w-full overflow-x-auto">
       <Table>
-        <TableHeader className="bg-muted">
+        <TableHeader>
           <TableRow>
             <TableHead className="w-[100px]">
               <Button
@@ -216,10 +216,10 @@ export const PurchasesList = ({
                   <div className="text-sm">
                     {purchase.date
                       ? formatDate(
-                          purchase.date instanceof Date
-                            ? purchase.date.toISOString()
-                            : purchase.date
-                        )
+                        purchase.date instanceof Date
+                          ? purchase.date.toISOString()
+                          : purchase.date
+                      )
                       : 'N/A'}
                   </div>
                 </TableCell>
@@ -274,10 +274,10 @@ export const PurchasesList = ({
                     <span className="text-sm">
                       {purchase.created_at
                         ? formatDate(
-                            purchase.created_at instanceof Date
-                              ? purchase.created_at.toISOString()
-                              : purchase.created_at
-                          )
+                          purchase.created_at instanceof Date
+                            ? purchase.created_at.toISOString()
+                            : purchase.created_at
+                        )
                         : 'N/A'}
                     </span>
                     {purchase.created_at && (
