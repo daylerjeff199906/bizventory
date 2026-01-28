@@ -13,6 +13,10 @@ export default async function Page(props: Props) {
 
   const uuid = params.uuid
   const sortBy = searchParams.sortBy
+  const page = Number(searchParams.page) || 1
+  const limit = Number(searchParams.limit) || 10
+  const qParam = searchParams.q
+  const searchQuery = Array.isArray(qParam) ? qParam[0] : qParam || ''
 
   let sortField: string | undefined
   let sortOrder: 'asc' | 'desc' | undefined
@@ -26,7 +30,10 @@ export default async function Page(props: Props) {
   const purchases = await getPurchases({
     sortBy: sortField ?? 'id',
     sortDirection: sortOrder ?? 'asc',
-    bussinessId: uuid?.toString() || ''
+    bussinessId: uuid?.toString() || '',
+    page,
+    pageSize: limit,
+    filters: searchQuery ? { code: searchQuery } : undefined // Basic filter example
   })
 
   return (
@@ -34,6 +41,13 @@ export default async function Page(props: Props) {
       <PurchasesList
         businessId={uuid?.toString() || ''}
         purchasesData={purchases.data}
+        meta={{
+          total: purchases.total,
+          total_pages: purchases.total_pages,
+          page: purchases.page,
+          page_size: purchases.page_size
+        }}
+        searchQuery={searchQuery}
       />
     </>
   )

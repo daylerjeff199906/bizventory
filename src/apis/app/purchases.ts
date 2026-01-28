@@ -60,12 +60,12 @@ export async function getPurchases({
   const sortColumn = validSortColumns.includes(sortBy) ? sortBy : 'created_at'
 
   let query = supabase
-    .from('purchases')  
-  .select(`
+    .from('purchases')
+    .select(`
   *,
   supplier:suppliers!inner(*)
-  `)
-.eq('suppliers.business_id', bussinessId)
+  `, { count: 'exact' })
+    .eq('suppliers.business_id', bussinessId)
     .range(from, to)
     .order(sortColumn, { ascending: sortDirection === 'asc' })
 
@@ -90,14 +90,14 @@ export async function getPurchases({
 
   query = query.order(sortColumn, { ascending: sortDirection === 'asc' })
 
-  const { data, error } = await query
+  const { data, error, count } = await query
   if (error) throw error
   return {
     data: data || [],
-    page: 1,
-    page_size: data ? data.length : 0,
-    total: data ? data.length : 0,
-    total_pages: 1
+    page: currentPage,
+    page_size: currentPageSize,
+    total: count || 0,
+    total_pages: Math.ceil((count || 0) / currentPageSize)
   }
 }
 
@@ -151,20 +151,20 @@ export async function getPurchaseById(
     itemsData?.map((item) => {
       const baseProduct = item.product
         ? {
-            ...item.product,
-            brand: item.product.brand || null,
-            images: item.product.images || null
-          }
+          ...item.product,
+          brand: item.product.brand || null,
+          images: item.product.images || null
+        }
         : null
 
       const variantData = item.variant
         ? {
-            variant_id: item.variant.id,
-            variant_name: item.variant.name,
-            variant_description: item.variant.description,
-            variant_code: item.variant.code,
-            attributes: item.variant.attributes
-          }
+          variant_id: item.variant.id,
+          variant_name: item.variant.name,
+          variant_description: item.variant.description,
+          variant_code: item.variant.code,
+          attributes: item.variant.attributes
+        }
         : {}
 
       return {

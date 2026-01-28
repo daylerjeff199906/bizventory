@@ -88,9 +88,9 @@ export default function PurchaseInvoice(props: PurchaseInvoiceProps) {
   return (
     <div className="container mx-auto p-4 max-w-6xl">
       {/* Alert informativo */}
-      <Alert className="mb-6 bg-blue-50 border-blue-200">
-        <Info className="h-4 w-4 text-blue-600" />
-        <AlertDescription className="text-blue-700">
+      <Alert className="mb-6 bg-blue-50 dark:bg-blue-900 border-blue-200 dark:border-blue-800">
+        <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+        <AlertDescription className="text-blue-700 dark:text-blue-200">
           Este documento incluye toda la información de la compra: datos del
           proveedor, detalle de productos con precios y descuentos, y totales
           calculados.
@@ -101,7 +101,7 @@ export default function PurchaseInvoice(props: PurchaseInvoiceProps) {
       <Card className="mb-6 rounded-md border sticky top-20 shadow-lg">
         <CardContent>
           <div className="flex flex-col md:flex-row md:justify-end gap-2">
-            <p className="text-sm text-gray-600 mr-auto">
+            <p className="text-sm text-foreground mr-auto">
               Generar PDF de la compra para impresión o envío por correo.
             </p>
             <PurchasePDFGenerator purchase={purchase} items={items} />
@@ -116,9 +116,7 @@ export default function PurchaseInvoice(props: PurchaseInvoiceProps) {
         </CardHeader>
         <CardContent>
           <div className="mb-4 flex flex-col gap-2">
-            <Label className="text-sm font-medium text-gray-500">
-              Estado de la Compra
-            </Label>
+            <Label className="text-sm font-medium">Estado de la Compra</Label>
             <div className="flex gap-2">
               <Badge
                 variant={
@@ -129,10 +127,10 @@ export default function PurchaseInvoice(props: PurchaseInvoiceProps) {
                 {purchase.status === 'completed'
                   ? 'Completado'
                   : purchase.status === 'pending'
-                  ? 'Pendiente'
-                  : purchase.status === 'cancelled'
-                  ? 'Cancelado'
-                  : 'No especificado'}
+                    ? 'Pendiente'
+                    : purchase.status === 'cancelled'
+                      ? 'Cancelado'
+                      : 'No especificado'}
               </Badge>
               <Badge
                 variant={
@@ -143,42 +141,38 @@ export default function PurchaseInvoice(props: PurchaseInvoiceProps) {
                 {purchase.payment_status === 'paid'
                   ? 'Pagado'
                   : purchase.payment_status === 'pending'
-                  ? 'Pendiente'
-                  : purchase.payment_status === 'partially_paid'
-                  ? 'Pago Parcial'
-                  : purchase.payment_status === 'cancelled'
-                  ? 'Cancelado'
-                  : 'No especificado'}
+                    ? 'Pendiente'
+                    : purchase.payment_status === 'partially_paid'
+                      ? 'Pago Parcial'
+                      : purchase.payment_status === 'cancelled'
+                        ? 'Cancelado'
+                        : 'No especificado'}
               </Badge>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-500">
+              <label className="text-sm font-medium">
                 Código de Compra
               </label>
-              <p className="font-semibold text-gray-900">
+              <p className="font-semibold">
                 {purchase.code || 'No asignado'}
               </p>
             </div>
             <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-500">
-                Fecha de Compra
-              </label>
-              <p className="font-semibold text-gray-900">
+              <label className="text-sm font-medium">Fecha de Compra</label>
+              <p className="font-semibold ">
                 {formatDate(purchase.date)}
               </p>
             </div>
             <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-500">
-                Guía N°
-              </label>
-              <p className="font-semibold text-gray-900">
+              <label className="text-sm font-medium">Guía N°</label>
+              <p className="font-semibold ">
                 {purchase.guide_number || 'No especificada'}
               </p>
             </div>
             <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-500">Total</label>
+              <label className="text-sm font-medium">Total</label>
               <p className="text-lg font-bold text-green-600">
                 {formatCurrency(
                   purchase.total_amount,
@@ -191,13 +185,13 @@ export default function PurchaseInvoice(props: PurchaseInvoiceProps) {
           {/* Información del proveedor */}
           {purchase.supplier && (
             <div className="mt-6 pt-4 border-t">
-              <h3 className="font-semibold text-gray-900 mb-3">
+              <h3 className="font-semibold  mb-3">
                 Información del Proveedor
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <div>
-                    <p className="font-medium text-gray-900">
+                    <p className="font-medium ">
                       {purchase.supplier.name}
                     </p>
                     <p className="text-gray-600 text-sm">
@@ -267,14 +261,14 @@ export default function PurchaseInvoice(props: PurchaseInvoiceProps) {
                   {items.map((item, index) => (
                     <TableRow
                       key={item.id || index}
-                      className="hover:bg-gray-50"
+                      className="hover:bg-gray-50 dark:hover:bg-gray-800"
                     >
                       <TableCell className="font-mono text-sm">
                         {item.code || 'N/A'}
                       </TableCell>
                       <TableCell>
                         <div className="min-w-0">
-                          <p className="text-sm font-medium text-gray-900 break-words whitespace-normal max-w-full">
+                          <p className="text-sm font-medium  break-words whitespace-normal max-w-full">
                             {getProductDescription(item)}
                           </p>
                         </div>
@@ -301,7 +295,7 @@ export default function PurchaseInvoice(props: PurchaseInvoiceProps) {
                           <span className="text-gray-400">-</span>
                         )}
                       </TableCell>
-                      <TableCell className="text-right font-semibold text-gray-900">
+                      <TableCell className="text-right font-semibold ">
                         {formatCurrency(
                           calculateItemTotal(item),
                           purchase.supplier?.currency
@@ -313,7 +307,7 @@ export default function PurchaseInvoice(props: PurchaseInvoiceProps) {
               </Table>
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8">
               <p>No hay productos en esta compra</p>
             </div>
           )}
@@ -364,7 +358,7 @@ export default function PurchaseInvoice(props: PurchaseInvoiceProps) {
                   )}
 
                   <div className="flex justify-between text-lg font-semibold border-t pt-3">
-                    <span className="text-gray-900">Total a Pagar:</span>
+                    <span className="">Total a Pagar:</span>
                     <span className="text-green-600">
                       {formatCurrency(
                         purchase.total_amount,

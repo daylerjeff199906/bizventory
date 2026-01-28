@@ -12,9 +12,7 @@ export default async function Layout(props: LayoutProps) {
   const { children } = props
   const params = await props.params
   const uuid = params.uuid
-  const purchase_id = params.purchase_id
-
-  const title = purchase_id ? `Editar Compra` : 'Detalles de Compra'
+  const title = 'Detalles de Compra'
 
   return (
     <LayoutWrapper>
