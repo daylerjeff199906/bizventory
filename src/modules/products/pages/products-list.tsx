@@ -275,23 +275,23 @@ export const ProductsList = ({
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-col">
-                    <span className="text-sm">
+                    <span className="text-sm" suppressHydrationWarning>
                       {formatDate(product.created_at)}
                     </span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-muted-foreground" suppressHydrationWarning>
                       {formatTime(product.created_at)}
                     </span>
                   </div>
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-col">
-                    <span className="text-sm">
+                    <span className="text-sm" suppressHydrationWarning>
                       {product.updated_at
                         ? formatDate(product.updated_at)
                         : 'N/A'}
                     </span>
                     {product.updated_at && (
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs text-muted-foreground" suppressHydrationWarning>
                         {formatTime(product.updated_at)}
                       </span>
                     )}
