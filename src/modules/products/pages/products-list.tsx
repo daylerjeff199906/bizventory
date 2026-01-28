@@ -10,7 +10,8 @@ import {
   Loader2,
   PackageSearch,
   Trash,
-  Eye
+  Eye,
+  PlusSquare
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -274,23 +275,23 @@ export const ProductsList = ({
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-col">
-                    <span className="text-sm">
+                    <span className="text-sm" suppressHydrationWarning>
                       {formatDate(product.created_at)}
                     </span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-muted-foreground" suppressHydrationWarning>
                       {formatTime(product.created_at)}
                     </span>
                   </div>
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-col">
-                    <span className="text-sm">
+                    <span className="text-sm" suppressHydrationWarning>
                       {product.updated_at
                         ? formatDate(product.updated_at)
                         : 'N/A'}
                     </span>
                     {product.updated_at && (
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs text-muted-foreground" suppressHydrationWarning>
                         {formatTime(product.updated_at)}
                       </span>
                     )}
@@ -299,22 +300,6 @@ export const ProductsList = ({
                 <TableCell>
                   <div className="flex justify-end items-center gap-2">
                     <div className="flex justify-end items-center gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-blue-500 hover:text-blue-700 hover:bg-blue-50"
-                        asChild
-                      >
-                        <Link
-                          href={APP_URLS.ORGANIZATION.PRODUCTS.CREATE_VARIANT(
-                            bussinessId,
-                            product.id
-                          )}
-                          title="Ver detalles"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Link>
-                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -329,6 +314,22 @@ export const ProductsList = ({
                           title="Editar producto"
                         >
                           <Edit className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+                        asChild
+                      >
+                        <Link
+                          href={APP_URLS.ORGANIZATION.PRODUCTS.CREATE_VARIANT(
+                            bussinessId,
+                            product.id
+                          )}
+                          title="Ver detalles"
+                        >
+                          <PlusSquare className="h-4 w-4" />
                         </Link>
                       </Button>
                       <Button

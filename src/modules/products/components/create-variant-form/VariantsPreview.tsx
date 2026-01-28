@@ -23,6 +23,12 @@ import {
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
 import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle
+} from '@/components/ui/card'
+import {
   ATTRIBUTE_TYPES,
   type AttributeType,
   type ProductVariantsData
@@ -185,24 +191,24 @@ export const VariantsPreview = ({
       </div>
 
       {!isLoading && (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {localVariants.map((variant, index) => (
-            <div
+            <Card
               key={index}
-              className="bg-white border border-gray-200 rounded-lg px-4 py-3 transition-all duration-200 group"
+              className="transition-all duration-200 group hover:border-primary/50 overflow-hidden"
             >
               {/* Header de la variante */}
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-start gap-3 flex-1">
+              <div className="flex items-start justify-between p-4 pb-2 border-b bg-muted/20">
+                <div className="flex items-center gap-3 flex-1">
                   <div className="flex-shrink-0">
-                    <span className="text-sm font-semibold text-gray-600">
+                    <Badge variant="outline" className="bg-background">
                       #{index + 1}
-                    </span>
+                    </Badge>
                   </div>
                   <div className="flex-1 min-w-0">
                     {editing.variantIndex === index &&
-                    editing.field === 'name' ? (
-                      <div className="flex items-center gap-1">
+                      editing.field === 'name' ? (
+                      <div className="flex items-center gap-2">
                         <Input
                           value={editValue}
                           onChange={(e) => setEditValue(e.target.value)}
@@ -215,78 +221,77 @@ export const VariantsPreview = ({
                           }}
                         />
                         <Button
-                          size="sm"
+                          size="icon"
+                          className="h-8 w-8"
                           onClick={saveEdit}
-                          className="h-8 w-8 p-0"
                         >
-                          <Check className="h-3 w-3" />
+                          <Check className="h-4 w-4" />
                         </Button>
                         <Button
-                          size="sm"
-                          variant="outline"
+                          size="icon"
+                          variant="ghost"
                           onClick={cancelEdit}
-                          className="h-8 w-8 p-0"
+                          className="h-8 w-8"
                         >
-                          <X className="h-3 w-3" />
+                          <X className="h-4 w-4" />
                         </Button>
                       </div>
                     ) : (
-                      <div>
-                        <h4 className="text-sm font-bold text-gray-900 leading-tight mb-1">
-                          {productName.toUpperCase()}{' '}
-                          {(
+                      <div className="flex items-center gap-2 group/title">
+                        <h4 className="text-sm font-semibold leading-tight">
+                          {productName} - {(
                             variant.name || `VARIANTE ${index + 1}`
-                          ).toUpperCase()}
+                          )}
                         </h4>
+                        {!(
+                          editing.variantIndex === index && editing.field === 'name'
+                        ) && (
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => startEdit(index, 'name')}
+                              className="h-6 w-6 opacity-0 group-hover/title:opacity-100 transition-opacity"
+                            >
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                          )}
                       </div>
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-2">
                   {hasChanges && (
-                    <Badge variant="secondary" className="text-xs mr-2">
+                    <Badge variant="secondary" className="text-xs">
                       Modificado
                     </Badge>
                   )}
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    {!(
-                      editing.variantIndex === index && editing.field === 'name'
-                    ) && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => startEdit(index, 'name')}
-                        className="h-7 w-7 p-0 hover:bg-gray-100 cursor-pointer"
-                      >
-                        <Edit className="h-3 w-3" />
-                      </Button>
-                    )}
+                  <div className="flex gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
-                      size="sm"
+                      size="icon"
                       variant="ghost"
                       onClick={() =>
                         setDeleteState({ type: 'variant', variantIndex: index })
                       }
-                      className="h-7 w-7 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 cursor-pointer"
+                      className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                     >
-                      <Trash2 className="h-3 w-3" />
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
               </div>
 
               {/* Atributos */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs font-medium text-gray-700">
-                    Atributos:
+              <CardContent className="p-4 pt-3">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Atributos
                   </p>
                   {editing.variantIndex !== index && (
                     <Button
                       size="sm"
-                      variant="outline"
+                      variant="ghost"
                       onClick={() => startEdit(index, 'new-attribute')}
-                      className="h-6 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="h-7 text-xs hover:bg-muted"
                     >
                       <Plus className="h-3 w-3 mr-1" />
                       Agregar
@@ -295,92 +300,92 @@ export const VariantsPreview = ({
                 </div>
 
                 {/* Lista de atributos existentes */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3  gap-2 mb-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-2">
                   {variant.attributes.map((attr, attrIndex) => (
-                    <div key={attrIndex} className="relative group/attr">
-                      <div className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded-md">
-                        <span className="text-xs font-semibold text-gray-500">
-                          {attrIndex + 1}.
+                    <div key={attrIndex} className="relative group/attr bg-muted/30 rounded-md border border-transparent hover:border-border transition-colors">
+                      <div className="flex items-center gap-2 px-3 py-2">
+                        <span className="text-xs font-mono text-muted-foreground/60 w-5">
+                          {String(attrIndex + 1).padStart(2, '0')}
                         </span>
-                        <div className="flex flex-row gap-1.5 items-center flex-1">
-                          <span className="text-xs font-medium text-gray-700">
+                        <div className="flex flex-row gap-2 items-center flex-1 min-w-0">
+                          <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
                             {ATTRIBUTE_TYPES[
                               attr.attribute_type as AttributeType
                             ] || attr.attribute_type}
-                            :
                           </span>
 
+                          <span className="text-muted-foreground/40">·</span>
+
                           {editing.variantIndex === index &&
-                          editing.field === 'attribute' &&
-                          editing.attributeIndex === attrIndex ? (
-                            <Input
-                              value={editValue}
-                              onChange={(e) => setEditValue(e.target.value)}
-                              className="h-6 text-xs flex-1"
-                              placeholder="Valor del atributo"
-                              autoFocus
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') saveEdit()
-                                if (e.key === 'Escape') cancelEdit()
-                              }}
-                            />
+                            editing.field === 'attribute' &&
+                            editing.attributeIndex === attrIndex ? (
+                            <div className="flex items-center gap-1 flex-1">
+                              <Input
+                                value={editValue}
+                                onChange={(e) => setEditValue(e.target.value)}
+                                className="h-6 text-xs px-1 bg-background"
+                                placeholder="Valor"
+                                autoFocus
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') saveEdit()
+                                  if (e.key === 'Escape') cancelEdit()
+                                }}
+                              />
+                              <Button
+                                size="icon"
+                                className="h-6 w-6 shrink-0"
+                                onClick={saveEdit}
+                              >
+                                <Check className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-6 w-6 shrink-0"
+                                onClick={cancelEdit}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
                           ) : (
-                            <span className="text-xs text-gray-900 flex-1">
+                            <span className="text-sm font-medium truncate flex-1 block" title={attr.attribute_value}>
                               {attr.attribute_value || '-'}
                             </span>
                           )}
                         </div>
 
                         {/* Botones de acción para atributos */}
-                        <div className="flex gap-1 opacity-0 group-hover/attr:opacity-100 transition-opacity">
-                          {editing.variantIndex === index &&
-                          editing.field === 'attribute' &&
-                          editing.attributeIndex === attrIndex ? (
-                            <>
-                              <Button
-                                size="sm"
-                                onClick={saveEdit}
-                                className="h-6 w-6 p-0"
-                              >
-                                <Check className="h-2 w-2" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={cancelEdit}
-                                className="h-6 w-6 p-0"
-                              >
-                                <X className="h-2 w-2" />
-                              </Button>
-                            </>
-                          ) : (
-                            <>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() =>
-                                  startEdit(index, 'attribute', attrIndex)
-                                }
-                                className="h-6 w-6 p-0 cursor-pointer"
-                              >
-                                <Edit className="h-2 w-2" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() =>
-                                  setDeleteState({
-                                    type: 'attribute',
-                                    variantIndex: index,
-                                    attributeIndex: attrIndex
-                                  })
-                                }
-                                className="h-6 w-6 p-0 text-red-500 hover:text-red-700 cursor-pointer"
-                              >
-                                <Trash2 className="h-2 w-2" />
-                              </Button>
-                            </>
-                          )}
+                        <div className="flex gap-1 opacity-0 group-hover/attr:opacity-100 transition-opacity ml-auto">
+                          {!(editing.variantIndex === index &&
+                            editing.field === 'attribute' &&
+                            editing.attributeIndex === attrIndex) && (
+                              <>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  onClick={() =>
+                                    startEdit(index, 'attribute', attrIndex)
+                                  }
+                                  className="h-6 w-6"
+                                >
+                                  <Edit className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  onClick={() =>
+                                    setDeleteState({
+                                      type: 'attribute',
+                                      variantIndex: index,
+                                      attributeIndex: attrIndex
+                                    })
+                                  }
+                                  className="h-6 w-6 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </>
+                            )}
                         </div>
                       </div>
                     </div>
@@ -390,73 +395,89 @@ export const VariantsPreview = ({
                 {/* Formulario para agregar nuevo atributo */}
                 {editing.variantIndex === index &&
                   editing.field === 'new-attribute' && (
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-3 bg-gray-50">
-                      <p className="text-xs font-medium text-gray-700 mb-2">
-                        Agregar nuevo atributo:
+                    <div className="border border-dashed border-primary/40 rounded-lg p-4 bg-primary/5 mt-3">
+                      <p className="text-xs font-semibold text-primary mb-3">
+                        Nuevo atributo
                       </p>
-                      <div className="flex gap-2">
-                        <Select
-                          value={newAttributeType}
-                          onValueChange={setNewAttributeType}
-                        >
-                          <SelectTrigger className="flex-1">
-                            <SelectValue placeholder="Tipo de atributo" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {getAvailableAttributeTypes(index).map(
-                              ([key, label]) => (
-                                <SelectItem key={key} value={key}>
-                                  {label}
-                                </SelectItem>
+                      <div className="flex gap-2 items-end">
+                        <div className="grid gap-1.5 flex-1">
+                          <label className="text-xs text-muted-foreground">Tipo</label>
+                          <Select
+                            value={newAttributeType}
+                            onValueChange={setNewAttributeType}
+                          >
+                            <SelectTrigger className="h-9 bg-background">
+                              <SelectValue placeholder="Seleccionar" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {getAvailableAttributeTypes(index).map(
+                                ([key, label]) => (
+                                  <SelectItem key={key} value={key}>
+                                    {label}
+                                  </SelectItem>
+                                )
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="grid gap-1.5 flex-1">
+                          <label className="text-xs text-muted-foreground">Valor</label>
+                          <Input
+                            value={newAttributeValue}
+                            onChange={(e) => setNewAttributeValue(e.target.value)}
+                            className="h-9 bg-background"
+                            placeholder="Ej. Rojo, XL, etc."
+                            onKeyDown={(e) => {
+                              if (
+                                e.key === 'Enter' &&
+                                newAttributeType &&
+                                newAttributeValue.trim()
                               )
-                            )}
-                          </SelectContent>
-                        </Select>
-                        <Input
-                          value={newAttributeValue}
-                          onChange={(e) => setNewAttributeValue(e.target.value)}
-                          className="flex-1"
-                          placeholder="Valor del atributo"
-                          onKeyDown={(e) => {
-                            if (
-                              e.key === 'Enter' &&
-                              newAttributeType &&
-                              newAttributeValue.trim()
-                            )
-                              saveEdit()
-                            if (e.key === 'Escape') cancelEdit()
-                          }}
-                        />
-                        <Button
-                          size="sm"
-                          onClick={saveEdit}
-                          disabled={
-                            !newAttributeType || !newAttributeValue.trim()
-                          }
-                          className="h-10"
-                        >
-                          <Check className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={cancelEdit}
-                          className="h-10"
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
+                                saveEdit()
+                              if (e.key === 'Escape') cancelEdit()
+                            }}
+                          />
+                        </div>
+                        <div className="flex gap-1 pb-0.5">
+                          <Button
+                            size="icon"
+                            onClick={saveEdit}
+                            disabled={!newAttributeType || !newAttributeValue.trim()}
+                            className="h-9 w-9"
+                          >
+                            <Check className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            onClick={cancelEdit}
+                            className="h-9 w-9"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   )}
 
                 {variant.attributes.length === 0 &&
                   editing.variantIndex !== index && (
-                    <p className="text-xs text-gray-500 italic py-2">
-                      Sin atributos definidos
-                    </p>
+                    <div className="text-center py-6 bg-muted/10 rounded-lg border border-dashed">
+                      <p className="text-xs text-muted-foreground mb-2">
+                        No hay atributos definidos para esta variante
+                      </p>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => startEdit(index, 'new-attribute')}
+                        className="h-7 text-xs"
+                      >
+                        <Plus className="h-3 w-3 mr-1" /> Agregar primer atributo
+                      </Button>
+                    </div>
                   )}
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
       )}
@@ -465,21 +486,41 @@ export const VariantsPreview = ({
         [1, 2, 3].map((loader) => (
           <div
             key={loader}
-            className="animate-pulse bg-gray-200 h-20 rounded-lg mb-3"
+            className="animate-pulse bg-gray-200 dark:bg-gray-700 h-20 rounded-lg mb-3"
           ></div>
         ))}
 
       {hasChanges && (
-        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <span className="text-sm text-blue-700 font-medium">
-                Tienes cambios sin guardar
-              </span>
+        <div className="mt-4 p-4 bg-primary/10 border border-primary/20 rounded-lg shadow-sm dark:bg-primary/10 dark:border-primary/20">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-3">
+              <div className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75 "></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+              </div>
+              <div>
+                <span className="text-sm text-primary font-medium block">
+                  Tienes cambios sin guardar
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  Los cambios se aplicarán al hacer clic en "Guardar cambios"
+                </span>
+              </div>
             </div>
-            <div className="text-xs text-blue-600">
-              {`Los cambios se aplicarán cuando hagas clic en "Guardar cambios"`}
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={handleDiscardChanges}
+                className="text-xs"
+              >
+                <X className="h-3 w-3 mr-1" />
+                Descartar
+              </Button>
+              <Button size="sm" onClick={handleSaveAll} className="text-xs">
+                <Save className="h-3 w-3 mr-1" />
+                Guardar todo
+              </Button>
             </div>
           </div>
         </div>
@@ -499,17 +540,15 @@ export const VariantsPreview = ({
             </AlertDialogTitle>
             <AlertDialogDescription>
               {deleteState?.type === 'variant'
-                ? `¿Estás seguro de que quieres eliminar la variante "${
-                    localVariants[deleteState.variantIndex]?.name ||
-                    `Variante ${deleteState.variantIndex + 1}`
-                  }"?`
+                ? `¿Estás seguro de que quieres eliminar la variante "${localVariants[deleteState.variantIndex]?.name ||
+                `Variante ${deleteState.variantIndex + 1}`
+                }"?`
                 : deleteState?.attributeIndex !== undefined
-                ? `¿Estás seguro de que quieres eliminar el atributo "${
-                    localVariants[deleteState.variantIndex]?.attributes[
-                      deleteState.attributeIndex
-                    ]?.attribute_type
+                  ? `¿Estás seguro de que quieres eliminar el atributo "${localVariants[deleteState.variantIndex]?.attributes[
+                    deleteState.attributeIndex
+                  ]?.attribute_type
                   }"?`
-                : ''}
+                  : ''}
               Esta acción no se puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>

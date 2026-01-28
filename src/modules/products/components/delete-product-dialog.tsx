@@ -59,24 +59,12 @@ export function DeleteProductDialog({
                 errorMessage = String((error as unknown as Error).message)
             }
 
-            const isForeignKeyError = errorMessage.includes('inventory_movements') ||
-                errorMessage.includes('violates foreign key constraint')
-
-            if (isForeignKeyError) {
-                toast.error(
-                    <ToastCustom
-                        title="No se puede eliminar"
-                        message={`El producto "${productName}" tiene movimientos de inventario asociados. No se puede eliminar.`}
-                    />
-                )
-            } else {
-                toast.error(
-                    <ToastCustom
-                        title="Error al eliminar"
-                        message={`No se pudo eliminar el producto "${productName}". Por favor, inténtalo de nuevo.`}
-                    />
-                )
-            }
+            toast.error(
+                <ToastCustom
+                    title="Error al eliminar"
+                    message={`No se pudo eliminar el producto "${productName}". ${errorMessage || 'Inténtalo de nuevo.'}`}
+                />
+            )
         } finally {
             setIsDeleting(false)
         }

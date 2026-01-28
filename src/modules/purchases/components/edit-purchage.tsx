@@ -259,7 +259,7 @@ const EditItemDialog = ({
                   <span>
                     {formatCurrencySoles(
                       Number(editData.quantity) * Number(editData.price) -
-                        (Number(editData.discount) || 0)
+                      (Number(editData.discount) || 0)
                     )}
                   </span>
                 </div>
@@ -630,7 +630,7 @@ export const EditPurchasePage = (props: EditPurchasePageProps) => {
 
   if (!isInitialized && defaultPurchase) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4" />
           <p>Cargando compra...</p>
@@ -640,10 +640,10 @@ export const EditPurchasePage = (props: EditPurchasePageProps) => {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen ">
       <div className="w-full max-w-6xl mx-auto p-6">
         {/* Indicaciones para el registro de compras */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 d">
           <h3 className="font-semibold text-blue-800 mb-2">
             Editando compra existente
           </h3>
@@ -945,7 +945,7 @@ export const EditPurchasePage = (props: EditPurchasePageProps) => {
                                 variants.map((variant: PurchaseItem) => (
                                   <TableRow
                                     key={variant._temp_id}
-                                    className="bg-white"
+                                    className=""
                                   >
                                     <TableCell></TableCell>
                                     <TableCell className="pl-8">
@@ -980,22 +980,22 @@ export const EditPurchasePage = (props: EditPurchasePageProps) => {
                                     <TableCell className="font-medium text-right">
                                       {formatCurrencySoles(
                                         variant.quantity * variant.price -
-                                          (variant.discount || 0)
+                                        (variant.discount || 0)
                                       )}
                                     </TableCell>
                                     {purchaseItems.some(
                                       (item) => item.bar_code
                                     ) && (
-                                      <TableCell className="text-xs text-gray-500">
-                                        {variant.bar_code ? (
-                                          <span className="bg-gray-100 px-2 py-1 rounded">
-                                            {variant.bar_code}
-                                          </span>
-                                        ) : (
-                                          '-'
-                                        )}
-                                      </TableCell>
-                                    )}
+                                        <TableCell className="text-xs text-gray-500">
+                                          {variant.bar_code ? (
+                                            <span className="bg-gray-100 px-2 py-1 rounded">
+                                              {variant.bar_code}
+                                            </span>
+                                          ) : (
+                                            '-'
+                                          )}
+                                        </TableCell>
+                                      )}
                                     <TableCell>
                                       <div className="flex gap-1">
                                         <Button
@@ -1062,7 +1062,7 @@ export const EditPurchasePage = (props: EditPurchasePageProps) => {
                             <TableCell className="font-medium text-right">
                               {formatCurrencySoles(
                                 item.quantity * item.price -
-                                  (item.discount || 0)
+                                (item.discount || 0)
                               )}
                             </TableCell>
                             {purchaseItems.some((item) => item.bar_code) && (

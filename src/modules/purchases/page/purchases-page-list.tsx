@@ -27,7 +27,11 @@ import {
   ArrowUp,
   ArrowDown,
   MoreHorizontal,
-  FileText
+  FileText,
+  ChevronLeft,
+  ChevronRight,
+  Filter,
+  X
 } from 'lucide-react'
 import { PurchaseList } from '@/types'
 import { APP_URLS } from '@/config/app-urls'
@@ -42,12 +46,19 @@ interface PurchasesListProps {
   searchQuery?: string
   isReceiptPage?: boolean
   businessId?: string
+  meta?: {
+    total: number
+    total_pages: number
+    page: number
+    page_size: number
+  }
 }
 
 export const PurchasesList = ({
   purchasesData = [],
   searchQuery = '',
-  businessId
+  businessId,
+  meta
 }: PurchasesListProps) => {
   const router = useRouter()
   const pathname = usePathname()
@@ -98,6 +109,20 @@ export const PurchasesList = ({
     router.push(`${pathname}?${params.toString()}`)
   }
 
+  const handlePageChange = (newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('page', newPage.toString())
+    router.push(`${pathname}?${params.toString()}`)
+  }
+
+  const clearSearch = () => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.delete('q')
+    // Reset page to 1 when clearing search
+    params.set('page', '1')
+    router.push(`${pathname}?${params.toString()}`)
+  }
+
   const getSortIcon = (field: SortField) => {
     if (sortField !== field)
       return <ArrowUpDown className="ml-2 h-3 w-3 opacity-50" />
@@ -109,239 +134,286 @@ export const PurchasesList = ({
   }
 
   return (
-    <div className="rounded-md border bg-white w-full overflow-x-auto">
-      <Table>
-        <TableHeader className="bg-muted">
-          <TableRow>
-            <TableHead className="w-[100px]">
-              <Button
-                variant="ghost"
-                onClick={() => handleSort('code')}
-                className="h-auto p-0 font-medium hover:bg-transparent"
-              >
-                Código
-                {getSortIcon('code')}
-              </Button>
-            </TableHead>
-            <TableHead>
-              <Button
-                variant="ghost"
-                onClick={() => handleSort('date')}
-                className="h-auto p-0 font-medium hover:bg-transparent"
-              >
-                Fecha
-                {getSortIcon('date')}
-              </Button>
-            </TableHead>
-            <TableHead>
-              <div className="font-medium">Proveedor</div>
-            </TableHead>
-            <TableHead>
-              <div className="font-medium">Guía</div>
-            </TableHead>
-            <TableHead>
-              <Button
-                variant="ghost"
-                onClick={() => handleSort('subtotal')}
-                className="h-auto p-0 font-medium hover:bg-transparent"
-              >
-                Subtotal
-                {getSortIcon('subtotal')}
-              </Button>
-            </TableHead>
-            <TableHead>
-              <div className="font-medium">Total</div>
-            </TableHead>
-            <TableHead>
-              <div className="font-medium">Est. Pago</div>
-            </TableHead>
-            <TableHead>
-              <Button
-                variant="ghost"
-                onClick={() => handleSort('created_at')}
-                className="h-auto p-0 font-medium hover:bg-transparent"
-              >
-                Creado
-                {getSortIcon('created_at')}
-              </Button>
-            </TableHead>
-            <TableHead className="w-[80px] text-right">Acciones</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {purchasesData.length === 0 ? (
+    <div className="space-y-4 w-full">
+      {searchQuery && (
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className="px-3 py-1 flex items-center gap-2">
+            <Filter className="h-3 w-3" />
+            Filtro: {searchQuery}
+            <button onClick={clearSearch} className="ml-1 hover:bg-muted rounded-full p-0.5" title="Limpiar filtro">
+              <X className="h-3 w-3" />
+            </button>
+          </Badge>
+          <Button variant="ghost" size="sm" onClick={clearSearch} className="text-xs h-8">
+            Limpiar filtros
+          </Button>
+        </div>
+      )}
+      <div className="rounded-md border w-full overflow-x-auto">
+        <Table>
+          <TableHeader>
             <TableRow>
-              <TableCell colSpan={11} className="py-12 text-center">
-                <div className="flex flex-col items-center justify-center gap-4">
-                  <PackageSearch className="h-12 w-12 text-muted-foreground" />
-                  <div className="space-y-1 text-center">
-                    <h3 className="text-lg font-medium">
-                      {searchQuery
-                        ? 'No se encontraron coincidencias'
-                        : 'No hay compras registradas'}
-                    </h3>
-                    <p className="text-sm text-muted-foreground max-w-md">
-                      {searchQuery
-                        ? `No se encontraron compras que coincidan con "${searchQuery}". Intenta con otro término de búsqueda.`
-                        : 'Parece que aún no has agregado ninguna compra. Comienza agregando tu primera compra.'}
-                    </p>
-                  </div>
-                  {businessId && (
-                    <Button asChild>
-                      <Link
-                        href={APP_URLS.ORGANIZATION.PURCHASES.CREATE(
-                          businessId
-                        )}
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Nueva Compra
-                      </Link>
-                    </Button>
-                  )}
-                </div>
-              </TableCell>
+              <TableHead className="w-[100px]">
+                <Button
+                  variant="ghost"
+                  onClick={() => handleSort('code')}
+                  className="h-auto p-0 font-medium hover:bg-transparent"
+                >
+                  Código
+                  {getSortIcon('code')}
+                </Button>
+              </TableHead>
+              <TableHead>
+                <Button
+                  variant="ghost"
+                  onClick={() => handleSort('date')}
+                  className="h-auto p-0 font-medium hover:bg-transparent"
+                >
+                  Fecha
+                  {getSortIcon('date')}
+                </Button>
+              </TableHead>
+              <TableHead>
+                <div className="font-medium">Proveedor</div>
+              </TableHead>
+              <TableHead>
+                <div className="font-medium">Guía</div>
+              </TableHead>
+              <TableHead>
+                <Button
+                  variant="ghost"
+                  onClick={() => handleSort('subtotal')}
+                  className="h-auto p-0 font-medium hover:bg-transparent"
+                >
+                  Subtotal
+                  {getSortIcon('subtotal')}
+                </Button>
+              </TableHead>
+              <TableHead>
+                <div className="font-medium">Total</div>
+              </TableHead>
+              <TableHead>
+                <div className="font-medium">Est. Pago</div>
+              </TableHead>
+              <TableHead>
+                <Button
+                  variant="ghost"
+                  onClick={() => handleSort('created_at')}
+                  className="h-auto p-0 font-medium hover:bg-transparent"
+                >
+                  Creado
+                  {getSortIcon('created_at')}
+                </Button>
+              </TableHead>
+              <TableHead className="w-[80px] text-right">Acciones</TableHead>
             </TableRow>
-          ) : (
-            purchasesData.map((purchase) => (
-              <TableRow key={purchase.id}>
-                <TableCell>
-                  <Badge
-                    variant="outline"
-                    className="font-mono rounded-full text-xs"
-                  >
-                    {purchase.code || 'N/A'}
-                  </Badge>
+          </TableHeader>
+          <TableBody>
+            {purchasesData.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={11} className="py-12 text-center">
+                  <div className="flex flex-col items-center justify-center gap-4">
+                    <PackageSearch className="h-12 w-12 text-muted-foreground" />
+                    <div className="space-y-1 text-center">
+                      <h3 className="text-lg font-medium">
+                        {searchQuery
+                          ? 'No se encontraron coincidencias'
+                          : 'No hay compras registradas'}
+                      </h3>
+                      <p className="text-sm text-muted-foreground max-w-md">
+                        {searchQuery
+                          ? `No se encontraron compras que coincidan con "${searchQuery}". Intenta con otro término de búsqueda.`
+                          : 'Parece que aún no has agregado ninguna compra. Comienza agregando tu primera compra.'}
+                      </p>
+                    </div>
+                    {businessId && (
+                      <Button asChild>
+                        <Link
+                          href={APP_URLS.ORGANIZATION.PURCHASES.CREATE(
+                            businessId
+                          )}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Nueva Compra
+                        </Link>
+                      </Button>
+                    )}
+                  </div>
                 </TableCell>
-                <TableCell>
-                  <div className="text-sm">
-                    {purchase.date
-                      ? formatDate(
+              </TableRow>
+            ) : (
+              purchasesData.map((purchase) => (
+                <TableRow key={purchase.id}>
+                  <TableCell>
+                    <Badge
+                      variant="outline"
+                      className="font-mono rounded-full text-xs"
+                    >
+                      {purchase.code || 'N/A'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-sm">
+                      {purchase.date
+                        ? formatDate(
                           purchase.date instanceof Date
                             ? purchase.date.toISOString()
                             : purchase.date
                         )
-                      : 'N/A'}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div>
-                    <div className="font-medium text-sm">
-                      {purchase.supplier?.name || 'N/A'}
+                        : 'N/A'}
                     </div>
-                    {purchase.supplier?.contact && (
+                  </TableCell>
+                  <TableCell>
+                    <div>
+                      <div className="font-medium text-sm">
+                        {purchase.supplier?.name || 'N/A'}
+                      </div>
+                      {purchase.supplier?.contact && (
+                        <div className="text-xs text-muted-foreground">
+                          {purchase.supplier.contact}
+                        </div>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    {purchase.guide_number ? (
+                      <Badge variant="secondary" className="text-xs">
+                        {purchase.guide_number}
+                      </Badge>
+                    ) : (
+                      <span className="text-muted-foreground text-xs">
+                        Sin guía
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="font-medium text-sm">
+                      {formatCurrency(purchase.subtotal || 0)}
+                    </div>
+                    {isNumberForRender(purchase.discount) && (
                       <div className="text-xs text-muted-foreground">
-                        {purchase.supplier.contact}
+                        Desc.: {formatCurrency(Number(purchase.discount))}
                       </div>
                     )}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  {purchase.guide_number ? (
-                    <Badge variant="secondary" className="text-xs">
-                      {purchase.guide_number}
-                    </Badge>
-                  ) : (
-                    <span className="text-muted-foreground text-xs">
-                      Sin guía
-                    </span>
-                  )}
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="font-medium text-sm">
-                    {formatCurrency(purchase.subtotal || 0)}
-                  </div>
-                  {isNumberForRender(purchase.discount) && (
-                    <div className="text-xs text-muted-foreground">
-                      Desc.: {formatCurrency(Number(purchase.discount))}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="font-bold text-sm">
+                      {formatCurrency(purchase.total_amount || 0)}
                     </div>
-                  )}
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="font-bold text-sm">
-                    {formatCurrency(purchase.total_amount || 0)}
-                  </div>
-                  {isNumberForRender(purchase.tax_amount) && (
-                    <div className="text-xs text-muted-foreground">
-                      IGV: {formatCurrency(Number(purchase.tax_amount))}
-                    </div>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <StatusBadge payment_status={purchase.payment_status} />
-                </TableCell>
-                <TableCell>
-                  <div className="flex flex-col">
-                    <span className="text-sm">
-                      {purchase.created_at
-                        ? formatDate(
+                    {isNumberForRender(purchase.tax_amount) && (
+                      <div className="text-xs text-muted-foreground">
+                        IGV: {formatCurrency(Number(purchase.tax_amount))}
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge payment_status={purchase.payment_status} />
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <span className="text-sm">
+                        {purchase.created_at
+                          ? formatDate(
                             purchase.created_at instanceof Date
                               ? purchase.created_at.toISOString()
                               : purchase.created_at
                           )
-                        : 'N/A'}
-                    </span>
-                    {purchase.created_at && (
-                      <span className="text-xs text-muted-foreground">
-                        {formatTime(
-                          purchase.created_at instanceof Date
-                            ? purchase.created_at.toISOString()
-                            : purchase.created_at
-                        )}
+                          : 'N/A'}
                       </span>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex justify-end items-center gap-2">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          className="h-8 w-8 p-0"
+                      {purchase.created_at && (
+                        <span className="text-xs text-muted-foreground">
+                          {formatTime(
+                            purchase.created_at instanceof Date
+                              ? purchase.created_at.toISOString()
+                              : purchase.created_at
+                          )}
+                        </span>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex justify-end items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        className="h-8 w-8 text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+                        asChild
+                      >
+                        <Link
+                          href={APP_URLS.ORGANIZATION.PURCHASES.VIEW(
+                            businessId || '',
+                            purchase.id
+                          )}
+                          title="Ver detalles"
                         >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild>
-                          <Link
-                            href={APP_URLS.ORGANIZATION.PURCHASES.VIEW(
-                              businessId || '',
-                              purchase.id
-                            )}
-                            className="flex items-center"
-                          >
-                            <Eye className="h-4 w-4 mr-2" />
-                            Ver detalles
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link
-                            href={APP_URLS.ORGANIZATION.PURCHASES.EDIT(
-                              businessId || '',
-                              purchase.id
-                            )}
-                            className="flex items-center"
-                          >
-                            <FileText className="h-4 w-4 mr-2" />
-                            Editar compra
-                          </Link>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
-      {purchasesData.length > 0 && (
-        <div className="px-4 py-3 text-sm text-muted-foreground border-t">
-          {purchasesData.length} compra
-          {purchasesData.length !== 1 ? 's' : ''} mostrada
-          {purchasesData.length !== 1 ? 's' : ''}
+                          <Eye className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        className="h-8 w-8 text-green-500 hover:text-green-700 hover:bg-green-50"
+                        asChild
+                      >
+                        <Link
+                          href={APP_URLS.ORGANIZATION.PURCHASES.EDIT(
+                            businessId || '',
+                            purchase.id
+                          )}
+                          title="Editar compra"
+                        >
+                          <FileText className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+        {purchasesData.length > 0 && (
+          <div className="px-4 py-3 text-sm text-muted-foreground border-t">
+            {purchasesData.length} compra
+            {purchasesData.length !== 1 ? 's' : ''} mostrada
+            {purchasesData.length !== 1 ? 's' : ''}
+          </div>
+        )}
+      </div>
+      {/* Pagination Footer */}
+      {meta && meta.total_pages > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-2">
+          <div className="text-sm text-muted-foreground order-2 sm:order-1">
+            Mostrando {purchasesData.length} de {meta.total} compras
+            {meta.total_pages > 1 && ` (Página ${meta.page} de ${meta.total_pages})`}
+          </div>
+
+          <div className="flex items-center gap-2 order-1 sm:order-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(meta.page - 1)}
+              disabled={meta.page <= 1}
+              className="h-8 w-8 p-0"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+
+            {/* Simple numeric indication or buttons for simplicity just Prev/Next */}
+            <div className="text-sm font-medium mx-2">
+              {meta.page}
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(meta.page + 1)}
+              disabled={meta.page >= meta.total_pages}
+              className="h-8 w-8 p-0"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       )}
     </div>

@@ -73,8 +73,16 @@ export async function getProducts({
     .range(from, to)
     .order(sortColumn, { ascending: sortDirection === 'asc' })
 
+  // Por defecto filtrar solo activos si no se especifica lo contrario
+  if (!filters || filters.is_active === undefined) {
+    query = query.eq('is_active', true)
+  }
+
   if (filters) {
     Object.entries(filters).forEach(([key, value]) => {
+      // Skip handling is_active here if it was already handled or explicit
+      if (key === 'is_active' && value === undefined) return;
+
       if (
         value !== undefined &&
         value !== null &&
@@ -227,9 +235,35 @@ export async function patchProductField(
  */
 export async function deleteProduct(id: string): Promise<void> {
   const supabase = await getSupabase()
+
+  // Intentamos eliminar físicamente
   const { error } = await supabase.from('products').delete().eq('id', id)
 
-  if (error) throw error
+  if (error) {
+    // Si hay error de llave foránea (23503), hacemos soft delete
+    if (error.code === '23503') {
+      console.log('Error de FK detectado, procediendo a soft delete para producto:', id)
+
+      const { error: updateError } = await supabase
+        .from('products')
+        .update({ is_active: false })
+        .eq('id', id)
+
+      if (updateError) {
+        console.error('Error al realizar soft delete:', updateError)
+        throw updateError // Si falla el update, lanzamos ese error
+      }
+
+      // Si el update funcionó, revalidamos y terminamos exitosamente
+      revalidatePath(APP_URLS.PRODUCTS.LIST)
+      return
+    }
+
+    // Si es otro error, lo lanzamos
+    console.error('Error al eliminar producto:', error)
+    throw error
+  }
+
   revalidatePath(APP_URLS.PRODUCTS.LIST)
 }
 
@@ -290,6 +324,9 @@ export async function getProductsByBusinessId({
       const term = `%${searchTerm.trim()}%`
       query = query.or(`name.ilike.${term},code.ilike.${term}`)
     }
+
+    // Filtrar solo productos activos
+    query = query.eq('is_active', true)
 
     // Paginación y orden
     query = query

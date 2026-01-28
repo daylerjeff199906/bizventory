@@ -3,24 +3,8 @@ import { Skeleton } from '@/components/ui/skeleton'
 export default function Loading() {
   return (
     <div className="container mx-auto py-8 space-y-6">
-      {/* Header skeleton */}
-      <div className="flex items-center justify-between">
-        <Skeleton className="h-8 w-32" />
-        <Skeleton className="h-10 w-32" />
-      </div>
-
-      {/* Search skeleton */}
-      <div className="flex items-center gap-4">
-        <div className="flex-1 flex gap-2">
-          <Skeleton className="h-10 w-80" />
-          <Skeleton className="h-10 w-24" />
-        </div>
-      </div>
-
-      {/* Table skeleton */}
       <div className="border rounded-md">
-        {/* Header */}
-        <div className="bg-gray-100 p-4">
+        <div className="p-4">
           <div className="grid grid-cols-10 gap-4">
             {[...Array(10)].map((_, i) => (
               <Skeleton key={i} className="h-4 w-full" />

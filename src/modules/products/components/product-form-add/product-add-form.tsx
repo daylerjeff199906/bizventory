@@ -256,10 +256,10 @@ export const NewProductForm = () => {
             {/* Información adicional */}
             <section className="space-y-6">
               <div className="border-b border-gray-200 pb-4">
-                <h2 className="text-xl font-semibold text-gray-900">
+                <h2 className="text-xl font-semibold">
                   Información adicional
                 </h2>
-                <p className="text-gray-600 mt-1">
+                <p className="text-muted-foreground mt-1">
                   Datos opcionales para mejor organización
                 </p>
               </div>
