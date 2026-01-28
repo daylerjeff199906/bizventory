@@ -10,7 +10,8 @@ import {
   Loader2,
   PackageSearch,
   Trash,
-  Eye
+  Eye,
+  PlusSquare
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -302,22 +303,6 @@ export const ProductsList = ({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-blue-500 hover:text-blue-700 hover:bg-blue-50"
-                        asChild
-                      >
-                        <Link
-                          href={APP_URLS.ORGANIZATION.PRODUCTS.CREATE_VARIANT(
-                            bussinessId,
-                            product.id
-                          )}
-                          title="Ver detalles"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Link>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
                         className="h-8 w-8 text-green-500 hover:text-green-700 hover:bg-green-50"
                         asChild
                       >
@@ -329,6 +314,22 @@ export const ProductsList = ({
                           title="Editar producto"
                         >
                           <Edit className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+                        asChild
+                      >
+                        <Link
+                          href={APP_URLS.ORGANIZATION.PRODUCTS.CREATE_VARIANT(
+                            bussinessId,
+                            product.id
+                          )}
+                          title="Ver detalles"
+                        >
+                          <PlusSquare className="h-4 w-4" />
                         </Link>
                       </Button>
                       <Button
