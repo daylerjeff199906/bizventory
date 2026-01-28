@@ -486,16 +486,16 @@ export const VariantsPreview = ({
         [1, 2, 3].map((loader) => (
           <div
             key={loader}
-            className="animate-pulse bg-gray-200 h-20 rounded-lg mb-3"
+            className="animate-pulse bg-gray-200 dark:bg-gray-700 h-20 rounded-lg mb-3"
           ></div>
         ))}
 
       {hasChanges && (
-        <div className="mt-4 p-4 bg-primary/10 border border-primary/20 rounded-lg shadow-sm">
+        <div className="mt-4 p-4 bg-primary/10 border border-primary/20 rounded-lg shadow-sm dark:bg-primary/10 dark:border-primary/20">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-3">
               <div className="relative flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75 "></span>
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
               </div>
               <div>
