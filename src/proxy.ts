@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getSupabaseSession } from './lib/session'
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const session = await getSupabaseSession()
 
   if (!session && !request.nextUrl.pathname.startsWith('/login')) {
