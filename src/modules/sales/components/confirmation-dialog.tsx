@@ -14,7 +14,6 @@ import {
   AlertTriangle,
   Package,
   Calculator,
-  DollarSign
 } from 'lucide-react'
 import type { Currency } from '@/types'
 import type { SaleFormValues, SaleItemValues } from '../schemas'
@@ -60,7 +59,7 @@ export default function ConfirmationDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col min-w-[60vw]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CheckCircle className="h-5 w-5 text-green-600" />
@@ -261,7 +260,6 @@ export default function ConfirmationDialog({
             className="flex-1"
             disabled={isSubmitting}
           >
-            <DollarSign className="h-4 w-4 mr-2" />
             {isSubmitting ? 'Procesando...' : isEditing ? 'Actualizar Venta' : 'Confirmar Venta'}
           </Button>
         </div>

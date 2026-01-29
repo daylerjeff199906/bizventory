@@ -203,20 +203,20 @@ export async function getSaleById(id: string): Promise<SaleWithItems | null> {
     itemsData?.map((item) => {
       const baseProduct = item.product
         ? {
-            ...item.product,
-            brand: item.product.brand || null,
-            images: item.product.images || null
-          }
+          ...item.product,
+          brand: item.product.brand || null,
+          images: item.product.images || null
+        }
         : null
 
       const variantData = item.variant
         ? {
-            variant_id: item.variant.id,
-            variant_name: item.variant.name,
-            variant_description: item.variant.description,
-            variant_code: item.variant.code,
-            attributes: item.variant.attributes
-          }
+          variant_id: item.variant.id,
+          variant_name: item.variant.name,
+          variant_description: item.variant.description,
+          variant_code: item.variant.code,
+          attributes: item.variant.attributes
+        }
         : {}
 
       return {
@@ -268,7 +268,7 @@ export async function createSale({
     })
     .select()
     .single()
-
+  console.log('Sale error:', saleError)
   if (saleError || !sale) {
     return null
   }
@@ -285,7 +285,7 @@ export async function createSale({
       total_price: item.total_price
     }))
   )
-
+  console.log('Items error:', itemsError)
   if (itemsError) {
     // If item insertion fails, delete the created sale
     await supabase.from('sales').delete().eq('id', sale.id)

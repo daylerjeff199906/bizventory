@@ -215,6 +215,15 @@ function ProductConfigPanel({
           </div>
         </div>
 
+        {quantity > (product.stock || 0) && (
+          <div className="p-3 mb-4 rounded-md bg-destructive/10 border border-destructive/20 flex items-start gap-2">
+            <AlertCircle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
+            <div className="text-sm text-destructive font-medium">
+              No puede agregar por que es mayor al stock ({product.stock})
+            </div>
+          </div>
+        )}
+
         <div className="p-4 border-t sticky bottom-0 bg-background">
           <div className="flex gap-2">
             <Button
@@ -235,8 +244,8 @@ function ProductConfigPanel({
             </Button>
           </div>
         </div>
-      </ScrollArea>
-    </div>
+      </ScrollArea >
+    </div >
   )
 }
 

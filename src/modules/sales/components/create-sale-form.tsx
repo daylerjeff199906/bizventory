@@ -512,7 +512,7 @@ export default function CreateSaleForm() {
                         Productos de la Venta
                       </h3>
                     </div>
-                    <p className="text-sm text-gray-500 mb-2">
+                    <p className="text-sm mb-2">
                       {watchedItems && watchedItems?.length > 0
                         ? `${watchedItems?.length} producto${watchedItems?.length !== 1 ? 's' : ''
                         } agregado${watchedItems?.length !== 1 ? 's' : ''}`
@@ -542,29 +542,29 @@ export default function CreateSaleForm() {
                         <table className="w-full">
                           <thead>
                             <tr className="border-b border-gray-200">
-                              <th className="text-left py-3 px-2 text-sm font-medium text-gray-700">
+                              <th className="text-left py-3 px-2 text-sm font-medium">
                                 #
                               </th>
-                              <th className="text-left py-3 px-2 text-sm font-medium text-gray-700">
+                              <th className="text-left py-3 px-2 text-sm font-medium">
                                 Producto
                               </th>
-                              <th className="text-center py-3 px-2 text-sm font-medium text-gray-700">
+                              <th className="text-center py-3 px-2 text-sm font-medium">
                                 Cant.
                               </th>
-                              <th className="text-right py-3 px-2 text-sm font-medium text-gray-700">
+                              <th className="text-right py-3 px-2 text-sm font-medium">
                                 P.Unit.
                               </th>
 
-                              <th className="text-right py-3 px-2 text-sm font-medium text-gray-700">
+                              <th className="text-right py-3 px-2 text-sm font-medium">
                                 Subtotal
                               </th>
-                              <th className="text-right py-3 px-2 text-sm font-medium text-gray-700">
+                              <th className="text-right py-3 px-2 text-sm font-medium">
                                 Desc.
                               </th>
-                              <th className="text-right py-3 px-2 text-sm font-medium text-gray-700">
+                              <th className="text-right py-3 px-2 text-sm font-medium">
                                 Total
                               </th>
-                              <th className="text-center py-3 px-2 text-sm font-medium text-gray-700">
+                              <th className="text-center py-3 px-2 text-sm font-medium">
                                 Acciones
                               </th>
                             </tr>
@@ -573,13 +573,13 @@ export default function CreateSaleForm() {
                             {watchedItems.map((item, index) => (
                               <tr
                                 key={index}
-                                className="border-b border-gray-100 hover:bg-gray-25"
+                                className="border-b"
                               >
-                                <td className="py-3 px-2 text-sm text-gray-500">
+                                <td className="py-3 px-2 text-sm">
                                   {index + 1}
                                 </td>
                                 <td className="py-3 px-2">
-                                  <div className="text-sm font-medium text-gray-900">
+                                  <div className="text-sm font-medium ">
                                     {item.brand?.name}{' '}
                                     {item.product_description}
                                     {item.variant_name && (
@@ -680,7 +680,7 @@ export default function CreateSaleForm() {
                       </div>
                     </div>
                   ) : (
-                    <div className="text-center justify-center py-12 text-gray-500 border-2 border-dashed border-gray-200 rounded-lg">
+                    <div className="text-center justify-center py-12 border-2 border-dashed border-gray-200 rounded-lg">
                       <Package className="h-16 w-16 mx-auto mb-4 opacity-50" />
                       <div className="flex flex-col items-center">
                         <p className="text-lg font-medium mb-2">
@@ -762,7 +762,7 @@ export default function CreateSaleForm() {
                   </div>
 
                   <div className="pt-4 space-y-2">
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm">
                       <div>Productos: {watchedItems?.length || 0}</div>
                       <div>
                         Cantidad total:{' '}
@@ -782,7 +782,6 @@ export default function CreateSaleForm() {
                     }
                     size="lg"
                   >
-                    <DollarSign className="h-4 w-4 mr-2" />
                     {form.formState.isSubmitting ? 'Creando...' : 'Crear Venta'}
                   </Button>
                 </CardContent>
