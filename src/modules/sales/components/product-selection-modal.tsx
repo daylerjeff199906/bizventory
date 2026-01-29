@@ -259,7 +259,7 @@ function ProductItem({
   return (
     <Card
       className={`
-      overflow-hidden transition-all cursor-pointer group hover:shadow-md
+      overflow-hidden transition-all cursor-pointer group hover:shadow-md py-0
       ${isOutOfStock ? 'opacity-60' : ''}
       ${isSelected ? 'ring-2 ring-primary border-primary' : ''}
       ${isConfiguring ? 'ring-2 ring-primary border-primary' : ''}
@@ -422,7 +422,7 @@ export default function ProductSelectionModal({
 
         <div className="flex-1 overflow-hidden flex">
           {/* Panel izquierdo - Lista de productos */}
-          <div className={`flex flex-col h-full transition-all duration-300 ${selectedProduct ? 'w-full lg:w-3/4 border-r' : 'w-full'}`}>
+          <div className={`flex flex-col h-full transition-all duration-300  ${selectedProduct ? 'w-full lg:w-3/4 border-r' : 'w-full'}`}>
             <div className="p-4 border-b bg-muted/20">
               <SearchInput
                 placeholder="Buscar por nombre, código o marca..."
@@ -439,7 +439,7 @@ export default function ProductSelectionModal({
                 </div>
               ) : listGeneralProducts.length > 0 ? (
                 <div className={`
-                        grid grid-cols-2 gap-4
+                        grid grid-cols-2 gap-4 pb-18
                         ${selectedProduct
                     ? 'sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4'
                     : 'sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6'}
