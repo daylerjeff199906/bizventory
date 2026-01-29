@@ -11,7 +11,9 @@ import {
   PackageSearch,
   Trash,
   Eye,
-  PlusSquare
+  PlusSquare,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -90,6 +92,12 @@ export const ProductsList = ({
     // Update URL with sort parameters
     const params = new URLSearchParams(searchParams.toString())
     params.set('sortBy', `${field}.${newDirection}`)
+    router.push(`${pathname}?${params.toString()}`)
+  }
+
+  const handlePageChange = (newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('page', newPage.toString())
     router.push(`${pathname}?${params.toString()}`)
   }
 
@@ -350,14 +358,39 @@ export const ProductsList = ({
         </TableBody>
       </Table>
       {dataProducts?.data?.length > 0 && (
-        <div className="px-4 py-3 text-sm text-muted-foreground border-t">
-          {dataProducts.data.length} producto
-          {dataProducts.data.length !== 1 ? 's' : ''} mostrado
-          {dataProducts.data.length !== 1 ? 's' : ''}
-          {dataProducts?.total &&
-            dataProducts.total > dataProducts.data.length && (
-              <> de {dataProducts.total} en total</>
-            )}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 border-t">
+          <div className="text-sm text-muted-foreground order-2 sm:order-1">
+            Mostrando {dataProducts.data.length} de {dataProducts.total} productos
+            {dataProducts.total_pages > 1 && ` (Página ${dataProducts.page} de ${dataProducts.total_pages})`}
+          </div>
+
+          {dataProducts.total_pages > 1 && (
+            <div className="flex items-center gap-2 order-1 sm:order-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(dataProducts.page - 1)}
+                disabled={dataProducts.page <= 1}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+
+              <div className="text-sm font-medium mx-2">
+                {dataProducts.page}
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(dataProducts.page + 1)}
+                disabled={dataProducts.page >= dataProducts.total_pages}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
         </div>
       )}
 
