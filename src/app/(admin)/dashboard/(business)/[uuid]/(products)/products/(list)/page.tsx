@@ -26,9 +26,14 @@ export default async function Page(props: Props) {
     sortOrder = order === 'desc' ? 'desc' : 'asc'
   }
 
+  const page = searchParams.page ? parseInt(searchParams.page.toString()) : 1
+  const pageSize = searchParams.limit ? parseInt(searchParams.limit.toString()) : 10
+  const from = (page - 1) * pageSize
+  const to = from + pageSize - 1
+
   const products = await getProductsByBusinessId({
-    from: 0,
-    to: 49,
+    from,
+    to,
     sortColumn: sortField || 'created_at',
     sortDirection: sortOrder as 'asc' | 'desc',
     idBusiness: uuid?.toString() || '',

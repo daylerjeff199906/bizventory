@@ -24,8 +24,14 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-  Printer
+  Printer,
+  PackageSearch,
+  Filter,
+  X,
+  Calendar
 } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import type { SaleList, ResApi } from '@/apis/app/sales'
 import { APP_URLS } from '@/config/app-urls'
 import { StatusBadge } from '../components/status-badge'
@@ -43,12 +49,17 @@ interface SalesListProps {
   businessId: string
   salesData: ResApi<SaleList>
   searchQuery?: string
+  filters?: {
+    from?: string
+    to?: string
+  }
 }
 
 export const SalesList = ({
   salesData,
   searchQuery = '',
-  businessId
+  businessId,
+  filters
 }: SalesListProps) => {
   const router = useRouter()
   const pathname = usePathname()
@@ -61,6 +72,45 @@ export const SalesList = ({
   const [sortDirection, setSortDirection] = useState<SortDirection>(
     (currentSort[1] as SortDirection) || 'asc'
   )
+
+
+  // Local state for filters
+  const [codeFilter, setCodeFilter] = useState(searchQuery)
+  const [dateFrom, setDateFrom] = useState(filters?.from || '')
+  const [dateTo, setDateTo] = useState(filters?.to || '')
+
+  const applyFilters = () => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (codeFilter) params.set('q', codeFilter)
+    else params.delete('q')
+
+    if (dateFrom) params.set('from', dateFrom)
+    else params.delete('from')
+
+    if (dateTo) params.set('to', dateTo)
+    else params.delete('to')
+
+    params.set('page', '1')
+    router.push(`${pathname}?${params.toString()}`)
+  }
+
+  const clearSearch = () => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.delete('q')
+    params.delete('from')
+    params.delete('to')
+    setCodeFilter('')
+    setDateFrom('')
+    setDateTo('')
+    params.set('page', '1')
+    router.push(`${pathname}?${params.toString()}`)
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      applyFilters()
+    }
+  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('es-ES', {
@@ -117,6 +167,108 @@ export const SalesList = ({
 
   return (
     <div className="space-y-4">
+      {/* Filters Section */}
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-end sm:items-center bg-card p-4 rounded-lg border">
+        <div className="flex flex-col sm:flex-row gap-4 items-end sm:items-center w-full">
+          <div className="grid gap-1.5 w-full sm:w-auto">
+            <Label htmlFor="code" className="text-xs">Buscar referencia</Label>
+            <div className="relative">
+              <PackageSearch className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="code"
+                placeholder="Ref. Venta..."
+                className="pl-9 w-full sm:w-[200px]"
+                value={codeFilter}
+                onChange={(e) => setCodeFilter(e.target.value)}
+                onKeyDown={handleKeyDown}
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="grid gap-1.5 w-full">
+              <Label htmlFor="from" className="text-xs">Desde</Label>
+              <Input
+                id="from"
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="w-full sm:w-auto"
+              />
+            </div>
+            <div className="grid gap-1.5 w-full">
+              <Label htmlFor="to" className="text-xs">Hasta</Label>
+              <Input
+                id="to"
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="w-full sm:w-auto"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 mt-auto">
+            <Button onClick={applyFilters} size="sm">
+              <Filter className="h-4 w-4 mr-2" />
+              Filtrar
+            </Button>
+            {(searchQuery || filters?.from || filters?.to) && (
+              <Button variant="ghost" size="sm" onClick={clearSearch} title="Limpiar filtros">
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Active Filters Badges */}
+      {
+        (searchQuery || filters?.from || filters?.to) && (
+          <div className="flex items-center gap-2 flex-wrap">
+            {searchQuery && (
+              <Badge variant="secondary" className="px-3 py-1 flex items-center gap-2">
+                Ref: {searchQuery}
+                <button onClick={() => {
+                  setCodeFilter('')
+                  const params = new URLSearchParams(searchParams.toString())
+                  params.delete('q')
+                  router.push(`${pathname}?${params.toString()}`)
+                }} className="ml-1 hover:bg-muted rounded-full p-0.5">
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            )}
+            {filters?.from && (
+              <Badge variant="secondary" className="px-3 py-1 flex items-center gap-2">
+                Desde: {formatDate(filters.from)}
+                <button onClick={() => {
+                  setDateFrom('')
+                  const params = new URLSearchParams(searchParams.toString())
+                  params.delete('from')
+                  router.push(`${pathname}?${params.toString()}`)
+                }} className="ml-1 hover:bg-muted rounded-full p-0.5">
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            )}
+            {filters?.to && (
+              <Badge variant="secondary" className="px-3 py-1 flex items-center gap-2">
+                Hasta: {formatDate(filters.to)}
+                <button onClick={() => {
+                  setDateTo('')
+                  const params = new URLSearchParams(searchParams.toString())
+                  params.delete('to')
+                  router.push(`${pathname}?${params.toString()}`)
+                }} className="ml-1 hover:bg-muted rounded-full p-0.5">
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            )}
+          </div>
+        )
+      }
+
       <Table className="border rounded-md">
         <TableHeader>
           <TableRow className="bg-gray-100 hover:bg-gray-100">
@@ -225,12 +377,12 @@ export const SalesList = ({
                   <div className="text-sm">
                     {sale.date
                       ? formatDate(
-                          sale.date &&
-                            typeof sale.date === 'object' &&
-                            (sale.date as object) instanceof Date
-                            ? (sale.date as Date).toISOString()
-                            : sale.date
-                        )
+                        sale.date &&
+                          typeof sale.date === 'object' &&
+                          (sale.date as object) instanceof Date
+                          ? (sale.date as Date).toISOString()
+                          : sale.date
+                      )
                       : 'N/A'}
                   </div>
                 </TableCell>
@@ -277,8 +429,8 @@ export const SalesList = ({
                   <div className="text-sm">
                     {sale?.created_at
                       ? `${formatDate(sale.created_at)} ${formatTime(
-                          sale.created_at
-                        )}`
+                        sale.created_at
+                      )}`
                       : 'N/A'}
                   </div>
                 </TableCell>
