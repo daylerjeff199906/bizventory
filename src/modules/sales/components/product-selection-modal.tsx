@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
+import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -114,8 +115,8 @@ function ProductConfigPanel({
                 : ''}
               {product?.attributes && product.attributes.length > 0
                 ? ` ${product.attributes
-                    .map((attr) => `${attr.attribute_value}`)
-                    .join(', ')}`
+                  .map((attr) => `${attr.attribute_value}`)
+                  .join(', ')}`
                 : ''}
             </h4>
 
@@ -239,7 +240,7 @@ function ProductConfigPanel({
   )
 }
 
-// Componente de item de producto
+// Componente de item de producto (Card Syle)
 function ProductItem({
   product,
   onSelect,
@@ -256,83 +257,61 @@ function ProductItem({
   const isOutOfStock = !product.stock || product.stock <= 0
 
   return (
-    <div
+    <Card
       className={`
-      p-3 border shadow-none rounded-md transition-all hover:shadow-sm cursor-pointer
-      ${isOutOfStock ? 'opacity-50 bg-muted/30' : 'hover:border-primary/20'}
-      ${isSelected ? 'border-primary bg-primary/5' : ''}
-      ${isConfiguring ? 'border-primary bg-primary/10' : ''}
+      overflow-hidden transition-all cursor-pointer group hover:shadow-md
+      ${isOutOfStock ? 'opacity-60' : ''}
+      ${isSelected ? 'ring-2 ring-primary border-primary' : ''}
+      ${isConfiguring ? 'ring-2 ring-primary border-primary' : ''}
     `}
       onClick={() => !isOutOfStock && !isSelected && onSelect(product)}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start gap-2 mb-2">
-            <Box className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-            <div className="flex-1">
-              <h4 className="font-medium text-sm leading-tight">
-                {product.brand?.name || ''} {product.product_description || ''}
-                {product?.variant_id && product.variant_name}{' '}
-                {product?.attributes && product.attributes.length > 0 && (
-                  <>
-                    {product.attributes
-                      .map((attr) => `${attr.attribute_value}`)
-                      .join(', ')}
-                  </>
-                )}
-              </h4>
-            </div>
-          </div>
+      <div className="h-32 w-full bg-muted flex items-center justify-center relative">
+        {/* Placeholder de imagen */}
+        <Package className="h-12 w-12 text-muted-foreground/30" />
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span>
-                Stock: {product.stock || 0} {product.unit}
-              </span>
-              {isOutOfStock && (
-                <div className="flex items-center gap-1 text-destructive">
-                  <AlertCircle className="h-3 w-3" />
-                  <span>Sin stock</span>
-                </div>
-              )}
-            </div>
-            {product.price_unit && (
-              <span className="text-sm font-medium">
-                {currency}
-                {product.price_unit.toFixed(2)}
-              </span>
-            )}
+        {isOutOfStock && (
+          <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
+            <span className="bg-destructive text-destructive-foreground text-xs font-bold px-2 py-1 rounded">
+              AGOTADO
+            </span>
+          </div>
+        )}
+
+        {isSelected && (
+          <div className="absolute top-2 right-2 bg-primary text-primary-foreground rounded-full p-1">
+            <Check className="h-4 w-4" />
+          </div>
+        )}
+      </div>
+
+      <div className="p-3">
+        <div className="mb-2">
+          <h4 className="font-semibold text-sm line-clamp-2 min-h-[2.5rem]" title={`${product.brand?.name || ''} ${product.product_name}`}>
+            {product.brand?.name ? <span className="text-muted-foreground text-xs block">{product.brand.name}</span> : null}
+            {product.product_name}
+          </h4>
+          <div className="text-xs text-muted-foreground truncate">
+            {product.variant_name || product.code}
           </div>
         </div>
 
-        <Button
-          size="sm"
-          onClick={(e) => {
-            e.stopPropagation()
-            onSelect(product)
-          }}
-          disabled={isOutOfStock || isSelected}
-          className="flex-shrink-0 text-xs"
-        >
-          {isSelected ? (
-            <>
-              <Check className="h-3 w-3 mr-1" />
-              Agregado
-            </>
-          ) : isConfiguring ? (
-            <>
-              <Settings className="h-3 w-3 mr-1" />
-              Configurando
-            </>
-          ) : (
-            <>
-              <Plus className="h-3 w-3 mr-1" />
-              Agregar
-            </>
-          )}
-        </Button>
+        <div className="flex items-end justify-between mt-2">
+          <div className="flex flex-col">
+            <span className="text-xs text-muted-foreground">Precio</span>
+            <span className="font-bold text-base">
+              {currency} {product.price_unit?.toFixed(2)}
+            </span>
+          </div>
+          <div className="text-right">
+            <span className="text-xs text-muted-foreground block">Stock</span>
+            <span className={`text-sm font-medium ${isOutOfStock ? 'text-destructive' : ''}`}>
+              {product.stock || 0}
+            </span>
+          </div>
+        </div>
       </div>
-    </div>
+    </Card>
   )
 }
 
@@ -428,84 +407,81 @@ export default function ProductSelectionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full max-w-[80vw] md:max-w-[80vw] max-h-[90vh] overflow-hidden flex flex-col h-full">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Package className="h-5 w-5" />
-            Seleccionar Producto
-          </DialogTitle>
-          <DialogDescription>
-            Busca y selecciona productos para agregar a la venta. Configura
-            cantidad, precio y descuentos según sea necesario.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="w-[98vw] max-w-[98vw] h-[95vh] max-h-[95vh] overflow-hidden flex flex-col p-0 gap-0 min-w-full">
+        <div className="px-6 py-4 border-b flex-shrink-0">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Package className="h-5 w-5" />
+              Seleccionar Producto
+            </DialogTitle>
+            <DialogDescription>
+              Selecciona productos del inventario
+            </DialogDescription>
+          </DialogHeader>
+        </div>
 
-        <div className="flex-1 overflow-hidden">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-full">
-            {/* Panel izquierdo - Lista de productos */}
-            <div className="col-span-1 md:col-span-2 flex flex-col h-full gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="search">Buscar productos</Label>
-                <SearchInput
-                  placeholder="Buscar por nombre o código..."
-                  value={searchTerm}
-                  onChange={setSearchTerm}
-                />
-              </div>
-
-              <ScrollArea className="flex-1 pr-2">
-                {loading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                  </div>
-                ) : listGeneralProducts.length > 0 ? (
-                  <div className="space-y-3">
-                    {listGeneralProducts.map((product) => (
-                      <ProductItem
-                        key={product._temp_id}
-                        product={product}
-                        onSelect={handleProductSelect}
-                        isSelected={isProductSelected(product._temp_id || '')}
-                        isConfiguring={
-                          selectedProduct?._temp_id === product._temp_id
-                        }
-                        currency={currency}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-8 text-center">
-                    <ShoppingCart className="h-12 w-12 text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-medium mb-2">
-                      No se encontraron productos
-                    </h3>
-                    <p className="text-muted-foreground">
-                      Intenta con otros términos de búsqueda
-                    </p>
-                  </div>
-                )}
-              </ScrollArea>
+        <div className="flex-1 overflow-hidden flex">
+          {/* Panel izquierdo - Lista de productos */}
+          <div className={`flex flex-col h-full transition-all duration-300 ${selectedProduct ? 'w-full lg:w-3/4 border-r' : 'w-full'}`}>
+            <div className="p-4 border-b bg-muted/20">
+              <SearchInput
+                placeholder="Buscar por nombre, código o marca..."
+                value={searchTerm}
+                onChange={setSearchTerm}
+                className="max-w-md w-full"
+              />
             </div>
 
-            {/* Panel derecho - Configuración del producto */}
-            <div className="col-span-1 md:col-span-1 flex flex-col h-full">
-              {selectedProduct && (
-                <>
-                  <div className="hidden md:block">
-                    <Separator orientation="vertical" className="h-full" />
-                  </div>
-                  <div className="md:col-span-1 border rounded-md bg-background">
-                    <ProductConfigPanel
-                      product={selectedProduct}
+            <ScrollArea className="flex-1 p-4 h-full">
+              {loading ? (
+                <div className="flex items-center justify-center py-20">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : listGeneralProducts.length > 0 ? (
+                <div className={`
+                        grid grid-cols-2 gap-4
+                        ${selectedProduct
+                    ? 'sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4'
+                    : 'sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6'}
+                      `}>
+                  {listGeneralProducts.map((product) => (
+                    <ProductItem
+                      key={product._temp_id}
+                      product={product}
+                      onSelect={handleProductSelect}
+                      isSelected={isProductSelected(product._temp_id || '')}
+                      isConfiguring={
+                        selectedProduct?._temp_id === product._temp_id
+                      }
                       currency={currency}
-                      onConfirm={handleProductConfirm}
-                      onCancel={handleCancelConfig}
                     />
-                  </div>
-                </>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-20 text-center opacity-70">
+                  <Package className="h-16 w-16 text-muted-foreground mb-4 opacity-20" />
+                  <h3 className="text-lg font-medium mb-1">
+                    No se encontraron productos
+                  </h3>
+                  <p className="text-muted-foreground text-sm">
+                    Intenta con otro término de búsqueda
+                  </p>
+                </div>
               )}
-            </div>
+            </ScrollArea>
           </div>
+
+          {/* Panel derecho - Configuración */}
+          {selectedProduct && (
+            <div className="w-full lg:w-1/4 h-full bg-background absolute inset-0 lg:relative lg:inset-auto z-20 flex flex-col shadow-xl lg:shadow-none">
+              <ProductConfigPanel
+                product={selectedProduct}
+                currency={currency}
+                onConfirm={handleProductConfirm}
+                onCancel={handleCancelConfig}
+              />
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
