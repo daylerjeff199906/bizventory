@@ -573,7 +573,6 @@ export default function EditSaleForm({ sale }: EditSaleFormProps) {
                 saleData={getValues() as SaleFormValues}
                 totals={{ subtotal, totalDiscount, taxAmount, total }}
                 isSubmitting={form.formState.isSubmitting}
-                isSubmitting={form.formState.isSubmitting}
                 isEditing
             />
         </div>

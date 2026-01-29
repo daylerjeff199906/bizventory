@@ -295,10 +295,9 @@ export async function createSale({
   // If sale is created as completed, update stock immediately
   if (validatedData.status === 'completed') {
     const { error: stockError } = await supabase.rpc(
-      'update_product_stock_after_sale_items',
+      'update_product_stock_after_sale',
       {
-        p_sale_id: sale.id,
-        p_movement_type: 'exit'
+        p_sale_id: sale.id
       }
     )
     console.log('Stock update error:', stockError)
