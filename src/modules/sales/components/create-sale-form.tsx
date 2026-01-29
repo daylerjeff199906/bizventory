@@ -260,16 +260,17 @@ export default function CreateSaleForm() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Información de la venta */}
             <div className="lg:col-span-2 space-y-6">
-              <div className="p-4 bg-white dark:bg-gray-800 border rounded-md">
+              <div className="p-4 border rounded-md">
                 <div>
                   <h3 className="flex items-center gap-2 text-lg font-semibold mb-2">
                     <ShoppingCart className="h-5 w-5" />
                     Información de la Venta
                   </h3>
-                  <p className="text-sm text-gray-500 mb-4">
+                  <p className="text-sm mb-4">
                     Detalles generales de la venta
                   </p>
                 </div>
+                <hr className="my-4" />
                 <div className="grid grid-cols-1 gap-6">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <FormField
@@ -502,7 +503,7 @@ export default function CreateSaleForm() {
                 </div>
               </div>
               {/* Productos */}
-              <div className="p-4 bg-white dark:bg-gray-800 border rounded-md grid grid-cols-1 gap-4">
+              <div className="p-4 border rounded-md grid grid-cols-1 gap-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2">
