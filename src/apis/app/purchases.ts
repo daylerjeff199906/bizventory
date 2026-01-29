@@ -30,7 +30,10 @@ export async function getPurchases({
   sortBy = 'date',
   sortDirection = 'asc',
   page,
-  pageSize
+  pageSize,
+  fromDate,
+  toDate,
+  code
 }: {
   bussinessId: string
   page?: number
@@ -38,6 +41,9 @@ export async function getPurchases({
   filters?: Partial<Purchase>
   sortBy: string
   sortDirection: 'asc' | 'desc'
+  fromDate?: string | null
+  toDate?: string | null
+  code?: string | null
 }): Promise<ResApi<PurchaseList>> {
   const supabase = await getSupabase()
   const currentPage = page ?? 1
@@ -68,6 +74,18 @@ export async function getPurchases({
     .eq('suppliers.business_id', bussinessId)
     .range(from, to)
     .order(sortColumn, { ascending: sortDirection === 'asc' })
+
+  if (fromDate) {
+    query = query.gte('date', fromDate)
+  }
+
+  if (toDate) {
+    query = query.lte('date', toDate)
+  }
+
+  if (code) {
+    query = query.ilike('code', `%${code}%`)
+  }
 
   if (filters) {
     Object.entries(filters).forEach(([key, value]) => {
