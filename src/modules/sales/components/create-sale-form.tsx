@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
+import { useParams } from 'next/navigation'
 import {
   Card,
   CardContent,
@@ -54,16 +55,26 @@ import EditProductModal from './edit-product-modal'
 
 // Datos de ejemplo para productos
 
+import { getCustomers } from '@/apis/app/customers'
+import { CustomerList } from '@/types'
+
+// ... existing imports
+
 export default function CreateSaleForm() {
   const [isProductModalOpen, setIsProductModalOpen] = useState(false)
   const [isConfirmationDialogOpen, setIsConfirmationDialogOpen] =
     useState(false)
+  const [customers, setCustomers] = useState<CustomerList[]>([])
+  const [searchCustomer, setSearchCustomer] = useState('')
+  const [isLoadingCustomers, setIsLoadingCustomers] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<{
     item: SaleItemValues | null
     index: number | null
   }>({ item: null, index: null })
   const router = useRouter()
+  const params = useParams()
+  const businessId = params.uuid as string
 
   const form = useForm<SaleFormValues>({
     resolver: zodResolver(saleFormSchema),
@@ -74,7 +85,8 @@ export default function CreateSaleForm() {
       shipping_address: '',
       tax_rate: 0,
       date: new Date().toISOString().split('T')[0], // Fecha actual en formato YYYY-MM-DD
-      items: []
+      items: [],
+      customer_id: ''
     }
   })
 
@@ -105,7 +117,28 @@ export default function CreateSaleForm() {
       return `VTA-${year}${month}${day}-${random}`
     }
     setValue('reference_number', generateReference())
+    setValue('reference_number', generateReference())
   }, [setValue])
+
+  // Fetch customers
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      setIsLoadingCustomers(true)
+      try {
+        const { data } = await getCustomers({ pageSize: 100 }) // Fetch enough customers for simple selection
+        setCustomers(data)
+      } catch (error) {
+        console.error('Error fetching customers:', error)
+      } finally {
+        setIsLoadingCustomers(false)
+      }
+    }
+    fetchCustomers()
+  }, [])
+
+  const filteredCustomers = customers.filter(customer =>
+    customer.person?.name.toLowerCase().includes(searchCustomer.toLowerCase())
+  )
 
   // Calcular totales
   const { subtotal, totalDiscount, taxAmount, total } = useMemo(() => {
@@ -145,7 +178,7 @@ export default function CreateSaleForm() {
     console.log('Datos del formulario:', data)
 
     const saleData: SaleValues = {
-      customer_id: null,
+      customer_id: data.customer_id || null,
       reference_number: data.reference_number,
       date: data.date,
       payment_method: data.payment_method,
@@ -182,7 +215,7 @@ export default function CreateSaleForm() {
             message={`La venta con número de referencia ${data.reference_number} ha sido creada.`}
           />
         )
-        router.push(APP_URLS.SALES.VIEW(response.id))
+        router.push(`/dashboard/${businessId}/sales/${response.id}/edit`) // Redirect to edit/view
       }
     } catch {
       toast.error(
@@ -218,7 +251,7 @@ export default function CreateSaleForm() {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
+    <div className="container mx-auto p-6">
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(handleSubmitForm)}
@@ -227,16 +260,17 @@ export default function CreateSaleForm() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Información de la venta */}
             <div className="lg:col-span-2 space-y-6">
-              <div className="p-4 bg-white dark:bg-gray-800 border rounded-md">
+              <div className="p-4 border rounded-md">
                 <div>
                   <h3 className="flex items-center gap-2 text-lg font-semibold mb-2">
                     <ShoppingCart className="h-5 w-5" />
                     Información de la Venta
                   </h3>
-                  <p className="text-sm text-gray-500 mb-4">
+                  <p className="text-sm mb-4">
                     Detalles generales de la venta
                   </p>
                 </div>
+                <hr className="my-4" />
                 <div className="grid grid-cols-1 gap-6">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <FormField
@@ -257,6 +291,47 @@ export default function CreateSaleForm() {
                         </FormItem>
                       )}
                     />
+
+
+
+                    <FormField
+                      control={form.control}
+                      name="customer_id"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Cliente</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Seleccionar cliente" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <div className="p-2 sticky top-0 bg-white z-10 border-b">
+                                <Input
+                                  placeholder="Buscar cliente..."
+                                  value={searchCustomer}
+                                  onChange={(e) => setSearchCustomer(e.target.value)}
+                                  className="h-8"
+                                  autoFocus
+                                />
+                              </div>
+                              <SelectItem value="null_value">Cliente Varios</SelectItem>
+                              {filteredCustomers.map((customer) => (
+                                <SelectItem key={customer.id} value={customer.id}>
+                                  {customer.person?.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
                     <div></div>
                     <div></div>
                     <FormField
@@ -428,7 +503,7 @@ export default function CreateSaleForm() {
                 </div>
               </div>
               {/* Productos */}
-              <div className="p-4 bg-white dark:bg-gray-800 border rounded-md grid grid-cols-1 gap-4">
+              <div className="p-4 border rounded-md grid grid-cols-1 gap-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2">
@@ -437,11 +512,10 @@ export default function CreateSaleForm() {
                         Productos de la Venta
                       </h3>
                     </div>
-                    <p className="text-sm text-gray-500 mb-2">
+                    <p className="text-sm mb-2">
                       {watchedItems && watchedItems?.length > 0
-                        ? `${watchedItems?.length} producto${
-                            watchedItems?.length !== 1 ? 's' : ''
-                          } agregado${watchedItems?.length !== 1 ? 's' : ''}`
+                        ? `${watchedItems?.length} producto${watchedItems?.length !== 1 ? 's' : ''
+                        } agregado${watchedItems?.length !== 1 ? 's' : ''}`
                         : 'No hay productos agregados'}
                     </p>
                   </div>
@@ -468,29 +542,29 @@ export default function CreateSaleForm() {
                         <table className="w-full">
                           <thead>
                             <tr className="border-b border-gray-200">
-                              <th className="text-left py-3 px-2 text-sm font-medium text-gray-700">
+                              <th className="text-left py-3 px-2 text-sm font-medium">
                                 #
                               </th>
-                              <th className="text-left py-3 px-2 text-sm font-medium text-gray-700">
+                              <th className="text-left py-3 px-2 text-sm font-medium">
                                 Producto
                               </th>
-                              <th className="text-center py-3 px-2 text-sm font-medium text-gray-700">
+                              <th className="text-center py-3 px-2 text-sm font-medium">
                                 Cant.
                               </th>
-                              <th className="text-right py-3 px-2 text-sm font-medium text-gray-700">
+                              <th className="text-right py-3 px-2 text-sm font-medium">
                                 P.Unit.
                               </th>
 
-                              <th className="text-right py-3 px-2 text-sm font-medium text-gray-700">
+                              <th className="text-right py-3 px-2 text-sm font-medium">
                                 Subtotal
                               </th>
-                              <th className="text-right py-3 px-2 text-sm font-medium text-gray-700">
+                              <th className="text-right py-3 px-2 text-sm font-medium">
                                 Desc.
                               </th>
-                              <th className="text-right py-3 px-2 text-sm font-medium text-gray-700">
+                              <th className="text-right py-3 px-2 text-sm font-medium">
                                 Total
                               </th>
-                              <th className="text-center py-3 px-2 text-sm font-medium text-gray-700">
+                              <th className="text-center py-3 px-2 text-sm font-medium">
                                 Acciones
                               </th>
                             </tr>
@@ -499,13 +573,13 @@ export default function CreateSaleForm() {
                             {watchedItems.map((item, index) => (
                               <tr
                                 key={index}
-                                className="border-b border-gray-100 hover:bg-gray-25"
+                                className="border-b"
                               >
-                                <td className="py-3 px-2 text-sm text-gray-500">
+                                <td className="py-3 px-2 text-sm">
                                   {index + 1}
                                 </td>
                                 <td className="py-3 px-2">
-                                  <div className="text-sm font-medium text-gray-900">
+                                  <div className="text-sm font-medium ">
                                     {item.brand?.name}{' '}
                                     {item.product_description}
                                     {item.variant_name && (
@@ -606,7 +680,7 @@ export default function CreateSaleForm() {
                       </div>
                     </div>
                   ) : (
-                    <div className="text-center justify-center py-12 text-gray-500 border-2 border-dashed border-gray-200 rounded-lg">
+                    <div className="text-center justify-center py-12 border-2 border-dashed border-gray-200 rounded-lg">
                       <Package className="h-16 w-16 mx-auto mb-4 opacity-50" />
                       <div className="flex flex-col items-center">
                         <p className="text-lg font-medium mb-2">
@@ -688,7 +762,7 @@ export default function CreateSaleForm() {
                   </div>
 
                   <div className="pt-4 space-y-2">
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm">
                       <div>Productos: {watchedItems?.length || 0}</div>
                       <div>
                         Cantidad total:{' '}
@@ -708,7 +782,6 @@ export default function CreateSaleForm() {
                     }
                     size="lg"
                   >
-                    <DollarSign className="h-4 w-4 mr-2" />
                     {form.formState.isSubmitting ? 'Creando...' : 'Crear Venta'}
                   </Button>
                 </CardContent>
@@ -747,6 +820,6 @@ export default function CreateSaleForm() {
         totals={{ subtotal, totalDiscount, taxAmount, total }}
         isSubmitting={form.formState.isSubmitting}
       />
-    </div>
+    </div >
   )
 }

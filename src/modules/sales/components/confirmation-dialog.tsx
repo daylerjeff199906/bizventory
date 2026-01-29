@@ -14,7 +14,6 @@ import {
   AlertTriangle,
   Package,
   Calculator,
-  DollarSign
 } from 'lucide-react'
 import type { Currency } from '@/types'
 import type { SaleFormValues, SaleItemValues } from '../schemas'
@@ -32,6 +31,7 @@ interface ConfirmationDialogProps {
     total: number
   }
   isSubmitting?: boolean
+  isEditing?: boolean
 }
 
 export default function ConfirmationDialog({
@@ -41,7 +41,8 @@ export default function ConfirmationDialog({
   saleData,
   currency,
   totals,
-  isSubmitting = false
+  isSubmitting = false,
+  isEditing = false
 }: ConfirmationDialogProps) {
   const currencySymbol = currency === 'PEN' ? 'S/' : '$'
   const currencyName = currency === 'PEN' ? 'Soles' : 'Dólares'
@@ -58,15 +59,16 @@ export default function ConfirmationDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col min-w-[60vw]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CheckCircle className="h-5 w-5 text-green-600" />
-            Confirmar Registro de Venta
+            {isEditing ? 'Confirmar Actualización' : 'Confirmar Registro de Venta'}
           </DialogTitle>
           <DialogDescription>
-            Revisa los detalles de la venta antes de confirmar el registro. Esta
-            acción no se puede deshacer.
+            {isEditing
+              ? 'Revisa los detalles antes de actualizar. Si la venta ya estaba completada, los cambios podrían afectar el stock nuevamente.'
+              : 'Revisa los detalles de la venta antes de confirmar el registro. Esta acción no se puede deshacer.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -258,8 +260,7 @@ export default function ConfirmationDialog({
             className="flex-1"
             disabled={isSubmitting}
           >
-            <DollarSign className="h-4 w-4 mr-2" />
-            {isSubmitting ? 'Registrando...' : 'Confirmar Venta'}
+            {isSubmitting ? 'Procesando...' : isEditing ? 'Actualizar Venta' : 'Confirmar Venta'}
           </Button>
         </div>
       </DialogContent>

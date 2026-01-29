@@ -50,11 +50,15 @@ export interface CombinedResultExtended extends CombinedResult {
   original_product_name?: string | null
   original_variant_name?: string | null
 }
-export interface CombinedResultExtendedSales extends CombinedResult {
+export interface CombinedResultExtendedSales extends Omit<CombinedResult, 'unit'> {
   quantity?: number
   unit_price?: number
   discount_amount?: number
   total_price?: number
+  variant_id?: string
+  variant_name?: string
+  attributes?: VariantAttribute[]
+  unit?: string
 }
 
 export async function getProductsAndVariantsForPurchase({
