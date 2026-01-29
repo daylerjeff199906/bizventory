@@ -258,7 +258,7 @@ const EditItemDialog = ({
                   <span>
                     {formatCurrencySoles(
                       Number(editData.quantity) * Number(editData.price) -
-                        (Number(editData.discount) || 0)
+                      (Number(editData.discount) || 0)
                     )}
                   </span>
                 </div>
@@ -573,14 +573,14 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
   })
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen">
       <div>
         {/* Indicaciones para el registro de compras */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h3 className="font-semibold text-blue-800 mb-2">
+        <div className="border border-blue-200 rounded-lg p-4">
+          <h3 className="font-semibold text-blue-800 dark:text-blue-400 mb-2">
             Indicaciones para registrar una compra
           </h3>
-          <ul className="list-disc pl-6 text-blue-900 space-y-1 text-sm">
+          <ul className="list-disc pl-6 text-blue-900 dark:text-blue-400 space-y-1 text-sm">
             <li>
               El <span className="font-medium">número de guía</span> debe
               corresponder al documento de la compra (guía, boleta, factura,
@@ -609,10 +609,10 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
             {/* Información básica */}
             <section className="space-y-6">
               <div className="border-b border-gray-200 pb-4">
-                <h2 className="text-xl font-semibold text-gray-900">
+                <h2 className="text-xl font-semibold">
                   Información básica
                 </h2>
-                <p className="text-gray-600 mt-1">
+                <p className="text-foreground mt-1">
                   Datos principales de la compra
                 </p>
               </div>
@@ -787,10 +787,10 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
             <section className="space-y-6">
               <div className="flex items-center justify-between border-b border-gray-200 pb-4">
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900">
+                  <h2 className="text-xl font-semibold">
                     Productos
                   </h2>
-                  <p className="text-gray-600 mt-1">
+                  <p className="mt-1">
                     Agrega los productos de esta compra
                   </p>
                 </div>
@@ -804,7 +804,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                 <div className="border rounded-lg overflow-hidden">
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-gray-50">
+                      <TableRow>
                         <TableHead className="w-8"></TableHead>
                         <TableHead>Producto</TableHead>
                         <TableHead>Unidad</TableHead>
@@ -923,22 +923,22 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                                     <TableCell className="font-medium text-right">
                                       {formatCurrencySoles(
                                         variant.quantity * variant.price -
-                                          (variant.discount || 0)
+                                        (variant.discount || 0)
                                       )}
                                     </TableCell>
                                     {purchaseItems.some(
                                       (item) => item.bar_code
                                     ) && (
-                                      <TableCell className="text-xs text-gray-500">
-                                        {variant.bar_code ? (
-                                          <span className="bg-gray-100 px-2 py-1 rounded">
-                                            {variant.bar_code}
-                                          </span>
-                                        ) : (
-                                          '-'
-                                        )}
-                                      </TableCell>
-                                    )}
+                                        <TableCell className="text-xs text-gray-500">
+                                          {variant.bar_code ? (
+                                            <span className="bg-gray-100 px-2 py-1 rounded">
+                                              {variant.bar_code}
+                                            </span>
+                                          ) : (
+                                            '-'
+                                          )}
+                                        </TableCell>
+                                      )}
                                     <TableCell>
                                       <div className="flex gap-1">
                                         <Button
@@ -1003,7 +1003,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                             <TableCell className="font-medium text-right">
                               {formatCurrencySoles(
                                 item.quantity * item.price -
-                                  (item.discount || 0)
+                                (item.discount || 0)
                               )}
                             </TableCell>
                             {purchaseItems.some((item) => item.bar_code) && (
@@ -1064,8 +1064,8 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
             {/* Totales */}
             <section className="space-y-6">
               <div className="border-b border-gray-200 pb-4">
-                <h2 className="text-xl font-semibold text-gray-900">Totales</h2>
-                <p className="text-gray-600 mt-1">
+                <h2 className="text-xl font-semibold">Totales</h2>
+                <p className="mt-1">
                   Cálculo de descuentos e impuestos
                 </p>
               </div>
@@ -1130,7 +1130,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                   />
                 </div>
 
-                <div className="bg-gray-50 p-6 rounded-lg space-y-3">
+                <div className="p-6 rounded-lg space-y-3">
                   <div className="flex justify-between">
                     <span>Subtotal (con descuentos por producto):</span>
                     <span className="font-medium">
@@ -1167,7 +1167,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
 
             {/* Botones de acción */}
             <div className="flex justify-end gap-4 pt-8 border-t border-gray-200">
-              <Link href="/purchases">
+              <Link href={APP_URLS.PURCHASES.LIST}>
                 <Button type="button" variant="outline" size="lg">
                   Cancelar
                 </Button>

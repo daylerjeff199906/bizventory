@@ -135,8 +135,8 @@ export const ProductSelectorModal = ({
       />
 
       {/* Información sobre la selección */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-        <p className="text-sm text-blue-800">
+      <div className="border border-blue-200 dark:border-blue-600 rounded-lg p-3">
+        <p className="text-sm text-blue-800 dark:text-blue-200">
           <strong>Nota:</strong> Los productos con variantes mostrarán sus
           variantes al hacer clic. Los productos simples se agregan
           directamente.
@@ -147,7 +147,7 @@ export const ProductSelectorModal = ({
       <div className="flex-1 overflow-auto border rounded-lg">
         <div className="h-full min-h-[200px]">
           <Table className="relative">
-            <TableHeader className="sticky top-0 bg-white z-10">
+            <TableHeader className="sticky top-0 z-10">
               <TableRow>
                 <TableHead className="bg-muted">Producto</TableHead>
                 <TableHead className="bg-muted">Unidad</TableHead>
@@ -332,7 +332,7 @@ export const ProductSelectorModal = ({
               </TableHeader>
               <TableBody>
                 {selectedProduct.variants &&
-                selectedProduct.variants.length > 0 ? (
+                  selectedProduct.variants.length > 0 ? (
                   selectedProduct.variants.map((variant) => {
                     const isSelected = isVariantSelected(variant.id)
 
@@ -348,7 +348,7 @@ export const ProductSelectorModal = ({
                           <div className="flex items-center space-x-3">
                             <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
                               {selectedProduct.images &&
-                              selectedProduct.images.length > 0 ? (
+                                selectedProduct.images.length > 0 ? (
                                 <img
                                   src={
                                     selectedProduct.images[0]?.url ||
@@ -378,7 +378,7 @@ export const ProductSelectorModal = ({
 
                         <TableCell>
                           {variant.attributes &&
-                          variant.attributes.length > 0 ? (
+                            variant.attributes.length > 0 ? (
                             <div className="flex flex-wrap gap-1">
                               {variant.attributes.map((attr, index) => (
                                 <Badge
@@ -410,7 +410,7 @@ export const ProductSelectorModal = ({
                             className={cn(
                               'min-w-24',
                               isSelected &&
-                                'bg-green-100 text-green-800 hover:bg-green-100 border-green-200'
+                              'bg-green-100 text-green-800 hover:bg-green-100 border-green-200'
                             )}
                           >
                             {isSelected ? (

@@ -17,6 +17,10 @@ export default async function Page(props: Props) {
   const limit = Number(searchParams.limit) || 10
   const qParam = searchParams.q
   const searchQuery = Array.isArray(qParam) ? qParam[0] : qParam || ''
+  const fromParam = searchParams.from
+  const toParam = searchParams.to
+  const fromDate = Array.isArray(fromParam) ? fromParam[0] : fromParam
+  const toDate = Array.isArray(toParam) ? toParam[0] : toParam
 
   let sortField: string | undefined
   let sortOrder: 'asc' | 'desc' | undefined
@@ -33,7 +37,9 @@ export default async function Page(props: Props) {
     bussinessId: uuid?.toString() || '',
     page,
     pageSize: limit,
-    filters: searchQuery ? { code: searchQuery } : undefined // Basic filter example
+    fromDate,
+    toDate,
+    code: searchQuery
   })
 
   return (
@@ -48,6 +54,10 @@ export default async function Page(props: Props) {
           page_size: purchases.page_size
         }}
         searchQuery={searchQuery}
+        filters={{
+          from: fromDate,
+          to: toDate
+        }}
       />
     </>
   )

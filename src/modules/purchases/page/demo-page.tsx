@@ -194,21 +194,21 @@ export default function PurchaseInvoice(props: PurchaseInvoiceProps) {
                     <p className="font-medium ">
                       {purchase.supplier.name}
                     </p>
-                    <p className="text-gray-600 text-sm">
+                    <p className="text-sm">
                       {purchase.supplier.contact}
                     </p>
                   </div>
                   <div>
-                    <p className="text-gray-600 text-sm">
+                    <p className="text-sm">
                       {purchase.supplier.email}
                     </p>
-                    <p className="text-gray-600 text-sm">
+                    <p className="text-sm">
                       {purchase.supplier.phone}
                     </p>
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <p className="text-gray-600 text-sm">
+                  <p className="text-sm">
                     {purchase.supplier.address}
                   </p>
                   <div className="flex flex-wrap gap-2">
@@ -318,7 +318,7 @@ export default function PurchaseInvoice(props: PurchaseInvoiceProps) {
               <div className="flex justify-end">
                 <div className="space-y-3 min-w-[280px]">
                   <div className="flex justify-between text-base">
-                    <span className="text-gray-600">Subtotal:</span>
+                    <span className="text-foreground">Subtotal:</span>
                     <span className="font-medium">
                       {formatCurrency(
                         purchase.subtotal,
@@ -331,7 +331,7 @@ export default function PurchaseInvoice(props: PurchaseInvoiceProps) {
                     if (!Number.isFinite(discount) || discount <= 0) return null
                     return (
                       <div className="flex justify-between text-base">
-                        <span className="text-gray-600">Descuento Global:</span>
+                        <span className="text-foreground">Descuento Global:</span>
                         <span className="text-red-600 font-medium">
                           -
                           {formatCurrency(
@@ -345,7 +345,7 @@ export default function PurchaseInvoice(props: PurchaseInvoiceProps) {
 
                   {purchase.tax_amount && purchase.tax_amount > 0 && (
                     <div className="flex justify-between text-base">
-                      <span className="text-gray-600">
+                      <span className="text-foreground">
                         IGV ({purchase.tax_rate}%):
                       </span>
                       <span className="font-medium">

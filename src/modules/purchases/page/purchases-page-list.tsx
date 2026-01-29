@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Table,
   TableBody,
@@ -52,13 +54,18 @@ interface PurchasesListProps {
     page: number
     page_size: number
   }
+  filters?: {
+    from?: string
+    to?: string
+  }
 }
 
 export const PurchasesList = ({
   purchasesData = [],
   searchQuery = '',
   businessId,
-  meta
+  meta,
+  filters
 }: PurchasesListProps) => {
   const router = useRouter()
   const pathname = usePathname()
@@ -71,6 +78,52 @@ export const PurchasesList = ({
   const [sortDirection, setSortDirection] = useState<SortDirection>(
     (currentSort[1] as SortDirection) || 'asc'
   )
+
+  // Local state for filters to avoid excessive URL updates while typing
+  const [codeFilter, setCodeFilter] = useState(searchQuery)
+  const [dateFrom, setDateFrom] = useState(filters?.from || '')
+  const [dateTo, setDateTo] = useState(filters?.to || '')
+
+  // Effect to sync local state with props if URL changes externally
+  // (Optional, if we want bidirectional sync perfectly, but simple init is usually enough)
+
+  const handleFilterChange = (key: string, value: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (value) {
+      params.set(key, value)
+    } else {
+      params.delete(key)
+    }
+    // Reset page on filter change
+    params.set('page', '1')
+    router.replace(`${pathname}?${params.toString()}`)
+  }
+
+  const handleSearch = (term: string) => {
+    setCodeFilter(term)
+    // Debounce could be added here, effectively doing direct update for now or only on Enter/Blur
+  }
+
+  const applyFilters = () => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (codeFilter) params.set('q', codeFilter)
+    else params.delete('q')
+
+    if (dateFrom) params.set('from', dateFrom)
+    else params.delete('from')
+
+    if (dateTo) params.set('to', dateTo)
+    else params.delete('to')
+
+    params.set('page', '1')
+    router.push(`${pathname}?${params.toString()}`)
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      applyFilters()
+    }
+  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('es-ES', {
@@ -118,6 +171,11 @@ export const PurchasesList = ({
   const clearSearch = () => {
     const params = new URLSearchParams(searchParams.toString())
     params.delete('q')
+    params.delete('from')
+    params.delete('to')
+    setCodeFilter('')
+    setDateFrom('')
+    setDateTo('')
     // Reset page to 1 when clearing search
     params.set('page', '1')
     router.push(`${pathname}?${params.toString()}`)
@@ -135,20 +193,112 @@ export const PurchasesList = ({
 
   return (
     <div className="space-y-4 w-full">
-      {searchQuery && (
-        <div className="flex items-center gap-2">
-          <Badge variant="secondary" className="px-3 py-1 flex items-center gap-2">
-            <Filter className="h-3 w-3" />
-            Filtro: {searchQuery}
-            <button onClick={clearSearch} className="ml-1 hover:bg-muted rounded-full p-0.5" title="Limpiar filtro">
-              <X className="h-3 w-3" />
-            </button>
-          </Badge>
-          <Button variant="ghost" size="sm" onClick={clearSearch} className="text-xs h-8">
-            Limpiar filtros
-          </Button>
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-end sm:items-center bg-card p-4 rounded-lg border">
+        <div className="flex flex-col sm:flex-row gap-4 items-end sm:items-center w-full">
+          <div className="grid gap-1.5 w-full sm:w-auto">
+            <Label htmlFor="code" className="text-xs">Buscar código</Label>
+            <div className="relative">
+              <PackageSearch className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="code"
+                placeholder="Cód. Compra..."
+                className="pl-9 w-full sm:w-[200px]"
+                value={codeFilter}
+                onChange={(e) => setCodeFilter(e.target.value)}
+                onKeyDown={handleKeyDown}
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="grid gap-1.5 w-full">
+              <Label htmlFor="from" className="text-xs">Desde</Label>
+              <Input
+                id="from"
+                type="date"
+                value={dateFrom}
+                onChange={(e) => {
+                  setDateFrom(e.target.value)
+                  // Optional: auto-apply date changes
+                  // handleFilterChange('from', e.target.value) 
+                }}
+                className="w-full sm:w-auto"
+              />
+            </div>
+            <div className="grid gap-1.5 w-full">
+              <Label htmlFor="to" className="text-xs">Hasta</Label>
+              <Input
+                id="to"
+                type="date"
+                value={dateTo}
+                onChange={(e) => {
+                  setDateTo(e.target.value)
+                  // Optional: auto-apply date changes
+                  // handleFilterChange('to', e.target.value) 
+                }}
+                className="w-full sm:w-auto"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 mt-auto">
+            <Button onClick={applyFilters} size="sm">
+              <Filter className="h-4 w-4 mr-2" />
+              Filtrar
+            </Button>
+            {(searchQuery || filters?.from || filters?.to) && (
+              <Button variant="ghost" size="sm" onClick={clearSearch} title="Limpiar filtros">
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </div>
-      )}
+      </div>
+      {
+        (searchQuery || filters?.from || filters?.to) && (
+          <div className="flex items-center gap-2 flex-wrap">
+            {searchQuery && (
+              <Badge variant="secondary" className="px-3 py-1 flex items-center gap-2">
+                Código: {searchQuery}
+                <button onClick={() => {
+                  setCodeFilter('')
+                  const params = new URLSearchParams(searchParams.toString())
+                  params.delete('q')
+                  router.push(`${pathname}?${params.toString()}`)
+                }} className="ml-1 hover:bg-muted rounded-full p-0.5">
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            )}
+            {filters?.from && (
+              <Badge variant="secondary" className="px-3 py-1 flex items-center gap-2">
+                Desde: {formatDate(filters.from)}
+                <button onClick={() => {
+                  setDateFrom('')
+                  const params = new URLSearchParams(searchParams.toString())
+                  params.delete('from')
+                  router.push(`${pathname}?${params.toString()}`)
+                }} className="ml-1 hover:bg-muted rounded-full p-0.5">
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            )}
+            {filters?.to && (
+              <Badge variant="secondary" className="px-3 py-1 flex items-center gap-2">
+                Hasta: {formatDate(filters.to)}
+                <button onClick={() => {
+                  setDateTo('')
+                  const params = new URLSearchParams(searchParams.toString())
+                  params.delete('to')
+                  router.push(`${pathname}?${params.toString()}`)
+                }} className="ml-1 hover:bg-muted rounded-full p-0.5">
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            )}
+          </div>
+        )
+      }
       <div className="rounded-md border w-full overflow-x-auto">
         <Table>
           <TableHeader>
@@ -381,41 +531,43 @@ export const PurchasesList = ({
         )}
       </div>
       {/* Pagination Footer */}
-      {meta && meta.total_pages > 0 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-2">
-          <div className="text-sm text-muted-foreground order-2 sm:order-1">
-            Mostrando {purchasesData.length} de {meta.total} compras
-            {meta.total_pages > 1 && ` (Página ${meta.page} de ${meta.total_pages})`}
-          </div>
-
-          <div className="flex items-center gap-2 order-1 sm:order-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(meta.page - 1)}
-              disabled={meta.page <= 1}
-              className="h-8 w-8 p-0"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-
-            {/* Simple numeric indication or buttons for simplicity just Prev/Next */}
-            <div className="text-sm font-medium mx-2">
-              {meta.page}
+      {
+        meta && meta.total_pages > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-2">
+            <div className="text-sm text-muted-foreground order-2 sm:order-1">
+              Mostrando {purchasesData.length} de {meta.total} compras
+              {meta.total_pages > 1 && ` (Página ${meta.page} de ${meta.total_pages})`}
             </div>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(meta.page + 1)}
-              disabled={meta.page >= meta.total_pages}
-              className="h-8 w-8 p-0"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-2 order-1 sm:order-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(meta.page - 1)}
+                disabled={meta.page <= 1}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+
+              {/* Simple numeric indication or buttons for simplicity just Prev/Next */}
+              <div className="text-sm font-medium mx-2">
+                {meta.page}
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(meta.page + 1)}
+                disabled={meta.page >= meta.total_pages}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   )
 }

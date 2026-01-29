@@ -643,11 +643,11 @@ export const EditPurchasePage = (props: EditPurchasePageProps) => {
     <div className="min-h-screen ">
       <div className="w-full max-w-6xl mx-auto p-6">
         {/* Indicaciones para el registro de compras */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 d">
-          <h3 className="font-semibold text-blue-800 mb-2">
+        <div className="border border-blue-200 dark:border-blue-700 rounded-lg p-4 mb-6 d">
+          <h3 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">
             Editando compra existente
           </h3>
-          <ul className="list-disc pl-6 text-blue-900 space-y-1 text-sm">
+          <ul className="list-disc pl-6 text-blue-900 dark:text-blue-200 space-y-1 text-sm">
             <li>
               Los cambios en productos y cantidades afectarán el inventario si
               la compra está marcada como {`"Completada"`}.
@@ -668,10 +668,10 @@ export const EditPurchasePage = (props: EditPurchasePageProps) => {
             {/* Información básica */}
             <section className="space-y-6">
               <div className="border-b border-gray-200 pb-4">
-                <h2 className="text-xl font-semibold text-gray-900">
+                <h2 className="text-xl font-semibold">
                   Información básica
                 </h2>
-                <p className="text-gray-600 mt-1">
+                <p className="mt-1">
                   Datos principales de la compra
                 </p>
               </div>
@@ -846,10 +846,10 @@ export const EditPurchasePage = (props: EditPurchasePageProps) => {
             <section className="space-y-6">
               <div className="flex items-center justify-between border-b border-gray-200 pb-4">
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900">
+                  <h2 className="text-xl font-semibold">
                     Productos
                   </h2>
-                  <p className="text-gray-600 mt-1">Productos de esta compra</p>
+                  <p className="mt-1">Productos de esta compra</p>
                 </div>
                 <Button type="button" onClick={() => setProductModalOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
@@ -861,10 +861,9 @@ export const EditPurchasePage = (props: EditPurchasePageProps) => {
                 <div className="border rounded-lg overflow-hidden">
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-gray-50">
+                      <TableRow>
                         <TableHead className="w-8"></TableHead>
                         <TableHead>Producto</TableHead>
-                        {/* <TableHead>Unidad</TableHead> */}
                         <TableHead>Cantidad</TableHead>
                         <TableHead>Precio Unit.</TableHead>
                         <TableHead>Descuento</TableHead>
@@ -891,7 +890,6 @@ export const EditPurchasePage = (props: EditPurchasePageProps) => {
                             <>
                               <TableRow
                                 key={item._temp_id}
-                                className="bg-gray-50"
                               >
                                 <TableCell>
                                   <Button
@@ -919,7 +917,7 @@ export const EditPurchasePage = (props: EditPurchasePageProps) => {
                                       {item.product?.brand}{' '}
                                       {item.product?.description}
                                     </span>
-                                    <span className="ml-2 text-xs text-gray-500 bg-blue-100 px-2 py-1 rounded">
+                                    <span className="ml-2 text-xs bg-blue-100 px-2 py-1 rounded">
                                       {selectedVariantsCount} de{' '}
                                       {totalVariantsCount} variantes
                                       seleccionadas
@@ -945,7 +943,6 @@ export const EditPurchasePage = (props: EditPurchasePageProps) => {
                                 variants.map((variant: PurchaseItem) => (
                                   <TableRow
                                     key={variant._temp_id}
-                                    className=""
                                   >
                                     <TableCell></TableCell>
                                     <TableCell className="pl-8">
@@ -953,7 +950,7 @@ export const EditPurchasePage = (props: EditPurchasePageProps) => {
                                         <span className="text-sm">
                                           {variant.variant?.name}
                                         </span>
-                                        <span className="text-xs text-gray-500">
+                                        <span className="text-xs">
                                           {variant.variant_attributes
                                             ?.map(
                                               (attr) =>
@@ -1034,10 +1031,6 @@ export const EditPurchasePage = (props: EditPurchasePageProps) => {
                             <TableCell></TableCell>
                             <TableCell>
                               <p className="text-sm break-words whitespace-normal line-clamp-3 uppercase">
-                                {/* {item.product?.brand || ''}{' '}
-                                {item.product?.name && (
-                                  <> {item.product.name}</>
-                                )} */}
                                 {item.original_product_name}{' '}
                                 {item.original_variant_name}
                               </p>
@@ -1047,7 +1040,6 @@ export const EditPurchasePage = (props: EditPurchasePageProps) => {
                                 )}
                               </p>
                             </TableCell>
-                            {/* <TableCell>{item.product?.unit}</TableCell> */}
                             <TableCell className="font-medium">
                               {item.quantity}
                             </TableCell>
@@ -1123,8 +1115,8 @@ export const EditPurchasePage = (props: EditPurchasePageProps) => {
             {/* Totales */}
             <section className="space-y-6">
               <div className="border-b border-gray-200 pb-4">
-                <h2 className="text-xl font-semibold text-gray-900">Totales</h2>
-                <p className="text-gray-600 mt-1">
+                <h2 className="text-xl font-semibold">Totales</h2>
+                <p className="text-foreground mt-1">
                   Cálculo de descuentos e impuestos
                 </p>
               </div>
@@ -1189,7 +1181,7 @@ export const EditPurchasePage = (props: EditPurchasePageProps) => {
                   />
                 </div>
 
-                <div className="bg-gray-50 p-6 rounded-lg space-y-3">
+                <div className="p-6 rounded-lg space-y-3">
                   <div className="flex justify-between">
                     <span>Subtotal (con descuentos por producto):</span>
                     <span className="font-medium">
@@ -1225,7 +1217,7 @@ export const EditPurchasePage = (props: EditPurchasePageProps) => {
             </section>
 
             {/* Botones de acción */}
-            <div className="flex justify-end gap-4 pt-8 border-t border-gray-200">
+            <div className="flex justify-end gap-4 pt-8 border-t border-gray-200 dark:border-gray-700">
               <Link
                 href={APP_URLS.ORGANIZATION.PURCHASES.LIST(businessId || '')}
               >
