@@ -236,7 +236,7 @@ const EditItemDialog = ({
           {typeof editData.quantity === 'number' &&
             editData.quantity > 0 &&
             typeof editData.price === 'number' && (
-              <div className="bg-gray-50 p-3 rounded-lg space-y-2">
+              <div className="p-3 rounded-lg space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>Subtotal:</span>
                   <span>
@@ -834,7 +834,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                             <>
                               <TableRow
                                 key={item._temp_id}
-                                className="bg-gray-50"
+                                className=""
                               >
                                 <TableCell>
                                   <Button

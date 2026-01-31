@@ -255,6 +255,33 @@ export async function createPurchase({
     throw itemsError
   }
 
+  // Si la compra se crea como completada, actualizar stock inmediatamente
+  if (validatedData.status === 'completed') {
+    const { error: stockError } = await supabase.rpc(
+      'update_product_stock_after_purchase',
+      {
+        p_movement_type: 'entry',
+        p_purchase_id: purchase.id
+      }
+    )
+
+    if (stockError) {
+      // Revertir el estado de la compra si falla la actualización de stock
+      // O eliminarla si se prefiere atomicidad total, pero cambiar a pendiente es más seguro para no perder datos
+      await supabase
+        .from('purchases')
+        .update({ status: 'pending', updated_at: new Date().toISOString() })
+        .eq('id', purchase.id)
+
+      console.error('Error updating stock for new purchase:', stockError)
+      // No lanzamos error para no romper la creación, pero idealmente se debería notificar
+      // O lanzar error para que el UI lo maneje.
+
+      // Lanzamos error para que el usuario sepa que algo falló con el stock
+      throw new Error(`Compra creada pero falló la actualización de stock: ${stockError.message}`)
+    }
+  }
+
   revalidatePath(APP_URLS.PURCHASES.LIST)
   return purchase
 }
@@ -357,7 +384,35 @@ export async function patchPurchaseField(
 export async function deletePurchase(id: string): Promise<void> {
   const supabase = await getSupabase()
 
-  // Primero eliminar los items asociados
+  // 1. Obtener la compra para verificar estado
+  const { data: purchase, error: fetchError } = await supabase
+    .from('purchases')
+    .select('status, business_id')
+    .eq('id', id)
+    .single()
+
+  if (fetchError) {
+    throw new Error('Error finding purchase to delete')
+  }
+
+  // 2. Si estaba completada, revertir stock (eliminar movimientos)
+  if (purchase.status === 'completed') {
+    const { error: stockError } = await supabase.rpc(
+      'delete_purchase_inventory_movements',
+      {
+        p_purchase_id: id
+      }
+    )
+
+    if (stockError) {
+      console.error('Error reverting stock:', stockError)
+      throw new Error(
+        'No se pudo revertir el stock. La compra no ha sido eliminada.'
+      )
+    }
+  }
+
+  // 3. Eliminar items asociados
   const { error: itemsError } = await supabase
     .from('purchase_items')
     .delete()
@@ -365,12 +420,16 @@ export async function deletePurchase(id: string): Promise<void> {
 
   if (itemsError) throw itemsError
 
-  // Luego eliminar la compra
+  // 4. Eliminar la compra
   const { error } = await supabase.from('purchases').delete().eq('id', id)
 
   if (error) throw error
 
-  revalidatePath(APP_URLS.PURCHASES.LIST)
+  if (purchase.business_id) {
+    revalidatePath(APP_URLS.ORGANIZATION.PURCHASES.LIST(purchase.business_id))
+  } else {
+    revalidatePath(APP_URLS.PURCHASES.LIST)
+  }
 }
 
 /**

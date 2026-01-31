@@ -35,21 +35,12 @@ export default async function Page(props: Props) {
     sortDirection: sortOrder ?? 'desc',
     page,
     pageSize: limit,
+    fromDate,
+    toDate,
     filters: {
       reference_number: q,
-      // Note: Typically date filtering might need specific params in getSales or handled via filtering object if API supports it
-      // For now assuming getSales might need update or supports partial matching via filters object if strictly typed
     }
-    // We might need to pass from/to separately if filters object doesn't support ranges or update getSales to accept them
   })
-
-  // Since getSales interface in the viewed file (step 75 summary) only showed partial<Sale> for filters,
-  // I should check if it supports date ranges. The summary mentioned "getSales supports filtering...".
-  // Let's assume for now we pass them via extended options or refine getSales if needed.
-  // Actually, looking at previous summary, getSales signature:
-  // businessId, filters, sortBy, sortDirection, page, pageSize.
-  // It doesn't explicitly show date range params. I might need to update getSales.
-  // But let's first update the page to capture these.
 
   return (
     <>

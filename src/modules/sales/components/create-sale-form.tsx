@@ -50,15 +50,9 @@ import { useRouter } from 'next/navigation'
 import { APP_URLS } from '@/config/app-urls'
 import ConfirmationDialog from './confirmation-dialog'
 import EditProductModal from './edit-product-modal'
-// import ProductSelectionModal from './product-selection-modal'
-// import EditProductModal from './edit-product-modal'
-
-// Datos de ejemplo para productos
 
 import { getCustomers } from '@/apis/app/customers'
 import { CustomerList } from '@/types'
-
-// ... existing imports
 
 export default function CreateSaleForm() {
   const [isProductModalOpen, setIsProductModalOpen] = useState(false)
@@ -103,22 +97,6 @@ export default function CreateSaleForm() {
 
   const currencySymbol = watchedCurrency === 'PEN' ? 'S/' : '$'
   const currencyName = watchedCurrency === 'PEN' ? 'Soles' : 'Dólares'
-
-  // Generar número de referencia automáticamente
-  useEffect(() => {
-    const generateReference = () => {
-      const date = new Date()
-      const year = date.getFullYear().toString().slice(-2)
-      const month = (date.getMonth() + 1).toString().padStart(2, '0')
-      const day = date.getDate().toString().padStart(2, '0')
-      const random = Math.floor(Math.random() * 1000)
-        .toString()
-        .padStart(3, '0')
-      return `VTA-${year}${month}${day}-${random}`
-    }
-    setValue('reference_number', generateReference())
-    setValue('reference_number', generateReference())
-  }, [setValue])
 
   // Fetch customers
   useEffect(() => {
@@ -798,6 +776,7 @@ export default function CreateSaleForm() {
         onAddProduct={handleAddProduct}
         addedProductIds={addedProductIds || []}
         currency={watchedCurrency}
+        businessId={businessId}
       />
 
       <EditProductModal

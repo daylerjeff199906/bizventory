@@ -38,11 +38,11 @@ export const APP_URLS = {
     },
     SALES: {
       LIST: (uuid: string) => `${URL_PREFIX}/${uuid}/sales`,
-      CREATE: (uuid: string) => `${URL_PREFIX}/${uuid}/sales/create`, 
-      EDIT: (uuid: string, id: string) => 
+      CREATE: (uuid: string) => `${URL_PREFIX}/${uuid}/sales/create`,
+      EDIT: (uuid: string, id: string) =>
         `${URL_PREFIX}/${uuid}/sales/${id}/edit`,
-      VIEW: (uuid: string, id: string) => 
-        `${URL_PREFIX}/${uuid}/sales/${id}` 
+      VIEW: (uuid: string, id: string) =>
+        `${URL_PREFIX}/${uuid}/sales/${id}`
     }
   },
 
@@ -76,11 +76,11 @@ export const APP_URLS = {
     INVENTORY: `${URL_PREFIX}/inventory`
   },
   SALES: {
-    LIST: `${URL_PREFIX}/sales`,
-    CREATE: `${URL_PREFIX}/sales/create`,
-    EDIT: (id: string) => `${URL_PREFIX}/sales/${id}/edit`,
-    PRINT: (id: string) => `${URL_PREFIX}/sales/${id}/ticket`,
-    VIEW: (id: string) => `${URL_PREFIX}/sales/${id}`,
+    LIST: (uuid: string) => `${URL_PREFIX}/${uuid}/sales`,
+    CREATE: (uuid: string) => `${URL_PREFIX}/${uuid}/sales/create`,
+    EDIT: (uuid: string, id: string) => `${URL_PREFIX}/${uuid}/sales/${id}/edit`,
+    PRINT: (uuid: string, id: string) => `${URL_PREFIX}/${uuid}/sales/${id}/ticket`,
+    VIEW: (uuid: string, id: string) => `${URL_PREFIX}/${uuid}/sales/${id}`,
     TICKETS: {
       LIST: `${URL_PREFIX}/sales/tickets`,
       DETAIL: (uuid: string) => `${URL_PREFIX}/sales/tickets/${uuid}`

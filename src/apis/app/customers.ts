@@ -63,6 +63,9 @@ export async function getCustomers({
       .order(sortColumn, { ascending: sortDirection === 'asc' })
       .range(from, to)
 
+    console.log('Data:', data)
+    console.log('Error:', error)
+
     if (error) {
       return {
         data: [],

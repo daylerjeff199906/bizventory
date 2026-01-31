@@ -552,6 +552,7 @@ export default function EditSaleForm({ sale }: EditSaleFormProps) {
                 onAddProduct={handleAddProduct}
                 addedProductIds={addedProductIds}
                 currency={watchedCurrency}
+                businessId={businessId}
             />
 
             <EditProductModal

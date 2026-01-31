@@ -73,7 +73,6 @@ export const SalesList = ({
     (currentSort[1] as SortDirection) || 'asc'
   )
 
-
   // Local state for filters
   const [codeFilter, setCodeFilter] = useState(searchQuery)
   const [dateFrom, setDateFrom] = useState(filters?.from || '')
@@ -269,225 +268,208 @@ export const SalesList = ({
         )
       }
 
-      <Table className="border rounded-md">
-        <TableHeader>
-          <TableRow className="bg-gray-100 hover:bg-gray-100">
-            <TableHead className="border-r border-gray-200">
-              <Button
-                variant="ghost"
-                onClick={() => handleSort('code')}
-                className="h-auto p-0 font-medium text-gray-700 hover:bg-transparent hover:text-gray-900"
-              >
-                Código
-                {getSortIcon('code')}
-              </Button>
-            </TableHead>
-            <TableHead className="border-r border-gray-200">
-              <Button
-                variant="ghost"
-                onClick={() => handleSort('date')}
-                className="h-auto p-0 font-medium text-gray-700 hover:bg-transparent hover:text-gray-900"
-              >
-                Fecha
-                {getSortIcon('date')}
-              </Button>
-            </TableHead>
-            <TableHead className="border-r border-gray-200">Cliente</TableHead>
-            <TableHead className="border-r border-gray-200">
-              <Button
-                variant="ghost"
-                onClick={() => handleSort('subtotal')}
-                className="h-auto p-0 font-medium text-gray-700 hover:bg-transparent hover:text-gray-900"
-              >
-                Subtotal
-                {getSortIcon('subtotal')}
-              </Button>
-            </TableHead>
-            <TableHead className="border-r border-gray-200">
-              <Button
-                variant="ghost"
-                onClick={() => handleSort('total_amount')}
-                className="h-auto p-0 font-medium text-gray-700 hover:bg-transparent hover:text-gray-900"
-              >
-                Total
-                {getSortIcon('total_amount')}
-              </Button>
-            </TableHead>
-            <TableHead className="border-r border-gray-200">Estado</TableHead>
-            <TableHead className="border-r border-gray-200">Pago</TableHead>
-            <TableHead className="border-r border-gray-200">
-              <Button
-                variant="ghost"
-                onClick={() => handleSort('created_at')}
-                className="h-auto p-0 font-medium text-gray-700 hover:bg-transparent hover:text-gray-900"
-              >
-                Creado
-                {getSortIcon('created_at')}
-              </Button>
-            </TableHead>
-            <TableHead className="border-r border-gray-200">
-              <Button
-                variant="ghost"
-                onClick={() => handleSort('updated_at')}
-                className="h-auto p-0 font-medium text-gray-700 hover:bg-transparent hover:text-gray-900"
-              >
-                Actualizado
-                {getSortIcon('updated_at')}
-              </Button>
-            </TableHead>
-            <TableHead className="w-[80px] text-right">Acciones</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {salesData.data.length === 0 ? (
+      <div className="rounded-md border w-full overflow-x-auto">
+        <Table>
+          <TableHeader>
             <TableRow>
-              <TableCell colSpan={10} className="py-12 text-center">
-                <div className="flex flex-col items-center justify-center gap-4">
-                  <ShoppingCart className="h-12 w-12 text-gray-400" />
-                  <div className="space-y-1">
-                    <h3 className="text-lg font-medium text-gray-900">
-                      {searchQuery
-                        ? 'No se encontraron coincidencias'
-                        : 'No hay ventas registradas'}
-                    </h3>
-                    <p className="text-sm text-gray-500 max-w-md">
-                      {searchQuery
-                        ? `No se encontraron ventas que coincidan con "${searchQuery}". Intenta con otro término de búsqueda.`
-                        : 'Parece que aún no has agregado ninguna venta. Comienza agregando tu primera venta.'}
-                    </p>
-                  </div>
-                  <Button asChild>
-                    <Link href={APP_URLS.SALES.CREATE}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Nueva Venta
-                    </Link>
-                  </Button>
-                </div>
-              </TableCell>
+              <TableHead className="w-[100px]">
+                <Button
+                  variant="ghost"
+                  onClick={() => handleSort('code')}
+                  className="h-auto p-0 font-medium hover:bg-transparent"
+                >
+                  Código
+                  {getSortIcon('code')}
+                </Button>
+              </TableHead>
+              <TableHead>
+                <Button
+                  variant="ghost"
+                  onClick={() => handleSort('date')}
+                  className="h-auto p-0 font-medium hover:bg-transparent"
+                >
+                  Fecha
+                  {getSortIcon('date')}
+                </Button>
+              </TableHead>
+              <TableHead>
+                <div className="font-medium">Cliente</div>
+              </TableHead>
+              <TableHead>
+                <Button
+                  variant="ghost"
+                  onClick={() => handleSort('subtotal')}
+                  className="h-auto p-0 font-medium hover:bg-transparent"
+                >
+                  Subtotal
+                  {getSortIcon('subtotal')}
+                </Button>
+              </TableHead>
+              <TableHead>
+                <div className="font-medium">Total</div>
+              </TableHead>
+              <TableHead>
+                <div className="font-medium">Estado</div>
+              </TableHead>
+              <TableHead>
+                <div className="font-medium">Pago</div>
+              </TableHead>
+              <TableHead>
+                <Button
+                  variant="ghost"
+                  onClick={() => handleSort('created_at')}
+                  className="h-auto p-0 font-medium hover:bg-transparent"
+                >
+                  Creado
+                  {getSortIcon('created_at')}
+                </Button>
+              </TableHead>
+              <TableHead className="w-[80px] text-right">Acciones</TableHead>
             </TableRow>
-          ) : (
-            salesData.data.map((sale) => (
-              <TableRow key={sale.id} className="hover:bg-gray-50">
-                <TableCell className="font-medium border-r border-gray-100">
-                  <Badge variant="outline" className="font-mono">
-                    {sale.reference_number || 'N/A'}
-                  </Badge>
-                </TableCell>
-                <TableCell className="border-r border-gray-100">
-                  <div className="text-sm">
-                    {sale.date
-                      ? formatDate(
-                        sale.date &&
-                          typeof sale.date === 'object' &&
-                          (sale.date as object) instanceof Date
-                          ? (sale.date as Date).toISOString()
-                          : sale.date
-                      )
-                      : 'N/A'}
+          </TableHeader>
+          <TableBody>
+            {salesData.data.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={9} className="py-12 text-center">
+                  <div className="flex flex-col items-center justify-center gap-4">
+                    <ShoppingCart className="h-12 w-12 text-muted-foreground" />
+                    <div className="space-y-1">
+                      <h3 className="text-lg font-medium">
+                        {searchQuery
+                          ? 'No se encontraron coincidencias'
+                          : 'No hay ventas registradas'}
+                      </h3>
+                      <p className="text-sm text-muted-foreground max-w-md">
+                        {searchQuery
+                          ? `No se encontraron ventas que coincidan con "${searchQuery}". Intenta con otro término de búsqueda.`
+                          : 'Parece que aún no has agregado ninguna venta. Comienza agregando tu primera venta.'}
+                      </p>
+                    </div>
+                    <Button asChild>
+                      <Link href={APP_URLS.ORGANIZATION.SALES.CREATE(businessId)}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Nueva Venta
+                      </Link>
+                    </Button>
                   </div>
-                </TableCell>
-                <TableCell className="border-r border-gray-100">
-                  <div className="font-medium uppercase">
-                    {sale.customer?.name || 'Cliente varios'}
-                  </div>
-                </TableCell>
-                <TableCell className="border-r border-gray-100">
-                  <div className="font-medium">
-                    {formatCurrency(sale.total_amount || 0)}
-                  </div>
-                  {typeof sale.discount_amount === 'number' &&
-                    sale.discount_amount > 0 && (
-                      <div className="text-xs text-red-600">
-                        -{formatCurrency(sale.discount_amount)}
-                      </div>
-                    )}
-                </TableCell>
-                <TableCell className="border-r border-gray-100">
-                  <div className="font-bold">
-                    {formatCurrency(sale.total_amount || 0)}
-                  </div>
-                  {typeof sale.tax_amount === 'number' &&
-                    sale.tax_amount > 0 && (
-                      <div className="text-xs text-gray-500">
-                        IGV: {formatCurrency(sale.tax_amount)}
-                      </div>
-                    )}
-                </TableCell>
-                <TableCell className="border-r border-gray-100">
-                  <StatusBadge status={sale.status} />
-                </TableCell>
-                <TableCell className="border-r border-gray-100">
-                  <StatusBadge
-                    payment_method={
-                      sale.payment_method
-                        ? sale.payment_method.toLowerCase()
-                        : undefined
-                    }
-                  />
-                </TableCell>
-                <TableCell className="border-r border-gray-100">
-                  <div className="text-sm">
-                    {sale?.created_at
-                      ? `${formatDate(sale.created_at)} ${formatTime(
-                        sale.created_at
-                      )}`
-                      : 'N/A'}
-                  </div>
-                </TableCell>
-                <TableCell className="border-r border-gray-100">
-                  <div className="text-sm">
-                    {sale?.updated_at ? formatDate(sale.updated_at) : 'N/A'}
-                  </div>
-                </TableCell>
-                <TableCell className="text-right">
-                  <Button
-                    asChild
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                  >
-                    <Link href={APP_URLS.SALES.PRINT(sale.id)}>
-                      <Printer className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                  <Button
-                    asChild
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                  >
-                    <Link
-                      href={APP_URLS.ORGANIZATION.SALES.VIEW(
-                        businessId,
-                        sale.id
-                      )}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Link>
-                  </Button>
                 </TableCell>
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+            ) : (
+              salesData.data.map((sale) => (
+                <TableRow key={sale.id}>
+                  <TableCell>
+                    <Badge variant="outline" className="font-mono rounded-full text-xs">
+                      {sale.reference_number || 'N/A'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-sm">
+                      {sale.date
+                        ? formatDate(
+                          sale.date &&
+                            typeof sale.date === 'object' &&
+                            (sale.date as object) instanceof Date
+                            ? (sale.date as Date).toISOString()
+                            : sale.date
+                        )
+                        : 'N/A'}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="font-medium text-sm">
+                      {sale.customer?.name || 'Cliente varios'}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="font-medium text-sm">
+                      {formatCurrency(sale.total_amount || 0)}
+                    </div>
+                    {typeof sale.discount_amount === 'number' &&
+                      sale.discount_amount > 0 && (
+                        <div className="text-xs text-red-600">
+                          -{formatCurrency(sale.discount_amount)}
+                        </div>
+                      )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="font-bold text-sm">
+                      {formatCurrency(sale.total_amount || 0)}
+                    </div>
+                    {typeof sale.tax_amount === 'number' &&
+                      sale.tax_amount > 0 && (
+                        <div className="text-xs text-muted-foreground">
+                          IGV: {formatCurrency(sale.tax_amount)}
+                        </div>
+                      )}
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge status={sale.status} />
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge
+                      payment_method={
+                        sale.payment_method
+                          ? sale.payment_method.toLowerCase()
+                          : undefined
+                      }
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <span className="text-sm">
+                        {sale?.created_at
+                          ? formatDate(sale.created_at)
+                          : 'N/A'}
+                      </span>
+                      {sale?.created_at && (
+                        <span className="text-xs text-muted-foreground">
+                          {formatTime(sale.created_at)}
+                        </span>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end items-center gap-2">
+                      <Button
+                        asChild
+                        variant="ghost"
+                        size="icon-sm"
+                        className="h-8 w-8 text-green-500 hover:text-green-700 hover:bg-green-50"
+                        title="Ver detalles"
+                      >
+                        <Link
+                          href={APP_URLS.ORGANIZATION.SALES.VIEW(
+                            businessId,
+                            sale.id
+                          )}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+        {salesData.data.length > 0 && (
+          <div className="px-4 py-3 text-sm text-muted-foreground border-t">
+            {salesData.data.length} venta
+            {salesData.data.length !== 1 ? 's' : ''} mostrada
+            {salesData.data.length !== 1 ? 's' : ''}
+          </div>
+        )}
+      </div>
 
       {/* Paginación */}
-      {salesData.total_pages > 1 && (
-        <div className="flex items-center justify-between px-2">
-          <div className="text-sm text-gray-500">
-            Mostrando {salesData.data.length} de {salesData.total} resultados
+      {salesData.total_pages > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-2">
+          <div className="text-sm text-muted-foreground order-2 sm:order-1">
+            Mostrando {salesData.data.length} de {salesData.total} ventas
+            {salesData.total_pages > 1 && ` (Página ${salesData.page} de ${salesData.total_pages})`}
           </div>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(1)}
-              disabled={salesData.page <= 1}
-              className="h-8 w-8 p-0"
-            >
-              <ChevronsLeft className="h-4 w-4" />
-            </Button>
+          <div className="flex items-center gap-2 order-1 sm:order-2">
             <Button
               variant="outline"
               size="sm"
@@ -497,8 +479,8 @@ export const SalesList = ({
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <div className="text-sm">
-              Página {salesData.page} de {salesData.total_pages}
+            <div className="text-sm font-medium mx-2">
+              {salesData.page}
             </div>
             <Button
               variant="outline"
@@ -508,15 +490,6 @@ export const SalesList = ({
               className="h-8 w-8 p-0"
             >
               <ChevronRight className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(salesData.total_pages)}
-              disabled={salesData.page >= salesData.total_pages}
-              className="h-8 w-8 p-0"
-            >
-              <ChevronsRight className="h-4 w-4" />
             </Button>
           </div>
         </div>
