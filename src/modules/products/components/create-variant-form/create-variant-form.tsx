@@ -56,7 +56,6 @@ import { toast } from 'react-toastify'
 import { ProductWithVariants } from '@/types'
 import { VariantsPreview } from './VariantsPreview'
 import { handleProductVariantsUpdate } from '@/apis/app/product-variant-update'
-import { handleProductVariantsUpdate } from '@/apis/app/product-variant-update'
 import { ProductVariant as ProductVariantType } from '@/apis/app/product-variant-update'
 import { getLastPurchasePrice } from '@/apis/app/purchases'
 import { useEffect } from 'react'
@@ -94,7 +93,6 @@ export const CreateVariantForm = ({
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [commonAttributes, setCommonAttributes] = useState<string[]>([])
   const [enableManualCode, setEnableManualCode] = useState(false)
-  const [enableManualCode, setEnableManualCode] = useState(false)
   const [variantCreated, setVariantCreated] = useState(emptyVariant)
   const [lastPurchasePrice, setLastPurchasePrice] = useState<number | null>(null)
   const router = useRouter()
@@ -115,19 +113,12 @@ export const CreateVariantForm = ({
       variants: [
         {
           name: '',
+          price: productPrice ?? 0,
           attributes: []
         }
       ]
-    defaultValues: {
-        variants: [
-          {
-            name: '',
-            price: productPrice || 0,
-            attributes: []
-          }
-        ]
-      }
-    })
+    }
+  })
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -335,6 +326,7 @@ export const CreateVariantForm = ({
                   variants: [
                     {
                       name: '',
+                      price: productPrice || 0,
                       attributes: createCommonAttributesForVariant()
                     }
                   ]
@@ -346,6 +338,7 @@ export const CreateVariantForm = ({
                   variants: [
                     {
                       name: '',
+                      price: productPrice || 0,
                       attributes: createCommonAttributesForVariant()
                     }
                   ]
