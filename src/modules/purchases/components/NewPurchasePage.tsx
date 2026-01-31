@@ -288,6 +288,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
   const [productModalOpen, setProductModalOpen] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<PurchaseItem | null>(null)
+  const [applyTax, setApplyTax] = useState(false)
   const [searchSupplier, setSearchSupplier] = useState<string>('')
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [expandedProducts, setExpandedProducts] = useState<Set<string>>(
@@ -311,7 +312,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
       reference_number: '',
       subtotal: 0,
       discount: 0,
-      tax_rate: 18,
+      tax_rate: 0,
       tax_amount: 0,
       total_amount: 0,
       status: 'draft',
@@ -321,6 +322,13 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
       items: []
     }
   })
+
+  // Update form tax_rate when checkbox changes
+  useEffect(() => {
+    const rate = applyTax ? 18 : 0
+    form.setValue('tax_rate', rate)
+    calculateTotals()
+  }, [applyTax])
 
   useEffect(() => {
     calculateTotals()
@@ -780,6 +788,25 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                     </FormItem>
                   )}
                 />
+
+                <div className="flex flex-col space-y-2">
+                  <FormLabel className="text-base font-medium">
+                    Impuestos
+                  </FormLabel>
+                  <div className="flex items-center space-x-2 border rounded-md p-3 h-10">
+                    <Checkbox
+                      id="apply-tax"
+                      checked={applyTax}
+                      onCheckedChange={(checked) => setApplyTax(!!checked)}
+                    />
+                    <label
+                      htmlFor="apply-tax"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      Aplicar IGV (18%)
+                    </label>
+                  </div>
+                </div>
               </div>
             </section>
 
@@ -1145,14 +1172,12 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                       </span>
                     </div>
                   )}
-                  {(form.watch('tax_amount') || 0) > 0 && (
-                    <div className="flex justify-between">
-                      <span>IGV ({form.watch('tax_rate') || 0}%):</span>
-                      <span>
-                        {formatCurrencySoles(form.watch('tax_amount') || 0)}
-                      </span>
-                    </div>
-                  )}
+                  <div className="flex justify-between">
+                    <span>IGV ({form.watch('tax_rate') || 0}%):</span>
+                    <span>
+                      {formatCurrencySoles(form.watch('tax_amount') || 0)}
+                    </span>
+                  </div>
                   <div className="border-t pt-3">
                     <div className="flex justify-between text-lg font-bold">
                       <span>Total:</span>

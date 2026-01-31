@@ -20,7 +20,7 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
-// import { Checkbox } from '@/components/ui/checkbox'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Form,
   FormControl,
@@ -36,7 +36,8 @@ import {
   Calculator,
   Package,
   DollarSign,
-  Pencil
+  Pencil,
+  Shield
 } from 'lucide-react'
 import { saleFormSchema, SaleFormValues, SaleItemValues } from '../schemas'
 import { Currency } from '@/types'
@@ -66,6 +67,7 @@ export default function CreateSaleForm() {
     item: SaleItemValues | null
     index: number | null
   }>({ item: null, index: null })
+  const [applyTax, setApplyTax] = useState(false)
   const router = useRouter()
   const params = useParams()
   const businessId = params.uuid as string
@@ -84,6 +86,12 @@ export default function CreateSaleForm() {
     }
   })
 
+  // Update form tax_rate when checkbox changes
+  useEffect(() => {
+    const rate = applyTax ? 0.18 : 0
+    form.setValue('tax_rate', rate)
+  }, [applyTax, form])
+
   const { watch, setValue, getValues } = form
 
   // Watch para cambios en tiempo real
@@ -91,8 +99,6 @@ export default function CreateSaleForm() {
   const watchedItems = getValues('items') as SaleItemValues[] | undefined
 
   const watchedCurrency = watch('currency') as Currency
-  //   const watchedTaxExempt = watch('tax_exempt') ?? false
-  const watchedTaxExempt = 0
   const watchedTaxRate = watch('tax_rate')
 
   const currencySymbol = watchedCurrency === 'PEN' ? 'S/' : '$'
@@ -127,13 +133,12 @@ export default function CreateSaleForm() {
       ) ?? 0
     const totalDiscount =
       watchedItems?.reduce((sum, item) => sum + (item?.discount ?? 0), 0) ?? 0
-    const taxAmount = watchedTaxExempt
-      ? 0
-      : (subtotal - totalDiscount) * watchedTaxRate
+    // taxAmount depends only on watchedTaxRate, which is controlled by applyTax
+    const taxAmount = (subtotal - totalDiscount) * watchedTaxRate
     const total = subtotal - totalDiscount + taxAmount
 
     return { subtotal, totalDiscount, taxAmount, total }
-  }, [watchedItems, watchedTaxExempt, watchedTaxRate])
+  }, [watchedItems, watchedTaxRate])
 
   const addedProductIds: string[] =
     watchedItems?.map((item) => item._temp_id || '') || []
@@ -421,63 +426,24 @@ export default function CreateSaleForm() {
                   /> */}
 
                   {/* Sección de IGV */}
-                  {/* <div className="border-t pt-4">
-                    <FormField
-                      control={form.control}
-                      name="tax_exempt"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 mb-4">
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel className="flex items-center gap-2">
-                              <Shield className="h-4 w-4" />
-                              Exonerar IGV
-                            </FormLabel>
-                            {watchedTaxExempt && (
-                              <Badge
-                                variant="secondary"
-                                className="text-xs ml-6"
-                              >
-                                IGV Exonerado
-                              </Badge>
-                            )}
-                          </div>
-                        </FormItem>
-                      )}
-                    />
-
-                    {!watchedTaxExempt && (
-                      <FormField
-                        control={form.control}
-                        name="tax_rate"
-                        render={({ field }) => (
-                          <FormItem className="max-w-xs">
-                            <FormLabel>Tasa de IGV (%)</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                max="1"
-                                {...field}
-                                onChange={(e) =>
-                                  field.onChange(
-                                    Number.parseFloat(e.target.value) || 0
-                                  )
-                                }
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
+                  <div className="border-t pt-4">
+                    <div className="flex flex-row items-center space-x-3 mb-4">
+                      <Checkbox
+                        id="apply-tax-sale"
+                        checked={applyTax}
+                        onCheckedChange={(checked) => setApplyTax(!!checked)}
                       />
-                    )}
-                  </div> */}
+                      <div className="space-y-1 leading-none">
+                        <label
+                          htmlFor="apply-tax-sale"
+                          className="flex items-center gap-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          <Shield className="h-4 w-4" />
+                          Aplicar IGV (18%)
+                        </label>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
               {/* Productos */}
@@ -710,25 +676,15 @@ export default function CreateSaleForm() {
                         </span>
                       </div>
                     )}
-                    {watchedTaxRate > 0 && (
-                      <div className="flex justify-between text-sm">
-                        <span
-                          className={watchedTaxExempt ? 'text-gray-400' : ''}
-                        >
-                          IGV (
-                          {watchedTaxExempt
-                            ? 'Exonerado'
-                            : `${(watchedTaxRate * 100).toFixed(0)}%`}
-                          ):
-                        </span>
-                        <span
-                          className={watchedTaxExempt ? 'text-gray-400' : ''}
-                        >
-                          {currencySymbol}
-                          {taxAmount.toFixed(2)}
-                        </span>
-                      </div>
-                    )}
+                    <div className="flex justify-between text-sm">
+                      <span>
+                        IGV ({`${(watchedTaxRate * 100).toFixed(0)}%`}):
+                      </span>
+                      <span>
+                        {currencySymbol}
+                        {taxAmount.toFixed(2)}
+                      </span>
+                    </div>
                     <Separator />
                     <div className="flex justify-between font-semibold text-lg">
                       <span>Total:</span>
