@@ -8,9 +8,9 @@ export const productSchema = z.object({
   tags: z.array(z.string()).optional(),
   brand_id: z.string().optional(),
   code: z.string().optional(),
-  price: z.coerce.number().min(0).optional().default(0),
-  discount_active: z.boolean().optional().default(false),
-  discount_value: z.coerce.number().min(0).optional().default(0)
+  price: z.coerce.number().min(0).default(0),
+  discount_active: z.boolean().default(false),
+  discount_value: z.coerce.number().min(0).default(0)
 })
 
 export const editProductSchema = z.object({

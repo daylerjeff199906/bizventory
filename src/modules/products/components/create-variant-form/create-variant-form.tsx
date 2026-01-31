@@ -73,9 +73,7 @@ const createVariantsFormSchema = z.object({
   variants: productVariantsSchema // Reutiliza tu schema existente
 })
 
-type CreateVariantsFormValues = {
-  variants: ProductVariantsData // Reutiliza tu tipo existente
-}
+type CreateVariantsFormValues = z.infer<typeof createVariantsFormSchema>
 
 export const CreateVariantForm = ({
   productId,
@@ -227,6 +225,7 @@ export const CreateVariantForm = ({
           variants: [
             {
               name: '',
+              price: productPrice || 0,
               attributes: createCommonAttributesForVariant()
             }
           ]
@@ -539,7 +538,7 @@ export const CreateVariantForm = ({
 // Componente separado para cada card de variante
 interface VariantCardProps {
   index: number
-  form: UseFormReturn<{ variants: ProductVariantsData }>
+  form: UseFormReturn<CreateVariantsFormValues>
   onRemove: () => void
   canRemove: boolean
   commonAttributes: string[]

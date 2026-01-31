@@ -57,7 +57,7 @@ export const NewProductForm = () => {
   const uuidBusiness = params?.uuid as string
 
   const form = useForm<CreateProductData>({
-    resolver: zodResolver(productSchema),
+    resolver: zodResolver(productSchema) as any,
     defaultValues: {
       name: '',
       description: '',
@@ -176,7 +176,7 @@ export const NewProductForm = () => {
                 </p>
               </div>
               <div className="flex gap-4 items-end">
-                <FormField
+                <FormField<CreateProductData, 'brand_id'>
                   control={form.control}
                   name="brand_id"
                   render={({ field }) => (
@@ -225,7 +225,7 @@ export const NewProductForm = () => {
               </div>
 
               <div className="grid grid-cols-1 gap-6">
-                <FormField
+                <FormField<CreateProductData, 'name'>
                   control={form.control}
                   name="name"
                   render={({ field }) => (
@@ -238,6 +238,7 @@ export const NewProductForm = () => {
                           placeholder="Ej: Pulsera de ojos turcos color azul"
                           className="text-base"
                           {...field}
+                          value={field.value ?? ''}
                         />
                       </FormControl>
                       <FormMessage />
@@ -245,7 +246,7 @@ export const NewProductForm = () => {
                   )}
                 />
 
-                <FormField
+                <FormField<CreateProductData, 'description'>
                   control={form.control}
                   name="description"
                   render={({ field }) => (
@@ -259,6 +260,7 @@ export const NewProductForm = () => {
                           rows={4}
                           className="text-base"
                           {...field}
+                          value={field.value ?? ''}
                         />
                       </FormControl>
                       <FormDescription>
@@ -286,7 +288,7 @@ export const NewProductForm = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
+                <FormField<CreateProductData, 'price'>
                   control={form.control}
                   name="price"
                   render={({ field }) => (
@@ -302,6 +304,7 @@ export const NewProductForm = () => {
                           placeholder="0.00"
                           className="text-base"
                           {...field}
+                          value={field.value ?? ''}
                           onChange={(e) => field.onChange(Number(e.target.value))}
                         />
                       </FormControl>
@@ -312,14 +315,14 @@ export const NewProductForm = () => {
               </div>
 
               <div className="space-y-4">
-                <FormField
+                <FormField<CreateProductData, 'discount_active'>
                   control={form.control}
                   name="discount_active"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                       <FormControl>
                         <Checkbox
-                          checked={field.value}
+                          checked={!!field.value}
                           onCheckedChange={field.onChange}
                         />
                       </FormControl>
@@ -336,7 +339,7 @@ export const NewProductForm = () => {
                 />
 
                 {form.watch('discount_active') && (
-                  <FormField
+                  <FormField<CreateProductData, 'discount_value'>
                     control={form.control}
                     name="discount_value"
                     render={({ field }) => (
@@ -352,6 +355,7 @@ export const NewProductForm = () => {
                             placeholder="0.00"
                             className="text-base"
                             {...field}
+                            value={field.value ?? ''}
                             onChange={(e) => field.onChange(Number(e.target.value))}
                           />
                         </FormControl>
@@ -378,7 +382,7 @@ export const NewProductForm = () => {
               </div>
 
               {/* Tags */}
-              <FormField
+              <FormField<CreateProductData, 'tags'>
                 control={form.control}
                 name="tags"
                 render={({ field }) => (
@@ -405,9 +409,9 @@ export const NewProductForm = () => {
                             Agregar
                           </Button>
                         </div>
-                        {field.value && field.value.length > 0 && (
+                        {Array.isArray(field.value) && field.value.length > 0 && (
                           <div className="flex flex-wrap gap-2">
-                            {field.value.map((tag, index) => (
+                            {(field.value as string[]).map((tag: string, index: number) => (
                               <Badge
                                 key={index}
                                 variant="secondary"

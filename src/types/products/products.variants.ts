@@ -4,6 +4,7 @@ export interface ProductVariant {
   id: string
   product_id: string
   name: string
+  price: number
   description: string | null
   code: string
   created_at: string

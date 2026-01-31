@@ -29,6 +29,7 @@ export interface ProductVariantItem {
   name: string
   description: string | null
   code: string
+  price?: number
   attributes: VariantAttribute[]
 }
 
@@ -37,14 +38,12 @@ export interface CombinedResult extends ProductDetails {
 }
 
 export interface CombinedResultPrice extends CombinedResult {
-  price?: number
   discount?: number
   temp_id?: string // ID temporal para gestión local
 }
 
 export interface CombinedResultExtended extends CombinedResult {
   quantity?: number
-  price?: number
   bar_code?: string
   discount?: number
   original_product_name?: string | null
@@ -139,6 +138,7 @@ export async function getProductsAndVariantsForPurchase({
           name: variant.name,
           description: variant.description,
           code: variant.code,
+          price: variant.price,
           attributes: variant.attributes
         }))
     })) || []
