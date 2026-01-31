@@ -189,7 +189,7 @@ export const InventoryList = ({
                                     <>
                                         <TableRow key={product.id} className={cn(isExpanded && "bg-muted/50")}>
                                             <TableCell>
-                                                {product.has_variants && (
+                                                {(product.has_variants || (product.variants && product.variants.length > 0)) && (
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
@@ -231,7 +231,7 @@ export const InventoryList = ({
                                             </TableCell>
                                         </TableRow>
                                         {/* Variants Row */}
-                                        {product.has_variants && isExpanded && (
+                                        {(product.has_variants || (product.variants && product.variants.length > 0)) && isExpanded && (
                                             <TableRow className="bg-muted/50 hover:bg-muted/50">
                                                 <TableCell colSpan={6} className="p-0">
                                                     <div className="p-4 pl-14">
@@ -240,6 +240,7 @@ export const InventoryList = ({
                                                                 <TableRow>
                                                                     <TableHead className="h-8">Código Var.</TableHead>
                                                                     <TableHead className="h-8">Variante</TableHead>
+                                                                    <TableHead className="h-8">Precio</TableHead>
                                                                     <TableHead className="h-8 text-right">Stock</TableHead>
                                                                     <TableHead className="h-8">Estado</TableHead>
                                                                 </TableRow>
@@ -258,6 +259,9 @@ export const InventoryList = ({
                                                                                         {variant.attributes?.map(a => `${a.attribute_type}: ${a.attribute_value}`).join(', ')}
                                                                                     </span>
                                                                                 </div>
+                                                                            </TableCell>
+                                                                            <TableCell className="py-2 text-sm">
+                                                                                {variant.price ? `S/ ${variant.price.toFixed(2)}` : '-'}
                                                                             </TableCell>
                                                                             <TableCell className="py-2 text-right font-bold">
                                                                                 {variant.stock}

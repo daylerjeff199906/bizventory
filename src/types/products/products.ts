@@ -21,7 +21,7 @@ export interface Product {
   images: ProductImage[] | null
 }
 
-export interface ProductDetails extends Omit<Product, 'brand_id'> {
+export interface ProductDetails extends Product {
   brand: Brand | null
 }
 

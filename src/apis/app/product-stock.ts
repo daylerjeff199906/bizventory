@@ -15,6 +15,7 @@ export interface ProductVariant {
   updated_at: string | null
   attributes?: VariantAttributeType[]
   stock?: number // Calculado dinámicamente
+  price?: number
   price_unit?: number
   subtotal?: number // Para manejo de UI
 }
@@ -153,7 +154,8 @@ export async function getProductsWithVariantsAndStock({
         variants?.filter((v) => v.product_id === product.id) || []
 
       // Si tiene variantes, calcular stock para cada una y añadir atributos
-      if (product.has_variants && productVariants.length > 0) {
+      // Relaxed check: trust existence of variants over has_variants flag for visibility
+      if (productVariants.length > 0) {
         const variantsWithStockAndAttributes = productVariants.map(
           (variant) => {
             const attributes = variantAttributes

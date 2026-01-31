@@ -32,6 +32,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
+import { BrandModal } from '../brands/brand-modal'
 
 import { productSchema, type CreateProductData } from '@/modules/products'
 import { APP_URLS } from '@/config/app-urls'
@@ -48,6 +49,7 @@ export const NewProductForm = () => {
   const [showConfirmation, setShowConfirmation] = useState(false)
   const router = useRouter()
   const [searchBrand, setSearchBrand] = useState<string>('')
+  const [isBrandModalOpen, setIsBrandModalOpen] = useState(false)
 
   const { brands, fetchBrands, loading: loadingBrands } = useBrands()
   const params = useParams()
@@ -173,42 +175,54 @@ export const NewProductForm = () => {
                   Datos principales del producto
                 </p>
               </div>
-              <FormField
-                control={form.control}
-                name="brand_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <SearchSelectPopover
-                      options={
-                        optionsBrands as {
-                          id: string
-                          name: string
-                          [key: string]: unknown
-                        }[]
-                      }
-                      isLoading={loadingBrands}
-                      placeholder="Selecciona una marca"
-                      defaultValue={null}
-                      emptyText="No se encontraron marcas"
-                      label="Marca del producto"
-                      required
-                      loadingText="Cargando marcas..."
-                      searchPlaceholder="Buscar marca por nombre..."
-                      onSearch={(value) => {
-                        setSearchBrand(value)
-                      }}
-                      onChange={(value) => {
-                        console.log('Selected brand:', value)
-                        field.onChange(value)
-                      }}
-                    />
-                    <FormDescription>
-                      Selecciona la marca a la que pertenece este producto.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="flex gap-4 items-end">
+                <FormField
+                  control={form.control}
+                  name="brand_id"
+                  render={({ field }) => (
+                    <FormItem className="flex-1">
+                      <SearchSelectPopover
+                        options={
+                          optionsBrands as {
+                            id: string
+                            name: string
+                            [key: string]: unknown
+                          }[]
+                        }
+                        isLoading={loadingBrands}
+                        placeholder="Selecciona una marca"
+                        defaultValue={null}
+                        emptyText="No se encontraron marcas"
+                        label="Marca del producto"
+                        required
+                        loadingText="Cargando marcas..."
+                        searchPlaceholder="Buscar marca por nombre..."
+                        onSearch={(value) => {
+                          setSearchBrand(value)
+                        }}
+                        onChange={(value) => {
+                          console.log('Selected brand:', value)
+                          field.onChange(value)
+                        }}
+                      />
+                      <FormDescription>
+                        Selecciona la marca a la que pertenece este producto.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="mb-8"
+                  onClick={() => setIsBrandModalOpen(true)}
+                  title="Crear nueva marca"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
 
               <div className="grid grid-cols-1 gap-6">
                 <FormField
@@ -421,6 +435,7 @@ export const NewProductForm = () => {
                   </FormItem>
                 )}
               />
+
             </section>
 
             {/* Botones de acción */}
@@ -480,6 +495,15 @@ export const NewProductForm = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <BrandModal
+        isOpen={isBrandModalOpen}
+        onClose={() => setIsBrandModalOpen(false)}
+        businessId={uuidBusiness}
+        onSuccess={(newBrand) => {
+          fetchBrands({ idBusiness: uuidBusiness })
+          form.setValue('brand_id', newBrand.id)
+        }}
+      />
     </div >
   )
 }

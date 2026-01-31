@@ -25,6 +25,7 @@ export const editProductSchema = z.object({
   location: z.string().optional(),
   is_active: z.boolean(),
   tags: z.array(z.string().min(1)).optional(),
+  brand_id: z.string().optional(),
   price: z.coerce.number().min(0).optional(),
   discount_active: z.boolean().optional(),
   discount_value: z.coerce.number().min(0).optional()

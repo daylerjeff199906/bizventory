@@ -481,3 +481,37 @@ export async function updatePurchaseStatus(
   revalidatePath(`${APP_URLS.PURCHASES.VIEW(id)}`)
   return purchase
 }
+
+/**
+ * Obtiene el último precio de compra para un producto
+ * @param productId - ID del producto
+ * @returns Promise<number | null>
+ */
+export async function getLastPurchasePrice(productId: string): Promise<number | null> {
+  const supabase = await getSupabase()
+
+  // Obtenemos el item de compra más reciente para este producto
+  // Ordenamos por la fecha de la compra descendente
+  const { data, error } = await supabase
+    .from('purchase_items')
+    .select(`
+      price,
+      purchase:purchases!inner (
+        date,
+        created_at
+      )
+    `)
+    .eq('product_id', productId)
+    .order('purchase(date)', { ascending: false })
+    .order('purchase(created_at)', { ascending: false }) // Desempate por creación
+    .limit(1)
+    .maybeSingle()
+
+  if (error) {
+    if (error.code === 'PGRST116') return null
+    console.error('Error fetching last purchase price:', error)
+    return null
+  }
+
+  return data?.price || null
+}
