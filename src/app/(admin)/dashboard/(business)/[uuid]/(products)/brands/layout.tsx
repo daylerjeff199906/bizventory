@@ -16,7 +16,7 @@ export default async function Layout(props: LayoutProps) {
 
   return (
     <LayoutWrapper sectionTitle="Gestión de Marcas">
-      <div className="flex flex-col gap-4 bg-white dark:bg-gray-800 w-full">
+      <div className="flex flex-col gap-4 w-full">
         <PageHeader
           title="Lista de Marcas"
           description="Aquí puedes ver y gestionar todas las marcas disponibles."

@@ -46,6 +46,10 @@ export const APP_URLS = {
     },
     INVENTORY: {
       LIST: (uuid: string) => `${URL_PREFIX}/${uuid}/inventory`
+    },
+    BRANDS: {
+      LIST: (uuid: string) => `${URL_PREFIX}/${uuid}/brands`,
+      CREATE: (uuid: string) => `${URL_PREFIX}/${uuid}/brands/create`
     }
   },
 

@@ -80,7 +80,7 @@ export async function getProductsWithVariantsAndStock({
       .range(offset, offset + pageSize - 1)
 
     if (businessId) {
-      productsQuery = productsQuery.eq('brand.business_id', businessId)
+      productsQuery = productsQuery.eq('brands.business_id', businessId)
     }
 
     // Aplicar filtro de búsqueda en productos principales

@@ -13,8 +13,26 @@ import {
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Search, Filter, AlertTriangle, CheckCircle, Info } from 'lucide-react'
-import { Product } from '@/apis/app/product-stock'
+import {
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
+    CardDescription
+} from '@/components/ui/card'
+import {
+    Search,
+    Filter,
+    AlertTriangle,
+    CheckCircle,
+    Info,
+    ChevronDown,
+    ChevronRight,
+    Package,
+    Layers
+} from 'lucide-react'
+import { Product, ProductVariant } from '@/apis/app/product-stock'
+import { cn } from '@/lib/utils'
 
 interface InventoryListProps {
     data: Product[]
@@ -35,6 +53,14 @@ export const InventoryList = ({
     const pathname = usePathname()
     const searchParams = useSearchParams()
     const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '')
+    const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({})
+
+    const toggleRow = (productId: string) => {
+        setExpandedRows((prev) => ({
+            ...prev,
+            [productId]: !prev[productId]
+        }))
+    }
 
     const handleSearch = () => {
         const params = new URLSearchParams(searchParams.toString())
@@ -60,26 +86,67 @@ export const InventoryList = ({
     }
 
     const getStockStatus = (stock: number) => {
-        if (stock <= 5) return { label: 'Bajo', color: 'bg-red-500', icon: AlertTriangle }
-        if (stock <= 20) return { label: 'Medio', color: 'bg-yellow-500', icon: Info }
-        return { label: 'Alto', color: 'bg-green-500', icon: CheckCircle }
+        if (stock <= 5) return { label: 'Bajo', color: 'bg-red-500', icon: AlertTriangle, textColor: 'text-red-500' }
+        if (stock <= 20) return { label: 'Medio', color: 'bg-yellow-500', icon: Info, textColor: 'text-yellow-500' }
+        return { label: 'Alto', color: 'bg-green-500', icon: CheckCircle, textColor: 'text-green-500' }
     }
+
+    // Calculate summary stats provided by the current page data (or fetched separately if needed)
+    // For now, we simulate basic stats from the current view or just static placeholders if real stats API isn't ready
+    // Real stats would ideally come from the server response
+    const lowStockCount = data.reduce((acc, p) => {
+        const total = p.has_variants
+            ? (p.variants?.reduce((sum, v) => sum + (v.stock || 0), 0) || 0)
+            : (p.stock || 0)
+        return total <= 5 ? acc + 1 : acc
+    }, 0)
 
     return (
         <div className="space-y-6">
+            {/* Summary Cards */}
+            <div className="grid gap-4 md:grid-cols-3">
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Productos</CardTitle>
+                        <Package className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{totalItems}</div>
+                        <p className="text-xs text-muted-foreground">Productos registrados</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Alertas Stock Bajo</CardTitle>
+                        <AlertTriangle className="h-4 w-4 text-red-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold text-red-500">{lowStockCount}</div>
+                        <p className="text-xs text-muted-foreground">En esta página</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Variantes Activas</CardTitle>
+                        <Layers className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">
+                            {data.reduce((acc, p) => acc + (p.variants?.length || 0), 0)}
+                        </div>
+                        <p className="text-xs text-muted-foreground">En esta página</p>
+                    </CardContent>
+                </Card>
+            </div>
+
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                    <h2 className="text-2xl font-bold tracking-tight">Inventario</h2>
-                    <p className="text-muted-foreground">
-                        Gestiona y monitorea el stock de tus productos
-                    </p>
-                </div>
+                <h2 className="text-xl font-semibold">Listado de Inventario</h2>
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                     <div className="relative w-full sm:w-[300px]">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input
                             type="search"
-                            placeholder="Buscar producto..."
+                            placeholder="Buscar por nombre, código..."
                             className="pl-8"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -94,9 +161,10 @@ export const InventoryList = ({
                 <Table>
                     <TableHeader>
                         <TableRow>
+                            <TableHead className="w-[50px]"></TableHead>
                             <TableHead>Código</TableHead>
                             <TableHead>Producto</TableHead>
-                            <TableHead>Categoría</TableHead>
+                            <TableHead>Categoría / Marca</TableHead>
                             <TableHead className="text-right">Stock Total</TableHead>
                             <TableHead>Estado</TableHead>
                         </TableRow>
@@ -104,44 +172,112 @@ export const InventoryList = ({
                     <TableBody>
                         {data.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={5} className="h-24 text-center">
-                                    No se encontraron productos.
+                                <TableCell colSpan={6} className="h-24 text-center">
+                                    No se encontraron productos en el inventario.
                                 </TableCell>
                             </TableRow>
                         ) : (
                             data.map((product) => {
-                                // Calculate total stock including variants
                                 const totalStock = product.has_variants
                                     ? (product.variants?.reduce((sum, v) => sum + (v.stock || 0), 0) || 0)
                                     : (product.stock || 0)
-
                                 const status = getStockStatus(totalStock)
                                 const StatusIcon = status.icon
+                                const isExpanded = expandedRows[product.id]
 
                                 return (
-                                    <TableRow key={product.id}>
-                                        <TableCell className="font-mono text-xs">{product.code}</TableCell>
-                                        <TableCell>
-                                            <div className="flex flex-col">
-                                                <span className="font-medium">{product.name}</span>
+                                    <>
+                                        <TableRow key={product.id} className={cn(isExpanded && "bg-muted/50")}>
+                                            <TableCell>
                                                 {product.has_variants && (
-                                                    <span className="text-xs text-muted-foreground">
-                                                        {product.variants?.length} variantes
-                                                    </span>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="p-0 h-8 w-8"
+                                                        onClick={() => toggleRow(product.id)}
+                                                    >
+                                                        {isExpanded ? (
+                                                            <ChevronDown className="h-4 w-4" />
+                                                        ) : (
+                                                            <ChevronRight className="h-4 w-4" />
+                                                        )}
+                                                    </Button>
                                                 )}
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>-</TableCell>
-                                        <TableCell className="text-right font-bold text-lg">
-                                            {totalStock} {product.unit}
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge className={`${status.color} hover:${status.color} text-white gap-1`}>
-                                                <StatusIcon className="h-3 w-3" />
-                                                {status.label}
-                                            </Badge>
-                                        </TableCell>
-                                    </TableRow>
+                                            </TableCell>
+                                            <TableCell className="font-mono text-xs">{product.code}</TableCell>
+                                            <TableCell>
+                                                <div className="flex flex-col">
+                                                    <span className="font-medium">{product.name}</span>
+                                                    {product.has_variants && (
+                                                        <span className="text-xs text-muted-foreground">
+                                                            {product.variants?.length} variantes
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex flex-col text-sm">
+                                                    <span>{product.brand?.name || '-'}</span>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-right font-bold text-lg">
+                                                {totalStock} <span className="text-xs font-normal text-muted-foreground">{product.unit}</span>
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className={`flex items-center gap-1 ${status.textColor}`}>
+                                                    <StatusIcon className="h-4 w-4" />
+                                                    <span className="text-sm font-medium">{status.label}</span>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                        {/* Variants Row */}
+                                        {product.has_variants && isExpanded && (
+                                            <TableRow className="bg-muted/50 hover:bg-muted/50">
+                                                <TableCell colSpan={6} className="p-0">
+                                                    <div className="p-4 pl-14">
+                                                        <Table>
+                                                            <TableHeader>
+                                                                <TableRow>
+                                                                    <TableHead className="h-8">Código Var.</TableHead>
+                                                                    <TableHead className="h-8">Variante</TableHead>
+                                                                    <TableHead className="h-8 text-right">Stock</TableHead>
+                                                                    <TableHead className="h-8">Estado</TableHead>
+                                                                </TableRow>
+                                                            </TableHeader>
+                                                            <TableBody>
+                                                                {product.variants?.map((variant) => {
+                                                                    const vStatus = getStockStatus(variant.stock || 0)
+                                                                    const VStatusIcon = vStatus.icon
+                                                                    return (
+                                                                        <TableRow key={variant.id} className="border-0">
+                                                                            <TableCell className="py-2 font-mono text-xs">{variant.code}</TableCell>
+                                                                            <TableCell className="py-2">
+                                                                                <div className="flex flex-col">
+                                                                                    <span className="text-sm font-medium">{variant.name}</span>
+                                                                                    <span className="text-xs text-muted-foreground">
+                                                                                        {variant.attributes?.map(a => `${a.attribute_type}: ${a.attribute_value}`).join(', ')}
+                                                                                    </span>
+                                                                                </div>
+                                                                            </TableCell>
+                                                                            <TableCell className="py-2 text-right font-bold">
+                                                                                {variant.stock}
+                                                                            </TableCell>
+                                                                            <TableCell className="py-2">
+                                                                                <Badge variant="outline" className={`${vStatus.textColor} border-current gap-1`}>
+                                                                                    <VStatusIcon className="h-3 w-3" />
+                                                                                    {vStatus.label}
+                                                                                </Badge>
+                                                                            </TableCell>
+                                                                        </TableRow>
+                                                                    )
+                                                                })}
+                                                            </TableBody>
+                                                        </Table>
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                    </>
                                 )
                             })
                         )}
@@ -152,6 +288,9 @@ export const InventoryList = ({
             {/* Pagination */}
             {totalPages > 1 && (
                 <div className="flex items-center justify-end space-x-2 py-4">
+                    <div className="text-sm text-muted-foreground mr-4">
+                        Página {page} de {totalPages}
+                    </div>
                     <Button
                         variant="outline"
                         size="sm"
@@ -160,9 +299,6 @@ export const InventoryList = ({
                     >
                         Anterior
                     </Button>
-                    <div className="text-sm text-muted-foreground">
-                        Página {page} de {totalPages}
-                    </div>
                     <Button
                         variant="outline"
                         size="sm"

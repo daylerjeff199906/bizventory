@@ -79,10 +79,10 @@ export const BrandList = ({ brandslist = [] }: BrandListProps) => {
   }
 
   return (
-    <div className="rounded-md border bg-white shadow-none overflow-hidden">
-      <div className="rounded-md border bg-white">
+    <div className="rounded-md border shadow-none overflow-hidden">
+      <div className="rounded-md border">
         <Table>
-          <TableHeader className="bg-muted">
+          <TableHeader>
             <TableRow>
               <TableHead>
                 <Button
