@@ -37,6 +37,7 @@ export interface PurchaseList {
   payment_status?: 'pending' | 'paid' | 'partially_paid' | 'cancelled' | null
   reference_number?: string | null
   notes?: string | null
+  total_items?: number
 }
 
 // Tipos adicionales que necesitarás definir

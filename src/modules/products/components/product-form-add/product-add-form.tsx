@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Form,
   FormControl,
@@ -58,8 +59,12 @@ export const NewProductForm = () => {
     defaultValues: {
       name: '',
       description: '',
+
       brand_id: '',
-      tags: []
+      tags: [],
+      price: 0,
+      discount_active: false,
+      discount_value: 0
       //   images: []
     }
   })
@@ -253,6 +258,100 @@ export const NewProductForm = () => {
               </div>
             </section>
 
+
+
+            {/* Precios y Descuentos */}
+            <section className="space-y-6">
+              <div className="border-b border-gray-200 pb-4">
+                <h2 className="text-xl font-semibold">
+                  Precios y Descuentos
+                </h2>
+                <p className="text-muted-foreground mt-1">
+                  Define los precios y reglas de descuento
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base font-medium">
+                        Precio Base (S/)
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.10"
+                          placeholder="0.00"
+                          className="text-base"
+                          {...field}
+                          onChange={(e) => field.onChange(Number(e.target.value))}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="discount_active"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>
+                          Activar Descuento
+                        </FormLabel>
+                        <FormDescription>
+                          Habilitar un descuento para este producto
+                        </FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
+                {form.watch('discount_active') && (
+                  <FormField
+                    control={form.control}
+                    name="discount_value"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base font-medium">
+                          Valor del Descuento
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.10"
+                            placeholder="0.00"
+                            className="text-base"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Monto o porcentaje a descontar
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
+            </section>
+
             {/* Información adicional */}
             <section className="space-y-6">
               <div className="border-b border-gray-200 pb-4">
@@ -381,6 +480,6 @@ export const NewProductForm = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </div >
   )
 }

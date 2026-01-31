@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Form,
   FormControl,
@@ -43,7 +44,11 @@ export const EditProductPage = (props: ProductFormProps) => {
     unit: productDefault.unit,
     location: productDefault?.location || '',
     is_active: productDefault.is_active,
-    tags: productDefault.tags || []
+
+    tags: productDefault.tags || [],
+    price: productDefault.price || 0,
+    discount_active: productDefault.discount_active || false,
+    discount_value: productDefault.discount_value || 0
   }
 
   const form = useForm<EditProductData>({
@@ -54,7 +59,11 @@ export const EditProductPage = (props: ProductFormProps) => {
       unit: defaultValues.unit?.toString() || 'unidad',
       is_active: defaultValues.is_active,
       location: defaultValues.location?.toString() || '',
-      name: defaultValues.name?.toString() || ''
+
+      name: defaultValues.name?.toString() || '',
+      price: defaultValues.price || 0,
+      discount_active: defaultValues.discount_active || false,
+      discount_value: defaultValues.discount_value || 0
     }
   })
 
@@ -176,6 +185,79 @@ export const EditProductPage = (props: ProductFormProps) => {
                   </FormItem>
                 )}
               />
+            </div>
+
+            {/* Precios y Descuentos */}
+            <div className="space-y-4 border rounded-lg p-4">
+              <h3 className="font-medium">Precios y Descuentos</h3>
+              <div className="grid gap-6 sm:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Precio Base (S/)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.10"
+                          {...field}
+                          onChange={(e) => field.onChange(Number(e.target.value))}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="discount_active"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>
+                          Activar Descuento
+                        </FormLabel>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
+                {form.watch('discount_active') && (
+                  <FormField
+                    control={form.control}
+                    name="discount_value"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Valor del Descuento</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.10"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Monto o porcentaje a descontar
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
             </div>
 
             <FormField

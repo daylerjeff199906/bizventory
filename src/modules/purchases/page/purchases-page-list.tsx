@@ -354,7 +354,7 @@ export const PurchasesList = ({
                   <div className="font-medium">Proveedor</div>
                 </TableHead>
                 <TableHead>
-                  <div className="font-medium">Guía</div>
+                  <div className="font-medium">Cantidad</div>
                 </TableHead>
                 <TableHead>
                   <Button
@@ -453,15 +453,9 @@ export const PurchasesList = ({
                       </div>
                     </TableCell>
                     <TableCell>
-                      {purchase.guide_number ? (
-                        <Badge variant="secondary" className="text-xs">
-                          {purchase.guide_number}
-                        </Badge>
-                      ) : (
-                        <span className="text-muted-foreground text-xs">
-                          Sin guía
-                        </span>
-                      )}
+                      <div className="text-sm font-medium">
+                        {purchase.total_items || 0}
+                      </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="font-medium text-sm">

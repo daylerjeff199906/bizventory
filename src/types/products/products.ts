@@ -5,9 +5,11 @@ export interface Product {
   name: string
   description: string | null
   code: string
-  // price: number // numeric(10,2) maps to number
+  price: number
   category_id: number | null // bigint maps to number
   unit: string
+  discount_active?: boolean
+  discount_value?: number
   brand_id: string | null // UUID maps to string in TypeScript
   supplier_code: string | null
   location: string | null

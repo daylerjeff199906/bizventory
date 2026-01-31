@@ -69,7 +69,8 @@ export async function getPurchases({
     .from('purchases')
     .select(`
   *,
-  supplier:suppliers!inner(*)
+  supplier:suppliers!inner(*),
+  purchase_items(quantity)
   `, { count: 'exact' })
     .eq('suppliers.business_id', bussinessId)
     .range(from, to)
@@ -108,10 +109,21 @@ export async function getPurchases({
 
   query = query.order(sortColumn, { ascending: sortDirection === 'asc' })
 
+
   const { data, error, count } = await query
   if (error) throw error
+
+  const mData = data.map((item: any) => ({
+    ...item,
+    total_items: item.purchase_items?.reduce(
+      (sum: number, i: any) => sum + (i.quantity || 0),
+      0
+    ) || 0,
+    purchase_items: undefined // Clean up
+  }))
+
   return {
-    data: data || [],
+    data: mData || [],
     page: currentPage,
     page_size: currentPageSize,
     total: count || 0,

@@ -7,7 +7,10 @@ export const productSchema = z.object({
     .min(10, 'La descripción debe tener al menos 10 caracteres'),
   tags: z.array(z.string()).optional(),
   brand_id: z.string().optional(),
-  code: z.string().optional()
+  code: z.string().optional(),
+  price: z.coerce.number().min(0).optional().default(0),
+  discount_active: z.boolean().optional().default(false),
+  discount_value: z.coerce.number().min(0).optional().default(0)
 })
 
 export const editProductSchema = z.object({
@@ -21,7 +24,10 @@ export const editProductSchema = z.object({
   }),
   location: z.string().optional(),
   is_active: z.boolean(),
-  tags: z.array(z.string().min(1)).optional()
+  tags: z.array(z.string().min(1)).optional(),
+  price: z.coerce.number().min(0).optional(),
+  discount_active: z.boolean().optional(),
+  discount_value: z.coerce.number().min(0).optional()
 })
 
 export const createProductSchema = productSchema
