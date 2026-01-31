@@ -195,11 +195,11 @@ export const VariantsPreview = ({
       </div>
 
       {!isLoading && (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {localVariants.map((variant, index) => (
             <Card
               key={index}
-              className="transition-all duration-200 group hover:border-primary/50 overflow-hidden"
+              className="py-0 transition-all duration-200 group hover:border-primary/50 overflow-hidden"
             >
               {/* Header de la variante */}
               <div className="flex items-start justify-between p-4 pb-2 border-b bg-muted/20">
@@ -353,7 +353,7 @@ export const VariantsPreview = ({
                 </div>
 
                 {/* Lista de atributos existentes */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {variant.attributes.map((attr, attrIndex) => (
                     <div key={attrIndex} className="relative group/attr bg-muted/30 rounded-md border border-transparent hover:border-border transition-colors">
                       <div className="flex items-center gap-2 px-3 py-2">
@@ -459,7 +459,7 @@ export const VariantsPreview = ({
                             value={newAttributeType}
                             onValueChange={setNewAttributeType}
                           >
-                            <SelectTrigger className="h-9 bg-background">
+                            <SelectTrigger className="h-9 bg-background w-full">
                               <SelectValue placeholder="Seleccionar" />
                             </SelectTrigger>
                             <SelectContent>
