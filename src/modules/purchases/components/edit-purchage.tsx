@@ -315,7 +315,7 @@ export const EditPurchasePage = (props: EditPurchasePageProps) => {
       reference_number: '',
       subtotal: 0,
       discount: 0,
-      tax_rate: 18,
+      tax_rate: 0,
       tax_amount: 0,
       total_amount: 0,
       status: 'draft',
@@ -343,7 +343,7 @@ export const EditPurchasePage = (props: EditPurchasePageProps) => {
         reference_number: defaultPurchase.reference_number || '',
         subtotal: defaultPurchase.subtotal || 0,
         discount: defaultPurchase.discount || 0,
-        tax_rate: defaultPurchase.tax_rate || 18,
+        tax_rate: defaultPurchase.tax_rate ?? 0,
         tax_amount: defaultPurchase.tax_amount || 0,
         total_amount: defaultPurchase.total_amount || 0,
         status: defaultPurchase.status || 'draft',
@@ -410,13 +410,75 @@ export const EditPurchasePage = (props: EditPurchasePageProps) => {
   }
 
   const handleAddProduct = (product: CombinedResult) => {
-    // Si el producto tiene variantes, agregamos el producto como cabecera
-    if (
+    // Si ya seleccionamos una variante específica desde el modal
+    if (product.variant_id) {
+      // Verificar si ya existe como cabecera (obligatorio para variantes)
+      const existingProductHeader = purchaseItems.find(
+        (item) => item.product_id === product.id && item.is_product_header
+      )
+
+      let updatedItems = [...purchaseItems]
+
+      if (!existingProductHeader) {
+        const headerTempId = `${product.id}-header-${Date.now()}`
+        const productHeader: PurchaseItem = {
+          product_id: product.id,
+          product_variant_id: null,
+          quantity: 0,
+          price: 0,
+          discount: 0,
+          purchase_id: purchaseId,
+          _temp_id: headerTempId,
+          product: {
+            id: product.id,
+            name: product.name,
+            unit: product.unit,
+            brand: product.brand?.name || 'Sin marca',
+            description: product.description || null
+          },
+          original_product_name: product.description,
+          is_product_header: true,
+          has_variants: true
+        }
+        updatedItems.push(productHeader)
+        setExpandedProducts((prev) => new Set(prev).add(product.id))
+      }
+
+      // Agregar la variante específica
+      const variantTempId = `${product.variant_id}-var-${Date.now()}`
+      const newVariantItem: PurchaseItem = {
+        product_id: product.id,
+        product_variant_id: product.variant_id,
+        quantity: 1,
+        price: 0,
+        discount: 0,
+        purchase_id: purchaseId,
+        _temp_id: variantTempId,
+        product: {
+          id: product.id,
+          name: product.name,
+          unit: product.unit,
+          brand: product.brand?.name || 'Sin marca',
+          description: product.description || null
+        },
+        variant: {
+          id: product.variant_id,
+          name: product.name,
+          attributes: product.attributes || []
+        },
+        variant_attributes: product.attributes,
+        original_product_name: product.description,
+        has_variants: true
+      }
+
+      setPurchaseItems([...updatedItems, newVariantItem])
+    } else if (
       product.has_variants &&
       product.variants &&
       product.variants.length > 0
     ) {
-      // Verificar si el producto ya existe como cabecera
+      // Si el producto tiene variantes pero no se seleccionó una (ej. se agregó desde la lista base)
+      // agregamos solo la cabecera
       const existingProductHeader = purchaseItems.find(
         (item) => item.product_id === product.id && item.is_product_header
       )
@@ -427,8 +489,8 @@ export const EditPurchasePage = (props: EditPurchasePageProps) => {
         const productHeader: PurchaseItem = {
           product_id: product.id,
           product_variant_id: null,
-          quantity: 0, // La cabecera no tiene cantidad
-          price: 0, // La cabecera no tiene precio
+          quantity: 0,
+          price: 0,
           discount: 0,
           purchase_id: purchaseId,
           _temp_id: tempId,
@@ -440,7 +502,7 @@ export const EditPurchasePage = (props: EditPurchasePageProps) => {
             description: product.description || null
           },
           original_product_name: product.description,
-          is_product_header: true, // Marcar como cabecera
+          is_product_header: true,
           has_variants: true
         }
 
@@ -1196,14 +1258,12 @@ export const EditPurchasePage = (props: EditPurchasePageProps) => {
                       </span>
                     </div>
                   )}
-                  {(form.watch('tax_amount') || 0) > 0 && (
-                    <div className="flex justify-between">
-                      <span>IGV ({form.watch('tax_rate') || 0}%):</span>
-                      <span>
-                        {formatCurrencySoles(form.watch('tax_amount') || 0)}
-                      </span>
-                    </div>
-                  )}
+                  <div className="flex justify-between">
+                    <span>IGV ({form.watch('tax_rate') || 0}%):</span>
+                    <span>
+                      {formatCurrencySoles(form.watch('tax_amount') || 0)}
+                    </span>
+                  </div>
                   <div className="border-t pt-3">
                     <div className="flex justify-between text-lg font-bold">
                       <span>Total:</span>

@@ -35,6 +35,8 @@ export interface ProductVariantItem {
 
 export interface CombinedResult extends ProductDetails {
   variants?: ProductVariantItem[]
+  variant_id?: string
+  attributes?: VariantAttribute[]
 }
 
 export interface CombinedResultPrice extends CombinedResult {
@@ -130,8 +132,7 @@ export async function getProductsAndVariantsForPurchase({
   const combinedResults: CombinedResult[] =
     productsWithoutVariants?.map((product) => ({
       ...product,
-
-      variants: productsWithVariants
+      variants: (productsWithVariants as any[])
         .filter((variant) => variant.product_id === product.id)
         .map((variant) => ({
           id: variant.id,
@@ -139,7 +140,7 @@ export async function getProductsAndVariantsForPurchase({
           description: variant.description,
           code: variant.code,
           price: variant.price,
-          attributes: variant.attributes
+          attributes: variant.product_variant_attributes || []
         }))
     })) || []
 

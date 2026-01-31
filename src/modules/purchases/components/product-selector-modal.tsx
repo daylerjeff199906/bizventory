@@ -91,9 +91,11 @@ export const ProductSelectorModal = ({
     // Crear un CombinedResult para la variante seleccionada
     const variantProduct: CombinedResult = {
       ...selectedProduct,
+      variant_id: variant.id,
       name: variant.name,
       description: variant.description || selectedProduct.description,
-      code: variant.code
+      code: variant.code,
+      attributes: variant.attributes
     }
 
     onSelectProduct(variantProduct)
