@@ -51,10 +51,11 @@ export default function PurchaseInvoice(props: PurchaseInvoiceProps) {
   }
 
   const getProductDescription = (item: CombinedResultExtended) => {
+    console.log(item)
     const parts = []
     if (item?.brand?.name) parts.push(item.brand.name)
     if (item.name) parts.push(item.name)
-    if (item.description) parts.push(item.description.substring(0, 50))
+    if (item.description) parts.push(item.description.substring(0, 20))
     if (item.variants && item.variants.length > 0) {
       const variantNames = item.variants
         .map((v) => {
@@ -268,7 +269,7 @@ export default function PurchaseInvoice(props: PurchaseInvoiceProps) {
                       </TableCell>
                       <TableCell>
                         <div className="min-w-0">
-                          <p className="text-sm font-medium  break-words whitespace-normal max-w-full">
+                          <p className="text-sm font-medium  break-words whitespace-normal max-w-[200px]">
                             {getProductDescription(item)}
                           </p>
                         </div>

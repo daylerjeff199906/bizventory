@@ -915,7 +915,6 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                                 variants.map((variant: PurchaseItem) => (
                                   <TableRow
                                     key={variant._temp_id}
-                                    className="bg-white"
                                   >
                                     <TableCell></TableCell>
                                     <TableCell className="pl-8">
