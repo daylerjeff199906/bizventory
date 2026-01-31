@@ -344,19 +344,19 @@ export default function PurchaseInvoice(props: PurchaseInvoiceProps) {
                     )
                   })()}
 
-                  {purchase.tax_amount && purchase.tax_amount > 0 && (
-                    <div className="flex justify-between text-base">
-                      <span className="text-foreground">
-                        IGV ({purchase.tax_rate}%):
-                      </span>
+                  <div className="flex justify-between text-base">
+                    <span className="text-foreground">
+                      IGV ({purchase.tax_rate}%):
+                    </span>
+                    {purchase.tax_amount && purchase.tax_amount > 0 && (
                       <span className="font-medium">
                         {formatCurrency(
                           purchase.tax_amount,
                           purchase.supplier?.currency
                         )}
                       </span>
-                    </div>
-                  )}
+                    )}
+                  </div>
 
                   <div className="flex justify-between text-lg font-semibold border-t pt-3">
                     <span className="">Total a Pagar:</span>
