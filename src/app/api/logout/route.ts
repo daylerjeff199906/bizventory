@@ -5,18 +5,17 @@ import { createClient } from '@/utils/supabase/server'
 import { deleteSupabaseSession } from '@/lib/session'
 export async function POST() {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
 
     // 1. Cerrar sesión en Supabase
-    const { error } = await (await supabase).auth.signOut()
+    const { error } = await supabase.auth.signOut()
 
     if (error) {
       console.error('Error al cerrar sesión en Supabase:', error)
-      // No retornes error aquí para asegurar que se borre la sesión JWT
     }
 
     // 2. Eliminar sesión JWT
-    deleteSupabaseSession()
+    await deleteSupabaseSession()
 
     return NextResponse.json({ success: true })
   } catch (error) {
