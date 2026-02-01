@@ -5,6 +5,5 @@ export default function SaleDetailsPage({
 }: {
     params: { uuid: string; saleId: string }
 }) {
-    console.log('--- [saleId] Page Params:', params)
     redirect(`/dashboard/${params.uuid}/sales/${params.saleId}/edit`)
 }

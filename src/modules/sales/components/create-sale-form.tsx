@@ -157,8 +157,6 @@ export default function CreateSaleForm() {
 
   const confirmSale = async () => {
     const data = getValues()
-    console.log('Datos del formulario:', data)
-
     const saleData: SaleValues = {
       customer_id: data.customer_id || null,
       date: data.date,
@@ -232,7 +230,7 @@ export default function CreateSaleForm() {
   }
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto">
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(handleSubmitForm)}
