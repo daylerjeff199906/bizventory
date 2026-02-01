@@ -183,8 +183,8 @@ export const InventoryList = ({
                                 const isExpanded = expandedRows[product.id]
 
                                 return (
-                                    <>
-                                        <TableRow key={product.id} className={cn(isExpanded && "bg-muted/50")}>
+                                    <div key={product.id}>
+                                        <TableRow className={cn(isExpanded && "bg-muted/50")}>
                                             <TableCell>
                                                 {(product.has_variants || (product.variants && product.variants.length > 0)) && (
                                                     <Button
@@ -290,7 +290,7 @@ export const InventoryList = ({
                                                 </TableCell>
                                             </TableRow>
                                         )}
-                                    </>
+                                    </div>
                                 )
                             })
                         )}

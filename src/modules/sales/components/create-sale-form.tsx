@@ -76,7 +76,7 @@ export default function CreateSaleForm() {
     resolver: zodResolver(saleFormSchema),
     defaultValues: {
       currency: 'PEN',
-      reference_number: '',
+      // reference_number: '',
       payment_method: 'efectivo',
       shipping_address: '',
       tax_rate: 0,
@@ -162,7 +162,7 @@ export default function CreateSaleForm() {
 
     const saleData: SaleValues = {
       customer_id: data.customer_id || null,
-      reference_number: data.reference_number,
+      // reference_number: data.reference_number,
       date: data.date,
       payment_method: data.payment_method,
       shipping_address: data.shipping_address || '',
@@ -195,7 +195,7 @@ export default function CreateSaleForm() {
         toast.success(
           <ToastCustom
             title="Venta creada exitosamente"
-            message={`La venta con número de referencia ${data.reference_number} ha sido creada.`}
+            message={`La venta con número de referencia  ha sido creada.`}
           />
         )
         router.push(`/dashboard/${businessId}/sales/${response.id}/edit`) // Redirect to edit/view
@@ -293,7 +293,7 @@ export default function CreateSaleForm() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <div className="p-2 sticky top-0 bg-white z-10 border-b">
+                              <div className="p-2 sticky top-0 z-10 border-b">
                                 <Input
                                   placeholder="Buscar cliente..."
                                   value={searchCustomer}
@@ -352,7 +352,7 @@ export default function CreateSaleForm() {
                       )}
                     />
 
-                    <FormField
+                    {/* <FormField
                       control={form.control}
                       name="reference_number"
                       render={({ field }) => (
@@ -368,7 +368,7 @@ export default function CreateSaleForm() {
                           <FormMessage />
                         </FormItem>
                       )}
-                    />
+                    /> */}
 
                     <FormField
                       control={form.control}
@@ -406,24 +406,6 @@ export default function CreateSaleForm() {
                       )}
                     />
                   </div>
-
-                  {/* <FormField
-                    control={form.control}
-                    name="shipping_address"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Dirección de Envío</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Ingresa la dirección de envío..."
-                            rows={3}
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  /> */}
 
                   {/* Sección de IGV */}
                   <div className="border-t pt-4">
@@ -525,7 +507,7 @@ export default function CreateSaleForm() {
                                 <td className="py-3 px-2">
                                   <div className="text-sm font-medium ">
                                     {item.brand?.name}{' '}
-                                    {item.product_description}
+                                    {item.product_description && item?.product_description.substring(0, 50)}
                                     {item.variant_name && (
                                       <>{item.variant_name}</>
                                     )}{' '}

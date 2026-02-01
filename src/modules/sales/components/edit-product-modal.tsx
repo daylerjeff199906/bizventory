@@ -102,7 +102,7 @@ export default function EditProductModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="flex flex-col gap-3">
           {/* Información del producto */}
           <div className="p-3 bg-muted rounded-md">
             <div className="flex items-start gap-2 mb-2">
@@ -141,16 +141,34 @@ export default function EditProductModal({
               </div>
             )}
 
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>
-                Stock disponible: {product.stock} {product.unit}
-              </span>
-              {isOutOfStock && (
-                <div className="flex items-center gap-1 text-destructive">
-                  <AlertCircle className="h-3 w-3" />
-                  <span>Sin stock</span>
-                </div>
-              )}
+            <div className='flex items-center justify-between'>
+              {/* stock */}
+              <div className='flex items-center gap-1'>
+                {
+                  isOutOfStock ? (
+                    <div className="flex text-sm items-center gap-1 text-destructive">
+                      <AlertCircle className="h-3 w-3" />
+                      <span>Sin stock</span>
+                    </div>
+                  ) : (
+                    <div className="flex text-sm items-center gap-1 text-muted-foreground">
+                      <Package className="h-3 w-3" />
+                      <span>Stock disponible: {product.stock} {product.unit}</span>
+                    </div>
+                  )
+                }
+              </div>
+              {/* Price */}
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  Precio Unitario: {` `}
+                  <span className='font-medium text-emerald-600 text-lg'>
+                    {product.price_unit} {' '}
+                  </span>
+                  {currency}
+                </p>
+              </div>
+
             </div>
           </div>
 
@@ -177,50 +195,32 @@ export default function EditProductModal({
                   className="mt-1"
                 />
               </div>
-
               <div>
-                <Label htmlFor="edit-price" className="text-sm">
-                  Precio Unitario
+                <Label htmlFor="edit-discount" className="text-sm">
+                  Descuento Total
                 </Label>
                 <Input
-                  id="edit-price"
+                  id="edit-discount"
                   type="number"
                   min="0"
+                  max={maxDiscount}
                   step="0.01"
-                  value={basePrice}
+                  value={discountAmount}
                   onChange={(e) =>
-                    setBasePrice(Number.parseFloat(e.target.value) || 0)
+                    setDiscountAmount(
+                      Math.min(
+                        maxDiscount,
+                        Number.parseFloat(e.target.value) || 0
+                      )
+                    )
                   }
                   className="mt-1"
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Máximo: {currencySymbol}
+                  {maxDiscount.toFixed(2)}
+                </p>
               </div>
-            </div>
-
-            <div>
-              <Label htmlFor="edit-discount" className="text-sm">
-                Descuento Total
-              </Label>
-              <Input
-                id="edit-discount"
-                type="number"
-                min="0"
-                max={maxDiscount}
-                step="0.01"
-                value={discountAmount}
-                onChange={(e) =>
-                  setDiscountAmount(
-                    Math.min(
-                      maxDiscount,
-                      Number.parseFloat(e.target.value) || 0
-                    )
-                  )
-                }
-                className="mt-1"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Máximo: {currencySymbol}
-                {maxDiscount.toFixed(2)}
-              </p>
             </div>
           </div>
 

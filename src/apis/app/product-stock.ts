@@ -39,6 +39,7 @@ export interface Product {
   stock?: number // Calculado dinámicamente (solo si no tiene variantes)
   price_unit?: number
   subtotal?: number // Para manejo de UI
+  price?: number
 }
 
 // Tipos para la respuesta
@@ -92,7 +93,6 @@ export async function getProductsWithVariantsAndStock({
     }
 
     const { data: products, count, error: productsError } = await productsQuery
-
     if (productsError) throw productsError
     if (!products || products.length === 0) {
       return {
@@ -109,7 +109,11 @@ export async function getProductsWithVariantsAndStock({
       .select('*')
       .in('product_id', productIds)
 
-    if (variantsError) throw variantsError
+    console.log('Variants found:', variants)
+    if (variantsError) {
+      console.error('Error fetching variants:', variantsError)
+      throw variantsError
+    }
 
     // 3. Obtener atributos para las variantes
     const variantIds = variants?.map((v) => v.id) || []
@@ -117,21 +121,37 @@ export async function getProductsWithVariantsAndStock({
       .from('product_variant_attributes')
       .select('*')
       .in('variant_id', variantIds)
-    console.log(variantAttributes, attributesError)
+    console.log('Attributes found:', variantAttributes)
 
     if (attributesError) throw attributesError
 
     // 4. Obtener movimientos de inventario para productos y variantes
-    const { data: movements, error: movementsError } = await supabase
-      .from('inventory_movements')
-      .select('product_id, product_variant_id, quantity, movement_type')
-      .or(
-        `product_id.in.(${productIds.join(
-          ','
-        )}),product_variant_id.in.(${variantIds.join(',')})`
-      )
+    let orQuery = ''
+    if (productIds.length > 0) {
+      orQuery += `product_id.in.(${productIds.join(',')})`
+    }
+    if (variantIds.length > 0) {
+      if (orQuery) orQuery += ','
+      orQuery += `product_variant_id.in.(${variantIds.join(',')})`
+    }
 
-    if (movementsError) throw movementsError
+    let movements: {
+      product_id: string | null
+      product_variant_id: string | null
+      quantity: number
+      movement_type: string
+      movement_status: string
+    }[] = []
+    if (orQuery) {
+      const { data, error: movementsError } = await supabase
+        .from('inventory_movements')
+        .select('product_id, product_variant_id, quantity, movement_type, movement_status')
+        .or(orQuery)
+        .eq('movement_status', 'completed')
+
+      if (movementsError) throw movementsError
+      movements = data || []
+    }
 
     // 5. Calcular stocks
     const stockMap = new Map<string, number>()
@@ -140,6 +160,7 @@ export async function getProductsWithVariantsAndStock({
       const key = movement.product_variant_id
         ? `variant:${movement.product_variant_id}`
         : `product:${movement.product_id}`
+
       const adjustment =
         movement.movement_type === 'entry'
           ? movement.quantity
@@ -154,7 +175,6 @@ export async function getProductsWithVariantsAndStock({
         variants?.filter((v) => v.product_id === product.id) || []
 
       // Si tiene variantes, calcular stock para cada una y añadir atributos
-      // Relaxed check: trust existence of variants over has_variants flag for visibility
       if (productVariants.length > 0) {
         const variantsWithStockAndAttributes = productVariants.map(
           (variant) => {
@@ -165,10 +185,15 @@ export async function getProductsWithVariantsAndStock({
                 attribute_value: attr.attribute_value
               }))
 
+            const variantStock = stockMap.get(`variant:${variant.id}`) || 0
+            // Prioritize variant price, fallback to product price if 0 or null
+            const variantPrice = (variant.price && variant.price > 0) ? variant.price : (product.price || 0)
+
             return {
               ...variant,
-              stock: stockMap.get(`variant:${variant.id}`) || 0,
-              attributes: attributes || []
+              stock: variantStock,
+              attributes: attributes || [],
+              price_unit: variantPrice
             }
           }
         )
@@ -176,7 +201,8 @@ export async function getProductsWithVariantsAndStock({
         return {
           ...product,
           variants: variantsWithStockAndAttributes,
-          stock: 0 // Producto padre con variantes tiene stock 0
+          stock: 0, // Producto padre con variantes tiene stock 0
+          price_unit: product.price || 0
         }
       }
 
@@ -184,7 +210,8 @@ export async function getProductsWithVariantsAndStock({
       return {
         ...product,
         stock: stockMap.get(`product:${product.id}`) || 0,
-        variants: undefined
+        variants: undefined,
+        price_unit: product.price || 0 // Map price from DB
       }
     })
 
