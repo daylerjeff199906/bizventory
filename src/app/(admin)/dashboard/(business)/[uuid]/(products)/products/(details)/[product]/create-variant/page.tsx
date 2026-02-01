@@ -30,6 +30,7 @@ export default async function Page(props: Props) {
         productName={`${productData?.brand?.name} ${productData?.name}`}
         productWithVariants={productsWithVariants}
         businessId={uuid?.toString() || ''}
+        productPrice={productData.price}
       />
     </>
   )

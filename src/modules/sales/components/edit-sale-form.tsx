@@ -11,6 +11,7 @@ import {
     CardTitle
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
     Select,
     SelectContent,
@@ -35,7 +36,8 @@ import {
     DollarSign,
     Pencil,
     Plus,
-    Save
+    Save,
+    Shield
 } from 'lucide-react'
 import { saleFormSchema, SaleFormValues, SaleItemValues } from '../schemas'
 import { Currency } from '@/types'
@@ -68,6 +70,7 @@ export default function EditSaleForm({ sale }: EditSaleFormProps) {
         item: SaleItemValues | null
         index: number | null
     }>({ item: null, index: null })
+    const [applyTax, setApplyTax] = useState(sale.tax_amount > 0)
 
     const router = useRouter()
     const params = useParams()
@@ -108,9 +111,18 @@ export default function EditSaleForm({ sale }: EditSaleFormProps) {
 
     const { watch, setValue, getValues } = form
 
+    // Update form tax_rate when checkbox changes
+    useEffect(() => {
+        const rate = applyTax ? 0.18 : 0
+        const currentRate = getValues('tax_rate')
+        // Only update if significantly different to avoid overriding specific rates if we want to support that later
+        if (Math.abs(currentRate - rate) > 0.001) {
+            setValue('tax_rate', rate)
+        }
+    }, [applyTax, setValue, getValues])
+
     const watchedItems = getValues('items') as SaleItemValues[] | undefined
     const watchedCurrency = watch('currency') as Currency
-    const watchedTaxExempt = 0
     const watchedTaxRate = watch('tax_rate')
     const watchedStatus = watch('status')
 
@@ -146,13 +158,11 @@ export default function EditSaleForm({ sale }: EditSaleFormProps) {
             ) ?? 0
         const totalDiscount =
             watchedItems?.reduce((sum, item) => sum + (item?.discount ?? 0), 0) ?? 0
-        const taxAmount = watchedTaxExempt
-            ? 0
-            : (subtotal - totalDiscount) * watchedTaxRate
+        const taxAmount = (subtotal - totalDiscount) * watchedTaxRate
         const total = subtotal - totalDiscount + taxAmount
 
         return { subtotal, totalDiscount, taxAmount, total }
-    }, [watchedItems, watchedTaxExempt, watchedTaxRate])
+    }, [watchedItems, watchedTaxRate])
 
     const addedProductIds: string[] =
         watchedItems?.map((item) => item._temp_id || '') || []
@@ -423,6 +433,23 @@ export default function EditSaleForm({ sale }: EditSaleFormProps) {
                                                 </FormItem>
                                             )}
                                         />
+
+                                        <div className="flex flex-col space-y-2 justify-end">
+                                            <div className="flex items-center space-x-2 border rounded-md p-3 h-10">
+                                                <Checkbox
+                                                    id="apply-tax-edit"
+                                                    checked={applyTax}
+                                                    onCheckedChange={(checked) => setApplyTax(!!checked)}
+                                                />
+                                                <label
+                                                    htmlFor="apply-tax-edit"
+                                                    className="flex items-center gap-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                                >
+                                                    <Shield className="h-4 w-4" />
+                                                    Aplicar IGV (18%)
+                                                </label>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -526,6 +553,10 @@ export default function EditSaleForm({ sale }: EditSaleFormProps) {
                                             <span>Subtotal:</span>
                                             <span>{currencySymbol}{subtotal.toFixed(2)}</span>
                                         </div>
+                                        <div className="flex justify-between">
+                                            <span>IGV ({`${(watchedTaxRate * 100).toFixed(0)}%`}):</span>
+                                            <span>{currencySymbol}{taxAmount.toFixed(2)}</span>
+                                        </div>
                                         <div className="flex justify-between font-bold text-lg">
                                             <span>Total:</span>
                                             <span>{currencySymbol}{total.toFixed(2)}</span>
@@ -552,6 +583,7 @@ export default function EditSaleForm({ sale }: EditSaleFormProps) {
                 onAddProduct={handleAddProduct}
                 addedProductIds={addedProductIds}
                 currency={watchedCurrency}
+                businessId={businessId}
             />
 
             <EditProductModal

@@ -8,7 +8,8 @@ import { z } from 'zod'
 import { PurchaseSchema } from '@/modules/purchases'
 import {
   CombinedResult,
-  CombinedResultExtended
+  CombinedResultExtended,
+  VariantAttribute
 } from './productc.variants.list'
 
 /**
@@ -69,7 +70,8 @@ export async function getPurchases({
     .from('purchases')
     .select(`
   *,
-  supplier:suppliers!inner(*)
+  supplier:suppliers!inner(*),
+  purchase_items(quantity)
   `, { count: 'exact' })
     .eq('suppliers.business_id', bussinessId)
     .range(from, to)
@@ -108,10 +110,21 @@ export async function getPurchases({
 
   query = query.order(sortColumn, { ascending: sortDirection === 'asc' })
 
+
   const { data, error, count } = await query
   if (error) throw error
+
+  const mData = data.map((item: any) => ({
+    ...item,
+    total_items: item.purchase_items?.reduce(
+      (sum: number, i: any) => sum + (i.quantity || 0),
+      0
+    ) || 0,
+    purchase_items: undefined // Clean up
+  }))
+
   return {
-    data: data || [],
+    data: mData || [],
     page: currentPage,
     page_size: currentPageSize,
     total: count || 0,
@@ -153,7 +166,7 @@ export async function getPurchaseById(
         name,
         description,
         code,
-        attributes:product_variant_attributes(*)
+        product_variant_attributes:product_variant_attributes(*)
       )
     `
     )
@@ -175,15 +188,25 @@ export async function getPurchaseById(
         }
         : null
 
-      const variantData = item.variant
-        ? {
+
+      let variantData: any = {}
+
+      if (item.variant) {
+        const sortedAttributes = (
+          item.variant.product_variant_attributes || []
+        ).sort((a: any, b: any) =>
+          a.attribute_type.localeCompare(b.attribute_type)
+        )
+
+        variantData = {
           variant_id: item.variant.id,
           variant_name: item.variant.name,
           variant_description: item.variant.description,
           variant_code: item.variant.code,
-          attributes: item.variant.attributes
+          attributes: sortedAttributes,
+          variant_attributes: sortedAttributes
         }
-        : {}
+      }
 
       return {
         ...baseProduct,
@@ -195,8 +218,15 @@ export async function getPurchaseById(
         discount: item.discount,
         bar_code: item.bar_code,
         original_variant_name: item.original_variant_name,
-        original_product_name: item.original_product_name
-      } as CombinedResult
+        original_product_name: item.original_product_name,
+        product_id: item.product_id,
+        product_variant_id: item.product_variant_id,
+        variant: item.variant ? {
+          id: item.variant.id,
+          name: item.variant.name,
+          attributes: item.variant.product_variant_attributes || []
+        } : undefined
+      }
     }) || []
 
   return { ...purchaseData, items, supplier: purchaseData.supplier || null }
@@ -255,6 +285,33 @@ export async function createPurchase({
     throw itemsError
   }
 
+  // Si la compra se crea como completada, actualizar stock inmediatamente
+  if (validatedData.status === 'completed') {
+    const { error: stockError } = await supabase.rpc(
+      'update_product_stock_after_purchase',
+      {
+        p_movement_type: 'entry',
+        p_purchase_id: purchase.id
+      }
+    )
+
+    if (stockError) {
+      // Revertir el estado de la compra si falla la actualización de stock
+      // O eliminarla si se prefiere atomicidad total, pero cambiar a pendiente es más seguro para no perder datos
+      await supabase
+        .from('purchases')
+        .update({ status: 'pending', updated_at: new Date().toISOString() })
+        .eq('id', purchase.id)
+
+      console.error('Error updating stock for new purchase:', stockError)
+      // No lanzamos error para no romper la creación, pero idealmente se debería notificar
+      // O lanzar error para que el UI lo maneje.
+
+      // Lanzamos error para que el usuario sepa que algo falló con el stock
+      throw new Error(`Compra creada pero falló la actualización de stock: ${stockError.message}`)
+    }
+  }
+
   revalidatePath(APP_URLS.PURCHASES.LIST)
   return purchase
 }
@@ -310,9 +367,13 @@ export async function updatePurchase({
     validatedData.items.map((item) => ({
       purchase_id: id,
       product_id: item.product_id,
+      product_variant_id: item.product_variant_id,
       quantity: item.quantity,
-      price: item.price
-      //   subtotal: item.subtotal
+      price: item.price,
+      discount: item.discount || 0,
+      bar_code: item.bar_code || null,
+      original_product_name: item.original_product_name || null,
+      original_variant_name: item.original_variant_name || null
     }))
   )
 
@@ -357,7 +418,35 @@ export async function patchPurchaseField(
 export async function deletePurchase(id: string): Promise<void> {
   const supabase = await getSupabase()
 
-  // Primero eliminar los items asociados
+  // 1. Obtener la compra para verificar estado
+  const { data: purchase, error: fetchError } = await supabase
+    .from('purchases')
+    .select('status, business_id')
+    .eq('id', id)
+    .single()
+
+  if (fetchError) {
+    throw new Error('Error finding purchase to delete')
+  }
+
+  // 2. Si estaba completada, revertir stock (eliminar movimientos)
+  if (purchase.status === 'completed') {
+    const { error: stockError } = await supabase.rpc(
+      'delete_purchase_inventory_movements',
+      {
+        p_purchase_id: id
+      }
+    )
+
+    if (stockError) {
+      console.error('Error reverting stock:', stockError)
+      throw new Error(
+        'No se pudo revertir el stock. La compra no ha sido eliminada.'
+      )
+    }
+  }
+
+  // 3. Eliminar items asociados
   const { error: itemsError } = await supabase
     .from('purchase_items')
     .delete()
@@ -365,12 +454,16 @@ export async function deletePurchase(id: string): Promise<void> {
 
   if (itemsError) throw itemsError
 
-  // Luego eliminar la compra
+  // 4. Eliminar la compra
   const { error } = await supabase.from('purchases').delete().eq('id', id)
 
   if (error) throw error
 
-  revalidatePath(APP_URLS.PURCHASES.LIST)
+  if (purchase.business_id) {
+    revalidatePath(APP_URLS.ORGANIZATION.PURCHASES.LIST(purchase.business_id))
+  } else {
+    revalidatePath(APP_URLS.PURCHASES.LIST)
+  }
 }
 
 /**
@@ -409,4 +502,38 @@ export async function updatePurchaseStatus(
   revalidatePath(APP_URLS.PURCHASES.LIST)
   revalidatePath(`${APP_URLS.PURCHASES.VIEW(id)}`)
   return purchase
+}
+
+/**
+ * Obtiene el último precio de compra para un producto
+ * @param productId - ID del producto
+ * @returns Promise<number | null>
+ */
+export async function getLastPurchasePrice(productId: string): Promise<number | null> {
+  const supabase = await getSupabase()
+
+  // Obtenemos el item de compra más reciente para este producto
+  // Ordenamos por la fecha de la compra descendente
+  const { data, error } = await supabase
+    .from('purchase_items')
+    .select(`
+      price,
+      purchase:purchases!inner (
+        date,
+        created_at
+      )
+    `)
+    .eq('product_id', productId)
+    .order('purchase(date)', { ascending: false })
+    .order('purchase(created_at)', { ascending: false }) // Desempate por creación
+    .limit(1)
+    .maybeSingle()
+
+  if (error) {
+    if (error.code === 'PGRST116') return null
+    console.error('Error fetching last purchase price:', error)
+    return null
+  }
+
+  return data?.price || null
 }

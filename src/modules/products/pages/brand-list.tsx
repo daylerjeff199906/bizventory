@@ -79,10 +79,10 @@ export const BrandList = ({ brandslist = [] }: BrandListProps) => {
   }
 
   return (
-    <div className="rounded-md border bg-white shadow-none overflow-hidden">
-      <div className="rounded-md border bg-white">
+    <div className="rounded-md border shadow-none overflow-hidden">
+      <div className="rounded-md border">
         <Table>
-          <TableHeader className="bg-muted">
+          <TableHeader>
             <TableRow>
               <TableHead>
                 <Button
@@ -206,33 +206,24 @@ export const BrandList = ({ brandslist = [] }: BrandListProps) => {
                   </TableCell>
                   <TableCell>
                     <div className="flex justify-end items-center gap-2">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            className="h-8 w-8 p-0"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Acciones</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => handleEditBrand(brand)}
-                          >
-                            <Edit className="h-4 w-4 mr-2" />
-                            Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-red-600 focus:text-red-600"
-                            onClick={() => handleDeleteBrand(brand)}
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Eliminar
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEditBrand(brand)}
+                        className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                      >
+                        <Edit className="h-4 w-4" />
+                        <span className="sr-only">Editar</span>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDeleteBrand(brand)}
+                        className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span className="sr-only">Eliminar</span>
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>

@@ -16,7 +16,8 @@ import { Badge } from '@/components/ui/badge'
 import { Info } from 'lucide-react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { CombinedResultExtended } from '@/apis/app/productc.variants.list'
+import { getProductDescription } from '../utils/generate-name'
+import { CombinedResultExtended, VariantAttribute } from '@/apis/app/productc.variants.list'
 import { Label } from '@/components/ui/label'
 
 interface PurchaseInvoiceProps {
@@ -50,40 +51,6 @@ export default function PurchaseInvoice(props: PurchaseInvoiceProps) {
     return subtotal - discount
   }
 
-  const getProductDescription = (item: CombinedResultExtended) => {
-    const parts = []
-    if (item?.brand?.name) parts.push(item.brand.name)
-    if (item.name) parts.push(item.name)
-    if (item.description) parts.push(item.description.substring(0, 50))
-    if (item.variants && item.variants.length > 0) {
-      const variantNames = item.variants
-        .map((v) => {
-          const attrs = v.attributes
-          let attrsStr = ''
-          if (Array.isArray(attrs) && attrs.length > 0) {
-            attrsStr =
-              ' (' +
-              attrs
-                .map((a) => {
-                  const value = a.attribute_value ?? ''
-                  const name = a.attribute_type ?? a.attribute_value ?? ''
-                  return name ? `${name}: ${value}` : `${value}`
-                })
-                .filter(Boolean)
-                .join(', ') +
-              ')'
-          }
-          return `${v.name ?? ''}${attrsStr}`.trim()
-        })
-        .filter(Boolean)
-        .join('; ')
-      if (variantNames) parts.push(variantNames)
-
-      return parts.join(' - ')
-    } else {
-      return parts.join(' - ')
-    }
-  }
 
   return (
     <div className="container mx-auto p-4 max-w-6xl">
@@ -267,10 +234,30 @@ export default function PurchaseInvoice(props: PurchaseInvoiceProps) {
                         {item.code || 'N/A'}
                       </TableCell>
                       <TableCell>
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium  break-words whitespace-normal max-w-full">
-                            {getProductDescription(item)}
+                        <div className="min-w-0 whitespace-normal">
+                          <p className="text-sm font-medium  break-words  uppercase">
+                            {item.brand?.name || ''} {item.name || ''}
                           </p>
+                          {item.variant_name && (
+                            <p className="text-sm text-blue-600 font-medium">
+                              {item.variant_name}
+                            </p>
+                          )}
+                          {item.description && !item.variant_name && (
+                            <p className="text-xs text-gray-500">
+                              {item.description}
+                            </p>
+                          )}
+                          {(item.attributes || item.variant_attributes) && (
+                            <div className="mt-1">
+                              <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                                {(item.attributes || item.variant_attributes || [])
+                                  .map((attr: VariantAttribute) => attr.attribute_value)
+                                  .filter(Boolean)
+                                  .join(', ')}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell className="text-center font-semibold">
@@ -343,19 +330,19 @@ export default function PurchaseInvoice(props: PurchaseInvoiceProps) {
                     )
                   })()}
 
-                  {purchase.tax_amount && purchase.tax_amount > 0 && (
-                    <div className="flex justify-between text-base">
-                      <span className="text-foreground">
-                        IGV ({purchase.tax_rate}%):
-                      </span>
+                  <div className="flex justify-between text-base">
+                    <span className="text-foreground">
+                      IGV ({purchase.tax_rate}%):
+                    </span>
+                    {purchase.tax_amount && purchase.tax_amount > 0 && (
                       <span className="font-medium">
                         {formatCurrency(
                           purchase.tax_amount,
                           purchase.supplier?.currency
                         )}
                       </span>
-                    </div>
-                  )}
+                    )}
+                  </div>
 
                   <div className="flex justify-between text-lg font-semibold border-t pt-3">
                     <span className="">Total a Pagar:</span>

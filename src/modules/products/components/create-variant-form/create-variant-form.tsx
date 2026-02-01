@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useForm, useFieldArray, UseFormReturn } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
-import { Save, RefreshCw, Plus, Trash2, X } from 'lucide-react'
+import { Save, RefreshCw, Plus, Trash2, X, Calculator, History } from 'lucide-react'
 import { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
@@ -57,6 +57,8 @@ import { ProductWithVariants } from '@/types'
 import { VariantsPreview } from './VariantsPreview'
 import { handleProductVariantsUpdate } from '@/apis/app/product-variant-update'
 import { ProductVariant as ProductVariantType } from '@/apis/app/product-variant-update'
+import { getLastPurchasePrice } from '@/apis/app/purchases'
+import { useEffect } from 'react'
 
 interface CreateVariantFormProps {
   productId: string
@@ -64,22 +66,22 @@ interface CreateVariantFormProps {
   productCode: string
   productWithVariants?: ProductWithVariants
   businessId?: string
+  productPrice?: number
 }
 
 const createVariantsFormSchema = z.object({
   variants: productVariantsSchema // Reutiliza tu schema existente
 })
 
-type CreateVariantsFormValues = {
-  variants: ProductVariantsData // Reutiliza tu tipo existente
-}
+type CreateVariantsFormValues = z.infer<typeof createVariantsFormSchema>
 
 export const CreateVariantForm = ({
   productId,
   productName,
   productCode,
   productWithVariants,
-  businessId
+  businessId,
+  productPrice
 }: CreateVariantFormProps) => {
   const emptyVariant = productWithVariants
     ? productWithVariants.variants.length === 0
@@ -90,7 +92,18 @@ export const CreateVariantForm = ({
   const [commonAttributes, setCommonAttributes] = useState<string[]>([])
   const [enableManualCode, setEnableManualCode] = useState(false)
   const [variantCreated, setVariantCreated] = useState(emptyVariant)
+  const [lastPurchasePrice, setLastPurchasePrice] = useState<number | null>(null)
   const router = useRouter()
+
+  useEffect(() => {
+    const fetchLastPrice = async () => {
+      if (productId) {
+        const price = await getLastPurchasePrice(productId)
+        setLastPurchasePrice(price)
+      }
+    }
+    fetchLastPrice()
+  }, [productId])
 
   const form = useForm<CreateVariantsFormValues>({
     resolver: zodResolver(createVariantsFormSchema),
@@ -98,6 +111,7 @@ export const CreateVariantForm = ({
       variants: [
         {
           name: '',
+          price: productPrice ?? 0,
           attributes: []
         }
       ]
@@ -121,6 +135,7 @@ export const CreateVariantForm = ({
   const addVariant = () => {
     append({
       name: '',
+      price: productPrice || 0,
       attributes: createCommonAttributesForVariant()
     })
   }
@@ -210,6 +225,7 @@ export const CreateVariantForm = ({
           variants: [
             {
               name: '',
+              price: productPrice || 0,
               attributes: createCommonAttributesForVariant()
             }
           ]
@@ -309,6 +325,7 @@ export const CreateVariantForm = ({
                   variants: [
                     {
                       name: '',
+                      price: productPrice || 0,
                       attributes: createCommonAttributesForVariant()
                     }
                   ]
@@ -320,6 +337,7 @@ export const CreateVariantForm = ({
                   variants: [
                     {
                       name: '',
+                      price: productPrice || 0,
                       attributes: createCommonAttributesForVariant()
                     }
                   ]
@@ -425,6 +443,7 @@ export const CreateVariantForm = ({
                           onRemove={() => remove(index)}
                           canRemove={fields.length > 1}
                           commonAttributes={commonAttributes}
+                          lastPurchasePrice={lastPurchasePrice}
                         />
                       ))}
                     </div>
@@ -455,6 +474,7 @@ export const CreateVariantForm = ({
                         variants: [
                           {
                             name: '',
+                            price: productPrice || 0,
                             attributes: createCommonAttributesForVariant()
                           }
                         ]
@@ -518,10 +538,11 @@ export const CreateVariantForm = ({
 // Componente separado para cada card de variante
 interface VariantCardProps {
   index: number
-  form: UseFormReturn<{ variants: ProductVariantsData }>
+  form: UseFormReturn<CreateVariantsFormValues>
   onRemove: () => void
   canRemove: boolean
   commonAttributes: string[]
+  lastPurchasePrice: number | null
 }
 
 const VariantCard = ({
@@ -529,7 +550,8 @@ const VariantCard = ({
   form,
   onRemove,
   canRemove,
-  commonAttributes
+  commonAttributes,
+  lastPurchasePrice
 }: VariantCardProps) => {
   const {
     fields: attributeFields,
@@ -539,6 +561,15 @@ const VariantCard = ({
     control: form.control,
     name: `variants.${index}.attributes`
   })
+
+  const [profitMargin, setProfitMargin] = useState<number>(30)
+
+  const calculatePrice = () => {
+    if (lastPurchasePrice) {
+      const price = lastPurchasePrice * (1 + profitMargin / 100)
+      form.setValue(`variants.${index}.price`, Number(price.toFixed(2)))
+    }
+  }
 
   const addAttribute = () => {
     appendAttribute({
@@ -563,7 +594,7 @@ const VariantCard = ({
   })
 
   return (
-    <Card className="overflow-hidden border-l-4 border-l-primary/60">
+    <Card className="overflow-hidden border-l-4 border-l-primary/60 py-0">
       <div className="px-4 py-3 border-b flex justify-between items-center bg-muted/40">
         <span className="font-semibold text-sm">Variante #{index + 1}</span>
         {canRemove && (
@@ -580,19 +611,86 @@ const VariantCard = ({
       </div>
       <CardContent className="p-4 space-y-4">
         {/* Información básica */}
-        <FormField
-          control={form.control}
-          name={`variants.${index}.name`}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-sm font-medium">Nombre *</FormLabel>
-              <FormControl>
-                <Input placeholder="Nombre de la variante" {...field} className="bg-background" />
-              </FormControl>
-              <FormMessage className="text-xs" />
-            </FormItem>
-          )}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name={`variants.${index}.name`}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm font-medium">Nombre *</FormLabel>
+                <FormControl>
+                  <Input placeholder="Nombre de la variante" {...field} className="bg-background" />
+                </FormControl>
+                <FormMessage className="text-xs" />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name={`variants.${index}.price`}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm font-medium">Precio (S/)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    {...field}
+                    className="bg-background"
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                  />
+                </FormControl>
+                <FormMessage className="text-xs" />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Pricing Analysis Widget */}
+        <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-md border border-blue-100 dark:border-blue-900 space-y-3">
+          <div className="flex items-center gap-2 text-blue-800 dark:text-blue-300">
+            <Calculator className="h-4 w-4" />
+            <h4 className="font-semibold text-sm">Análisis de Precios</h4>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div className="flex flex-col gap-1">
+              <span className="text-muted-foreground flex items-center gap-1">
+                <History className="h-3 w-3" /> Última Compra
+              </span>
+              <span className="font-medium text-foreground">
+                {lastPurchasePrice !== null ? `S/ ${lastPurchasePrice.toFixed(2)}` : 'N/A'}
+              </span>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <span className="text-muted-foreground">Margen Ganancia (%)</span>
+              <div className="flex gap-2">
+                <Input
+                  type="number"
+                  value={profitMargin}
+                  onChange={(e) => setProfitMargin(Number(e.target.value))}
+                  className="h-8 w-20 bg-background"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-end">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={calculatePrice}
+                disabled={lastPurchasePrice === null}
+                className="w-full"
+              >
+                Calculado: {lastPurchasePrice !== null ? `S/ ${(lastPurchasePrice * (1 + profitMargin / 100)).toFixed(2)}` : '-'}
+              </Button>
+            </div>
+          </div>
+        </div>
 
         {/* Atributos comunes */}
         {commonAttrs.length > 0 && (

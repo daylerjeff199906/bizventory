@@ -29,6 +29,7 @@ export const createProductVariants = async ({
   productId: string
   variants: {
     name: string
+    price: number
     attributes: {
       attribute_type: string
       attribute_value: string
@@ -45,7 +46,8 @@ export const createProductVariants = async ({
       .insert(
         variants.map((variant) => ({
           product_id: productId,
-          name: variant.name
+          name: variant.name,
+          price: variant.price
         }))
       )
       .select('id, code')
@@ -79,7 +81,7 @@ export const createProductVariants = async ({
     }
     revalidatePath(
       revalidateUrl ||
-        APP_URLS.ORGANIZATION.PRODUCTS.CREATE_VARIANT(businessId, productId)
+      APP_URLS.ORGANIZATION.PRODUCTS.CREATE_VARIANT(businessId, productId)
     )
     return {
       data: createdVariants,
