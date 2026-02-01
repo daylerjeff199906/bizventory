@@ -35,7 +35,6 @@ interface ProductSelectionModalProps {
   onClose: () => void
   onAddProduct: (item: SelectedProductItem) => void
   addedProductIds: string[]
-  addedProductIds: string[]
   currency: Currency
   businessId: string
 }
