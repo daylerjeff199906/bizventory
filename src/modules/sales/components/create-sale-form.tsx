@@ -48,6 +48,7 @@ import { ToastCustom } from '@/components/app/toast-custom'
 import { useRouter } from 'next/navigation'
 import ConfirmationDialog from './confirmation-dialog'
 import EditProductModal from './edit-product-modal'
+import QuickCustomerModal from './quick-customer-modal'
 
 import { getCustomers } from '@/apis/app/customers'
 import { CustomerList } from '@/types'
@@ -105,7 +106,10 @@ export default function CreateSaleForm() {
     const fetchCustomers = async () => {
       setIsLoadingCustomers(true)
       try {
-        const { data } = await getCustomers({ pageSize: 100 }) // Fetch enough customers for simple selection
+        const { data } = await getCustomers({
+          pageSize: 100,
+          businessId: businessId
+        }) // Fetch enough customers for simple selection
         setCustomers(data)
       } catch (error) {
         console.error('Error fetching customers:', error)
@@ -188,11 +192,11 @@ export default function CreateSaleForm() {
       if (response) {
         toast.success(
           <ToastCustom
-            title="Venta creada exitosamente"
-            message={`La venta ha sido creada exitosamente. COD. ${response.reference_number}`}
+            title="Venta registrada"
+            message={`La venta #${response.reference_number} se ha creado correctamente.`}
           />
         )
-        router.push(`/dashboard/${businessId}/sales/${response.id}/edit`) // Redirect to edit/view
+        router.push(`/dashboard/${businessId}/sales/${response.id}`)
       }
     } catch {
       toast.error(
@@ -268,33 +272,41 @@ export default function CreateSaleForm() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Cliente</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Seleccionar cliente" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <div className="p-2 sticky top-0 z-10 border-b">
-                                <Input
-                                  placeholder="Buscar cliente..."
-                                  value={searchCustomer}
-                                  onChange={(e) => setSearchCustomer(e.target.value)}
-                                  className="h-8"
-                                  autoFocus
-                                />
-                              </div>
-                              <SelectItem value="null_value">Cliente Varios</SelectItem>
-                              {filteredCustomers.map((customer) => (
-                                <SelectItem key={customer.id} value={customer.id}>
-                                  {customer.person?.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <div className="flex gap-2 items-start">
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger className="flex-1">
+                                  <SelectValue placeholder="Seleccionar cliente" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <div className="p-2 sticky top-0 z-10 border-b">
+                                  <Input
+                                    placeholder="Buscar cliente..."
+                                    value={searchCustomer}
+                                    onChange={(e) => setSearchCustomer(e.target.value)}
+                                    className="h-8 flex-1"
+                                    autoFocus
+                                  />
+                                </div>
+                                {filteredCustomers.map((customer) => (
+                                  <SelectItem key={customer.id} value={customer.id}>
+                                    {customer.person?.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <QuickCustomerModal
+                              businessId={businessId}
+                              onSuccess={(newCustomer) => {
+                                setCustomers(prev => [newCustomer, ...prev])
+                                form.setValue('customer_id', newCustomer.id)
+                              }}
+                            />
+                          </div>
                           <FormMessage />
                         </FormItem>
                       )}

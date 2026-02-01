@@ -41,17 +41,15 @@ export type SaleItem = {
 
 export type SaleWithItems = Sale & {
   items: CombinedResultExtendedSales[]
-  customer: Customer | null
+  customer: (Customer & { person: any }) | null
+  business?: any | null
 }
 
 export type Customer = {
   id: string
-  name: string
-  email: string
-  phone: string
-  address: string
-  created_at: string
-  updated_at: string
+  person_id: string
+  created_at?: string
+  updated_at?: string
 }
 
 export type SaleList = Sale & {
@@ -179,7 +177,7 @@ export async function getSaleById(id: string): Promise<SaleWithItems | null> {
   // Get the sale with customer
   const { data: saleData, error: saleError } = await supabase
     .from('sales')
-    .select('*, customer:customers(*)')
+    .select('*, customer:customers(*, person:persons(*)), business:business(*)')
     .eq('id', id)
     .single()
 
