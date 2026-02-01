@@ -266,6 +266,7 @@ export async function createSale({
   const { data: sale, error: saleError } = await supabase
     .from('sales')
     .insert({
+      business_id: validatedData.business_id,
       date: validatedData.date,
       customer_id: validatedData.customer_id,
       status: validatedData.status,

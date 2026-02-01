@@ -42,6 +42,7 @@ export const saleFormSchema = z.object({
 
 // Schema for validation
 export const SaleSchema = z.object({
+  business_id: z.string().uuid(),
   date: z.string().min(1, 'Date is required'),
   customer_id: z.string().nullable(),
   status: z.string().default('pending'),

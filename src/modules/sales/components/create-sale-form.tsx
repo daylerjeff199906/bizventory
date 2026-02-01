@@ -32,10 +32,8 @@ import {
 import {
   Plus,
   Trash2,
-  ShoppingCart,
   Calculator,
   Package,
-  DollarSign,
   Pencil,
   Shield
 } from 'lucide-react'
@@ -48,7 +46,6 @@ import { createSale } from '@/apis/app/sales'
 import { toast } from 'react-toastify'
 import { ToastCustom } from '@/components/app/toast-custom'
 import { useRouter } from 'next/navigation'
-import { APP_URLS } from '@/config/app-urls'
 import ConfirmationDialog from './confirmation-dialog'
 import EditProductModal from './edit-product-modal'
 
@@ -158,6 +155,7 @@ export default function CreateSaleForm() {
   const confirmSale = async () => {
     const data = getValues()
     const saleData: SaleValues = {
+      business_id: businessId,
       customer_id: data.customer_id || null,
       date: data.date,
       payment_method: data.payment_method,
