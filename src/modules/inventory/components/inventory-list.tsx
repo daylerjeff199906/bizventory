@@ -91,9 +91,6 @@ export const InventoryList = ({
         return { label: 'Alto', color: 'bg-green-500', icon: CheckCircle, textColor: 'text-green-500' }
     }
 
-    // Calculate summary stats provided by the current page data (or fetched separately if needed)
-    // For now, we simulate basic stats from the current view or just static placeholders if real stats API isn't ready
-    // Real stats would ideally come from the server response
     const lowStockCount = data.reduce((acc, p) => {
         const total = p.has_variants
             ? (p.variants?.reduce((sum, v) => sum + (v.stock || 0), 0) || 0)
@@ -220,14 +217,26 @@ export const InventoryList = ({
                                                     <span>{product.brand?.name || '-'}</span>
                                                 </div>
                                             </TableCell>
-                                            <TableCell className="text-right font-bold text-lg">
-                                                {totalStock} <span className="text-xs font-normal text-muted-foreground">{product.unit}</span>
+                                            <TableCell className="text-right">
+                                                {
+                                                    product?.variants &&
+                                                        product?.variants?.length > 0 ? <>
+                                                        --
+                                                    </> : <span>
+                                                        {totalStock} <span className="text-xs font-normal text-muted-foreground">{product.unit}</span>
+                                                    </span>
+                                                }
                                             </TableCell>
                                             <TableCell>
-                                                <div className={`flex items-center gap-1 ${status.textColor}`}>
-                                                    <StatusIcon className="h-4 w-4" />
-                                                    <span className="text-sm font-medium">{status.label}</span>
-                                                </div>
+                                                {
+                                                    product?.variants &&
+                                                        product?.variants?.length > 0 ? <>
+                                                        --
+                                                    </> : <div className={`flex items-center gap-1 ${status.textColor}`}>
+                                                        <StatusIcon className="h-4 w-4" />
+                                                        <span className="text-sm font-medium">{status.label}</span>
+                                                    </div>
+                                                }
                                             </TableCell>
                                         </TableRow>
                                         {/* Variants Row */}

@@ -29,13 +29,15 @@ export async function getCustomers({
   pageSize = 10,
   filters,
   sortBy = 'created_at',
-  sortDirection = 'desc'
+  sortDirection = 'desc',
+  businessId
 }: {
   page?: number
   pageSize?: number
   filters?: Record<string, string | number | string[] | undefined>
   sortBy?: string
   sortDirection?: 'asc' | 'desc'
+  businessId: string
 }): Promise<{
   data: CustomerList[]
   page: number
@@ -60,6 +62,7 @@ export async function getCustomers({
     const { data, error, count } = await supabase
       .from('customers')
       .select('*, person:person_id(*)', { count: 'exact' })
+      .eq('business_id', businessId)
       .order(sortColumn, { ascending: sortDirection === 'asc' })
       .range(from, to)
 
@@ -125,6 +128,7 @@ export async function getCustomers({
   let customerQuery = supabase
     .from('customers')
     .select('*, person:person_id(*)', { count: 'exact' })
+    .eq('business_id', businessId)
     .order(sortColumn, { ascending: sortDirection === 'asc' })
     .range(from, to)
 
@@ -323,7 +327,8 @@ export async function createCustomer(createCustomerData: CreateCustomerData) {
   const { data, error: customerError } = await supabase
     .from('customers')
     .insert({
-      person_id: validatedData.person_id
+      person_id: validatedData.person_id,
+      business_id: validatedData.business_id
     })
     .select('*, person:person_id(*)')
     .single()
@@ -336,53 +341,6 @@ export async function createCustomer(createCustomerData: CreateCustomerData) {
   return data
 }
 
-/**
- * Actualiza un cliente existente
- * @param personId - ID de la persona asociada al cliente
- * @param customerData - Datos actualizados
- * @returns Promise<any>
- */
-// export async function updateCustomer(
-//   personId: string,
-//   customerData: UpdateCustomerData
-// ) {
-//   const validatedData = updateCustomerSchema.parse(customerData)
-//   const supabase = await getSupabase()
-
-//   // Actualizar datos de persona
-//   const { data: updatedPerson, error: personError } = await supabase
-//     .from('person')
-//     .update({ updatePerson })
-//     .eq('id', personId)
-//     .select()
-//     .single()
-
-//   if (personError) {
-//     throw new Error(`Error al actualizar persona: ${personError.message}`)
-//   }
-
-//   // Actualizar datos de cliente
-//   const { data: updatedCustomer, error: customerError } = await supabase
-//     .from('customers')
-//     .update({
-//       additional_info: validatedData.additional_info || null
-//     })
-//     .eq('person_id', personId)
-//     .select('*, person:person_id(*)')
-//     .single()
-
-//   if (customerError) {
-//     throw new Error(`Error al actualizar cliente: ${customerError.message}`)
-//   }
-
-//   return updatedCustomer
-// }
-
-/**
- * Elimina un cliente
- * @param personId - ID de la persona asociada al cliente
- * @returns Promise<void>
- */
 export async function deleteCustomer(personId: string) {
   const supabase = await getSupabase()
 

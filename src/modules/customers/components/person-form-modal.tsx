@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
@@ -31,6 +32,7 @@ import { Person } from '@/types'
 import { toast } from 'react-toastify'
 
 interface PersonCrudProps {
+  businessId?: string
   personData?: Person
   isCustomer?: boolean
   mode?: 'create' | 'edit'
@@ -38,7 +40,9 @@ interface PersonCrudProps {
 }
 
 export default function PersonsCRUD(props: PersonCrudProps) {
-  const { personData, isCustomer = false, mode = 'create', children } = props
+  const { businessId: propBusinessId, personData, isCustomer = false, mode = 'create', children } = props
+  const params = useParams()
+  const businessId = propBusinessId || (params?.uuid as string)
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -50,7 +54,7 @@ export default function PersonsCRUD(props: PersonCrudProps) {
       secondary_phone: personData?.secondary_phone || '',
       email: personData?.email || '',
       address: personData?.address || '',
-      country: personData?.country || ''
+      country: personData?.country || 'Perú'
     }
   })
 
@@ -61,7 +65,10 @@ export default function PersonsCRUD(props: PersonCrudProps) {
         const personResponse = await createPerson(data)
 
         if (isCustomer && personResponse?.data?.id) {
-          await createCustomer({ person_id: personResponse?.data?.id })
+          await createCustomer({
+            person_id: personResponse.data.id,
+            business_id: businessId
+          })
           toast.success('Cliente creado correctamente')
         } else {
           toast.success('Persona creada correctamente')
@@ -119,9 +126,8 @@ export default function PersonsCRUD(props: PersonCrudProps) {
           </DialogTitle>
           <DialogDescription>
             {mode === 'create'
-              ? `Completa la información ${
-                  isCustomer ? 'del nuevo cliente' : 'de la nueva persona'
-                }.`
+              ? `Completa la información ${isCustomer ? 'del nuevo cliente' : 'de la nueva persona'
+              }.`
               : 'Actualiza los datos de la persona.'}
           </DialogDescription>
         </DialogHeader>
@@ -228,8 +234,8 @@ export default function PersonsCRUD(props: PersonCrudProps) {
                 {isLoading
                   ? 'Procesando...'
                   : mode === 'create'
-                  ? 'Guardar'
-                  : 'Actualizar'}
+                    ? 'Guardar'
+                    : 'Actualizar'}
               </Button>
             </DialogFooter>
           </form>

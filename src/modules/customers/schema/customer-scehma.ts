@@ -1,7 +1,8 @@
 import { z } from 'zod'
 
 export const customerSchema = z.object({
-  person_id: z.string().min(1, 'El ID de la persona es requerido')
+  person_id: z.string().min(1, 'El ID de la persona es requerido'),
+  business_id: z.string().min(1, 'El ID del negocio es requerido')
 })
 
 export const createCustomerSchema = customerSchema
