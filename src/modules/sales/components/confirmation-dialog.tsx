@@ -81,12 +81,6 @@ export default function ConfirmationDialog({
             </h4>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <span className="text-muted-foreground">
-                  Número de Referencia:
-                </span>
-                <p className="font-medium">{saleData.reference_number}</p>
-              </div>
-              <div>
                 <span className="text-muted-foreground">Fecha:</span>
                 <p className="font-medium">
                   {new Date(saleData.date).toLocaleDateString()}
@@ -138,7 +132,7 @@ export default function ConfirmationDialog({
                   </thead>
                   <tbody>
                     {saleData.items?.map((item: SaleItemValues, index) => (
-                      <tr key={index} className="border-t">
+                      <tr key={index} className="border-t text-xs">
                         <td className="py-2 px-3">
                           <div className="font-medium">
                             {item.brand?.name} {item.product_description}
@@ -233,11 +227,11 @@ export default function ConfirmationDialog({
           </div>
 
           {/* Advertencia */}
-          <div className="flex items-start gap-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-            <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+          <div className="flex items-start gap-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md dark:bg-yellow-900 dark:border-yellow-800">
+            <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5 dark:text-yellow-400" />
             <div className="text-sm">
-              <p className="font-medium text-yellow-800">Importante</p>
-              <p className="text-yellow-700">
+              <p className="font-medium text-yellow-800 dark:text-yellow-400">Importante</p>
+              <p className="text-yellow-700 dark:text-yellow-400">
                 Una vez confirmada, la venta será registrada en el sistema y no
                 podrá ser modificada. Asegúrate de que todos los datos sean
                 correctos.

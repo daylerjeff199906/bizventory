@@ -41,21 +41,20 @@ export type SaleItem = {
 
 export type SaleWithItems = Sale & {
   items: CombinedResultExtendedSales[]
-  customer: Customer | null
+  customer: (Customer & { person: any }) | null
+  business?: any | null
 }
 
 export type Customer = {
   id: string
-  name: string
-  email: string
-  phone: string
-  address: string
-  created_at: string
-  updated_at: string
+  person_id: string
+  person?: any
+  created_at?: string
+  updated_at?: string
 }
 
 export type SaleList = Sale & {
-  customer: Customer | null
+  customer: (Customer & { person: { name: string, document_number: string } }) | null
 }
 
 export type ResApi<T> = {
@@ -121,8 +120,7 @@ export async function getSales({
 
   let query = supabase
     .from('sales')
-    // .select('*, customer:customers(*)')
-    .select('*')
+    .select('*, customer:customers(id, person:persons(name, document_number))')
     .eq('business_id', businessId)
     .range(from, to)
     .order(sortColumn, { ascending: sortDirection === 'asc' })
@@ -179,7 +177,7 @@ export async function getSaleById(id: string): Promise<SaleWithItems | null> {
   // Get the sale with customer
   const { data: saleData, error: saleError } = await supabase
     .from('sales')
-    .select('*, customer:customers(*)')
+    .select('*, customer:customers(*, person:persons(*)), business:business(*)')
     .eq('id', id)
     .single()
 
@@ -266,7 +264,7 @@ export async function createSale({
   const { data: sale, error: saleError } = await supabase
     .from('sales')
     .insert({
-      reference_number: validatedData.reference_number,
+      business_id: validatedData.business_id,
       date: validatedData.date,
       customer_id: validatedData.customer_id,
       status: validatedData.status,
@@ -276,7 +274,6 @@ export async function createSale({
       discount_amount: validatedData.discount_amount,
       total_items: validatedData.total_items,
       total_amount: validatedData.total_amount
-      // salesperson_id: validatedData.salesperson_id
     })
     .select()
     .single()
@@ -351,7 +348,6 @@ export async function updateSale({
   const { data: sale, error: saleError } = await supabase
     .from('sales')
     .update({
-      reference_number: validatedData.reference_number,
       date: validatedData.date,
       customer_id: validatedData.customer_id,
       status: validatedData.status,
@@ -367,7 +363,7 @@ export async function updateSale({
     .eq('id', id)
     .select()
     .single()
-
+  console
   if (saleError || !sale) {
     throw saleError || new Error('Sale update failed')
   }

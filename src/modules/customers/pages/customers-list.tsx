@@ -107,6 +107,7 @@ export const CustomersList = (props: IProps) => {
                     <TableCell>{formatDate(customer.updated_at)}</TableCell>
                     <TableCell>
                       <PersonsCRUD
+                        businessId={customer.business_id}
                         personData={customer.person}
                         mode="edit"
                         isCustomer

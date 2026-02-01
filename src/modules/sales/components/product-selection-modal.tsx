@@ -13,14 +13,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Separator } from '@/components/ui/separator'
 import {
   Package,
   Check,
-  Plus,
-  ShoppingCart,
   AlertCircle,
-  Box,
   Settings,
   X
 } from 'lucide-react'
@@ -44,7 +40,7 @@ function ProductConfigPanel({
   product,
   currency,
   onConfirm,
-  onCancel
+  onCancel,
 }: {
   product: ProductCombinedSelection
   currency: Currency
@@ -92,7 +88,7 @@ function ProductConfigPanel({
 
   return (
     <div className="h-full flex flex-col">
-      <ScrollArea className="flex-1 p-4 h-full max-h-[calc(100vh-200px)]">
+      <ScrollArea className="flex-1 p-4 h-full max-h-[calc(100vh-100px)]">
         <div className="flex items-center justify-between px-4 py-2 border-b">
           <div className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
@@ -104,26 +100,54 @@ function ProductConfigPanel({
         </div>
 
         <div className="flex-1 p-4 space-y-4">
-          <div className="p-3 bg-muted rounded-md">
+          <div className="p-3 bg-muted rounded-md flex flex-col gap-1">
             <div className="flex items-center gap-2">
               <p className="text-xs text-muted-foreground">{product.code}</p>
             </div>
-            <h4 className="font-medium text-sm">
-              {product?.brand?.name || ''}
-              {product.product_description}
-              {product?.variant_id && product.variant_name
-                ? ` - ${product.variant_name}`
-                : ''}
-              {product?.attributes && product.attributes.length > 0
-                ? ` ${product.attributes
-                  .map((attr) => `${attr.attribute_value}`)
-                  .join(', ')}`
-                : ''}
-            </h4>
+            <div
+              className='cursor-pointer flex flex-col gap-1'
+              title={
+                `${product?.brand?.name || ''}
+              ${product.product_description}
+              ${product?.variant_id && product.variant_name
+                  ? ` - ${product.variant_name}`
+                  : ''}
+              ${product?.attributes && product.attributes.length > 0
+                  ? ` ${product.attributes
+                    .map((attr) => `${attr.attribute_value}`)
+                    .join(', ')}`
+                  : ''}`
+              }>
+              <span className='text-xs text-muted-foreground'>
+                {product?.brand?.name || ''}
+              </span>
+              <h3 className='text-sm font-medium'>
+                {product?.product_description && product?.product_description.substring(0, 50)}
+                {product?.variant_id && product.variant_name
+                  ? ` - ${product.variant_name}`
+                  : ''}
+              </h3>
+              <p className='text-xs text-muted-foreground'>
+                {product?.attributes && product.attributes.length > 0
+                  ? ` ${product.attributes
+                    .map((attr) => `${attr.attribute_value}`)
+                    .join(', ')}`
+                  : ''}
+              </p>
+            </div>
 
-            <p className="text-xs text-muted-foreground mt-2">
-              Stock disponible: {product.stock} {product.unit}
-            </p>
+            <div className='flex items-center gap-2 justify-between'>
+              <p className="text-sm text-muted-foreground mt-2">
+                Stock: {product.stock} {product.unit}
+              </p>
+              <p className="text-sm text-muted-foreground mt-2">
+                Precio Unitario: {` `}
+                <span className='font-medium text-emerald-600 text-lg'>
+                  {product.price_unit} {' '}
+                </span>
+                {currency}
+              </p>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 gap-4">
@@ -143,24 +167,6 @@ function ProductConfigPanel({
                 className="mt-1"
               />
             </div>
-
-            <div>
-              <Label htmlFor="price" className="text-sm">
-                Precio Unitario
-              </Label>
-              <Input
-                id="price"
-                type="number"
-                min="0"
-                step="0.01"
-                value={basePrice}
-                onChange={(e) =>
-                  setBasePrice(Number.parseFloat(e.target.value) || 0)
-                }
-                className="mt-1"
-              />
-            </div>
-
             <div>
               <Label htmlFor="discount" className="text-sm">
                 Descuento Total
@@ -304,6 +310,15 @@ function ProductItem({
           <div className="text-xs text-muted-foreground truncate">
             {product.variant_name || product.code}
           </div>
+          <div>
+            {
+              product.attributes?.map((attribute, index) => (
+                <span key={index} className="text-xs text-muted-foreground">
+                  {attribute.attribute_type}: {attribute.attribute_value}
+                </span>
+              ))
+            }
+          </div>
         </div>
 
         <div className="flex items-end justify-between mt-2">
@@ -328,14 +343,17 @@ function ProductItem({
 export const transformProductsToCombinedSelection = (
   products: Product[]
 ): ProductCombinedSelection[] => {
+  console.log('Transforming products:', products) // Debug log
   const result: ProductCombinedSelection[] = []
 
   products.forEach((product) => {
-    if (
-      product.has_variants &&
-      product.variants &&
-      product.variants.length > 0
-    ) {
+    // Debug for specific issue
+    if (product.has_variants && (!product.variants || product.variants.length === 0)) {
+      console.warn('Product has variants flag but no variants data:', product.name)
+    }
+
+    // Check if variants exist and have items, ignoring has_variants flag as per user request
+    if (product.variants && product.variants.length > 0) {
       product.variants.forEach((variant) => {
         result.push({
           product_id: product.id,
@@ -363,8 +381,8 @@ export const transformProductsToCombinedSelection = (
         product_description: product.description,
         unit: product.unit,
         brand: {
-          id: String(product?.brand.id),
-          name: product?.brand.name
+          id: String(product?.brand?.id),
+          name: product?.brand?.name
         },
         stock: product.stock,
         price_unit: product.price_unit,
@@ -373,6 +391,7 @@ export const transformProductsToCombinedSelection = (
     }
   })
 
+  console.log('Transformation result:', result) // Debug log
   return result
 }
 
@@ -395,7 +414,7 @@ export default function ProductSelectionModal({
         fetchItems({ searchQuery: searchTerm, page: 1, pageSize: 20, businessId })
       }
     }
-  }, [isOpen, searchTerm])
+  }, [isOpen, searchTerm, businessId])
 
   const listGeneralProducts = transformProductsToCombinedSelection(
     products?.data || []

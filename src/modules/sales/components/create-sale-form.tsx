@@ -32,10 +32,8 @@ import {
 import {
   Plus,
   Trash2,
-  ShoppingCart,
   Calculator,
   Package,
-  DollarSign,
   Pencil,
   Shield
 } from 'lucide-react'
@@ -48,9 +46,9 @@ import { createSale } from '@/apis/app/sales'
 import { toast } from 'react-toastify'
 import { ToastCustom } from '@/components/app/toast-custom'
 import { useRouter } from 'next/navigation'
-import { APP_URLS } from '@/config/app-urls'
 import ConfirmationDialog from './confirmation-dialog'
 import EditProductModal from './edit-product-modal'
+import QuickCustomerModal from './quick-customer-modal'
 
 import { getCustomers } from '@/apis/app/customers'
 import { CustomerList } from '@/types'
@@ -76,7 +74,6 @@ export default function CreateSaleForm() {
     resolver: zodResolver(saleFormSchema),
     defaultValues: {
       currency: 'PEN',
-      reference_number: '',
       payment_method: 'efectivo',
       shipping_address: '',
       tax_rate: 0,
@@ -109,7 +106,10 @@ export default function CreateSaleForm() {
     const fetchCustomers = async () => {
       setIsLoadingCustomers(true)
       try {
-        const { data } = await getCustomers({ pageSize: 100 }) // Fetch enough customers for simple selection
+        const { data } = await getCustomers({
+          pageSize: 100,
+          businessId: businessId
+        }) // Fetch enough customers for simple selection
         setCustomers(data)
       } catch (error) {
         console.error('Error fetching customers:', error)
@@ -158,11 +158,9 @@ export default function CreateSaleForm() {
 
   const confirmSale = async () => {
     const data = getValues()
-    console.log('Datos del formulario:', data)
-
     const saleData: SaleValues = {
+      business_id: businessId,
       customer_id: data.customer_id || null,
-      reference_number: data.reference_number,
       date: data.date,
       payment_method: data.payment_method,
       shipping_address: data.shipping_address || '',
@@ -194,11 +192,11 @@ export default function CreateSaleForm() {
       if (response) {
         toast.success(
           <ToastCustom
-            title="Venta creada exitosamente"
-            message={`La venta con número de referencia ${data.reference_number} ha sido creada.`}
+            title="Venta registrada"
+            message={`La venta #${response.reference_number} se ha creado correctamente.`}
           />
         )
-        router.push(`/dashboard/${businessId}/sales/${response.id}/edit`) // Redirect to edit/view
+        router.push(`/dashboard/${businessId}/sales/${response.id}`)
       }
     } catch {
       toast.error(
@@ -234,7 +232,7 @@ export default function CreateSaleForm() {
   }
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto">
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(handleSubmitForm)}
@@ -244,18 +242,12 @@ export default function CreateSaleForm() {
             {/* Información de la venta */}
             <div className="lg:col-span-2 space-y-6">
               <div className="p-4 border rounded-md">
-                <div>
-                  <h3 className="flex items-center gap-2 text-lg font-semibold mb-2">
-                    <ShoppingCart className="h-5 w-5" />
-                    Información de la Venta
-                  </h3>
-                  <p className="text-sm mb-4">
-                    Detalles generales de la venta
-                  </p>
-                </div>
+                <p className="text-sm mb-4">
+                  Detalles generales de la venta
+                </p>
                 <hr className="my-4" />
                 <div className="grid grid-cols-1 gap-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="date"
@@ -274,49 +266,51 @@ export default function CreateSaleForm() {
                         </FormItem>
                       )}
                     />
-
-
-
                     <FormField
                       control={form.control}
                       name="customer_id"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Cliente</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Seleccionar cliente" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <div className="p-2 sticky top-0 bg-white z-10 border-b">
-                                <Input
-                                  placeholder="Buscar cliente..."
-                                  value={searchCustomer}
-                                  onChange={(e) => setSearchCustomer(e.target.value)}
-                                  className="h-8"
-                                  autoFocus
-                                />
-                              </div>
-                              <SelectItem value="null_value">Cliente Varios</SelectItem>
-                              {filteredCustomers.map((customer) => (
-                                <SelectItem key={customer.id} value={customer.id}>
-                                  {customer.person?.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <div className="flex gap-2 items-start">
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger className="flex-1">
+                                  <SelectValue placeholder="Seleccionar cliente" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <div className="p-2 sticky top-0 z-10 border-b">
+                                  <Input
+                                    placeholder="Buscar cliente..."
+                                    value={searchCustomer}
+                                    onChange={(e) => setSearchCustomer(e.target.value)}
+                                    className="h-8 flex-1"
+                                    autoFocus
+                                  />
+                                </div>
+                                {filteredCustomers.map((customer) => (
+                                  <SelectItem key={customer.id} value={customer.id}>
+                                    {customer.person?.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <QuickCustomerModal
+                              businessId={businessId}
+                              onSuccess={(newCustomer) => {
+                                setCustomers(prev => [newCustomer, ...prev])
+                                form.setValue('customer_id', newCustomer.id)
+                              }}
+                            />
+                          </div>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-
-                    <div></div>
-                    <div></div>
                     <FormField
                       control={form.control}
                       name="currency"
@@ -351,25 +345,6 @@ export default function CreateSaleForm() {
                         </FormItem>
                       )}
                     />
-
-                    <FormField
-                      control={form.control}
-                      name="reference_number"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Número de Referencia</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="VTA-240101-001"
-                              className="w-full"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
                     <FormField
                       control={form.control}
                       name="payment_method"
@@ -407,24 +382,6 @@ export default function CreateSaleForm() {
                     />
                   </div>
 
-                  {/* <FormField
-                    control={form.control}
-                    name="shipping_address"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Dirección de Envío</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Ingresa la dirección de envío..."
-                            rows={3}
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  /> */}
-
                   {/* Sección de IGV */}
                   <div className="border-t pt-4">
                     <div className="flex flex-row items-center space-x-3 mb-4">
@@ -450,13 +407,8 @@ export default function CreateSaleForm() {
               <div className="p-4 border rounded-md grid grid-cols-1 gap-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="flex items-center gap-2">
-                      <Package className="h-5 w-5" />
-                      <h3 className="text-lg font-semibold">
-                        Productos de la Venta
-                      </h3>
-                    </div>
                     <p className="text-sm mb-2">
+                      Productos: {` `}
                       {watchedItems && watchedItems?.length > 0
                         ? `${watchedItems?.length} producto${watchedItems?.length !== 1 ? 's' : ''
                         } agregado${watchedItems?.length !== 1 ? 's' : ''}`
@@ -468,6 +420,7 @@ export default function CreateSaleForm() {
                     type="button"
                     onClick={() => setIsProductModalOpen(true)}
                     className="flex items-center gap-2"
+                    size="sm"
                   >
                     <Plus className="h-4 w-4" />
                     Agregar Productos
@@ -519,13 +472,13 @@ export default function CreateSaleForm() {
                                 key={index}
                                 className="border-b"
                               >
-                                <td className="py-3 px-2 text-sm">
+                                <td className="py-3 px-2 text-xs">
                                   {index + 1}
                                 </td>
                                 <td className="py-3 px-2">
-                                  <div className="text-sm font-medium ">
+                                  <div className="text-xs font-medium ">
                                     {item.brand?.name}{' '}
-                                    {item.product_description}
+                                    {item.product_description && item?.product_description.substring(0, 50)}
                                     {item.variant_name && (
                                       <>{item.variant_name}</>
                                     )}{' '}
@@ -543,15 +496,15 @@ export default function CreateSaleForm() {
                                   </div>
                                 </td>
                                 <td className="py-3 px-2 text-center">
-                                  <span className="text-sm font-medium">
+                                  <span className="text-xs font-medium">
                                     {item.quantity}
                                   </span>
                                 </td>
-                                <td className="py-3 px-2 text-right text-sm">
+                                <td className="py-3 px-2 text-right text-xs">
                                   {currencySymbol}
                                   {item?.price_unit?.toFixed(2)}
                                 </td>
-                                <td className="py-3 px-2 text-right text-sm font-semibold">
+                                <td className="py-3 px-2 text-right text-xs font-semibold">
                                   {currencySymbol}
                                   {(
                                     (item?.price_unit ?? 0) *
@@ -561,7 +514,7 @@ export default function CreateSaleForm() {
                                 <td className="py-3 px-2 text-right">
                                   {item?.discount && item?.discount > 0 ? (
                                     <div>
-                                      <div className="text-sm text-red-600 truncate">
+                                      <div className="text-xs text-red-600 truncate">
                                         -{currencySymbol}
                                         {item?.discount?.toFixed(2)}
                                       </div>
@@ -576,12 +529,12 @@ export default function CreateSaleForm() {
                                       </div>
                                     </div>
                                   ) : (
-                                    <span className="text-gray-300 text-sm">
+                                    <span className="text-gray-300 text-xs">
                                       -
                                     </span>
                                   )}
                                 </td>
-                                <td className="py-3 px-2 text-right text-sm font-semibold">
+                                <td className="py-3 px-2 text-right text-xs font-semibold">
                                   {currencySymbol}
                                   {item?.subtotal?.toFixed(2)}
                                 </td>
@@ -630,7 +583,7 @@ export default function CreateSaleForm() {
                         <p className="text-lg font-medium mb-2">
                           No hay productos agregados
                         </p>
-                        <p className="text-sm mb-4">
+                        <p className="text-xs mb-4">
                           Comienza agregando productos a tu venta
                         </p>
                         <Button
