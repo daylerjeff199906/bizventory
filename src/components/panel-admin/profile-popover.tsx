@@ -117,10 +117,15 @@ export const ProfilePopover = ({
                     <Link href={item.href}>{item.label}</Link>
                   ) : (
                     <button
-                      onClick={() => {
+                      onClick={async () => {
                         if (item.onClick) {
                           setLoading(true)
-                          item.onClick()
+                          try {
+                            await item.onClick()
+                          } catch (error) {
+                            console.error('Action failed:', error)
+                            setLoading(false)
+                          }
                         }
                       }}
                       className="w-full items-start flex"

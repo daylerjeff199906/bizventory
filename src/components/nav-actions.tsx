@@ -81,8 +81,8 @@ export function NavActions({
   // Función para manejar el logout
   const handleLogout = async () => {
     try {
-      const response = await fetch('/api/session/logout', {
-        method: 'GET'
+      const response = await fetch('/api/logout', {
+        method: 'POST'
       })
 
       if (response.ok) {
