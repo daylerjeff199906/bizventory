@@ -27,38 +27,38 @@ export const PurchaseItemSchema = z
     }
   )
 
-export type StatusPurchase = 
+export type StatusPurchase =
   | 'draft'
   | 'pending'
   | 'completed'
-  | 'cancelled' 
+  | 'cancelled'
 
 export enum StatusPurchaseEnum {
-    DRAFT = 'draft',
-    PENDING = 'pending',
-    COMPLETED = 'completed',
-    CANCELLED = 'cancelled'
+  DRAFT = 'draft',
+  PENDING = 'pending',
+  COMPLETED = 'completed',
+  CANCELLED = 'cancelled'
 }
 
-export type PaymentStatusPurchase = 
+export type PaymentStatusPurchase =
   | 'pending'
   | 'paid'
   | 'partially_paid'
   | 'cancelled'
 
-  export enum PaymentStatusPurchaseEnum {
-    PENDING = 'pending',
-    PAID = 'paid',
-    PARTIALLY_PAID = 'partially_paid',
-    CANCELLED = 'cancelled'
+export enum PaymentStatusPurchaseEnum {
+  PENDING = 'pending',
+  PAID = 'paid',
+  PARTIALLY_PAID = 'partially_paid',
+  CANCELLED = 'cancelled'
 }
 
 export enum PurchaseMovementTypeEnum {
-    ENTRY = 'entry',
-    EXIT = 'exit',
-    PURCHASE = 'purchase',
-    SALE = 'sale',
-    PURCHASE_RETURN = 'purchase_return'
+  ENTRY = 'entry',
+  EXIT = 'exit',
+  PURCHASE = 'purchase',
+  SALE = 'sale',
+  PURCHASE_RETURN = 'purchase_return'
 }
 
 // Esquema para el formulario (permite items vacíos)
@@ -91,15 +91,22 @@ export const PurchaseSchema = PurchaseFormSchema.extend({
 export type PurchaseItem = z.infer<typeof PurchaseItemSchema> & {
   _temp_id?: string // Para manejar IDs temporales en el frontend
   _index?: number // Para manejar el índice del item en el formulario
+  // Propiedades opcionales que vienen del join con products/variants cuando se obtienen de la API
+  name?: string
+  brand?: { name: string } | null
+  unit?: string | null
+  description?: string | null
+  variant_name?: string | null
+  attributes?: any[] | null
   // Información del producto/variante
   is_product_header?: boolean
   has_variants?: boolean
   variants_count?: number
   // Información del producto
   product?: {
-    id: string
+    id: string | null | undefined
     name: string
-    unit: string
+    unit: string | null | undefined
     brand: string | null
     description: string | null
   }
@@ -110,7 +117,8 @@ export type PurchaseItem = z.infer<typeof PurchaseItemSchema> & {
   }
 }
 
-export type Purchase = z.infer<typeof PurchaseSchema> & {
+export type Purchase = Omit<z.infer<typeof PurchaseSchema>, 'items'> & {
+  items: PurchaseItem[]
   supplier: {
     id: string
     name: string

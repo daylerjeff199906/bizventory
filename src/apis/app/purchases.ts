@@ -165,7 +165,7 @@ export async function getPurchaseById(
         name,
         description,
         code,
-        attributes:product_variant_attributes(*)
+        product_variant_attributes:product_variant_attributes(*)
       )
     `
     )
@@ -187,14 +187,21 @@ export async function getPurchaseById(
         }
         : null
 
+
       const variantData = item.variant
         ? {
           variant_id: item.variant.id,
           variant_name: item.variant.name,
           variant_description: item.variant.description,
           variant_code: item.variant.code,
-          attributes: item.variant.attributes,
-          variant_attributes: item.variant.attributes
+          attributes: (item.variant.product_variant_attributes || []).sort(
+            (a: any, b: any) => a.attribute_type.localeCompare(b.attribute_type)
+          ),
+          variant_attributes: (
+            item.variant.product_variant_attributes || []
+          ).sort((a: any, b: any) =>
+            a.attribute_type.localeCompare(b.attribute_type)
+          )
         }
         : {}
 
@@ -214,7 +221,7 @@ export async function getPurchaseById(
         variant: item.variant ? {
           id: item.variant.id,
           name: item.variant.name,
-          attributes: item.variant.attributes || []
+          attributes: item.variant.product_variant_attributes || []
         } : undefined
       } as any
     }) || []
@@ -357,9 +364,13 @@ export async function updatePurchase({
     validatedData.items.map((item) => ({
       purchase_id: id,
       product_id: item.product_id,
+      product_variant_id: item.product_variant_id,
       quantity: item.quantity,
-      price: item.price
-      //   subtotal: item.subtotal
+      price: item.price,
+      discount: item.discount || 0,
+      bar_code: item.bar_code || null,
+      original_product_name: item.original_product_name || null,
+      original_variant_name: item.original_variant_name || null
     }))
   )
 

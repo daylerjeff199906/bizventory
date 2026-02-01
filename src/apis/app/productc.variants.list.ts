@@ -19,7 +19,7 @@ async function getSupabase() {
  * @returns Promise<Array<ProductSelectionItem>>
  */
 
-interface VariantAttribute {
+export interface VariantAttribute {
   attribute_type: string
   attribute_value: string
 }
@@ -50,6 +50,8 @@ export interface CombinedResultExtended extends CombinedResult {
   discount?: number
   original_product_name?: string | null
   original_variant_name?: string | null
+  variant_name?: string
+  variant_attributes?: VariantAttribute[]
 }
 export interface CombinedResultExtendedSales extends Omit<CombinedResult, 'unit'> {
   quantity?: number
@@ -108,10 +110,7 @@ export async function getProductsAndVariantsForPurchase({
         *,
         brand:brand_id(*)
       ),
-      product_variant_attributes:product_variant_attributes(
-        attribute_type,
-        attribute_value
-      )
+      product_variant_attributes:product_variant_attributes(*)
     `
       )
       // .in('product_id', businessProductIds)
@@ -140,7 +139,10 @@ export async function getProductsAndVariantsForPurchase({
           description: variant.description,
           code: variant.code,
           price: variant.price,
-          attributes: variant.product_variant_attributes || []
+          attributes: (variant.product_variant_attributes || []).sort(
+            (a: VariantAttribute, b: VariantAttribute) =>
+              a.attribute_type.localeCompare(b.attribute_type)
+          )
         }))
     })) || []
 

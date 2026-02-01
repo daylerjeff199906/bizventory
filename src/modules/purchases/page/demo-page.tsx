@@ -17,7 +17,7 @@ import { Info } from 'lucide-react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { getProductDescription } from '../utils/generate-name'
-import { CombinedResultExtended } from '@/apis/app/productc.variants.list'
+import { CombinedResultExtended, VariantAttribute } from '@/apis/app/productc.variants.list'
 import { Label } from '@/components/ui/label'
 
 interface PurchaseInvoiceProps {
@@ -234,10 +234,30 @@ export default function PurchaseInvoice(props: PurchaseInvoiceProps) {
                         {item.code || 'N/A'}
                       </TableCell>
                       <TableCell>
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium  break-words whitespace-normal">
-                            {getProductDescription(item)}
+                        <div className="min-w-0 whitespace-normal">
+                          <p className="text-sm font-medium  break-words  uppercase">
+                            {item.brand?.name || ''} {item.name || ''}
                           </p>
+                          {item.variant_name && (
+                            <p className="text-sm text-blue-600 font-medium">
+                              {item.variant_name}
+                            </p>
+                          )}
+                          {item.description && !item.variant_name && (
+                            <p className="text-xs text-gray-500">
+                              {item.description}
+                            </p>
+                          )}
+                          {(item.attributes || item.variant_attributes) && (
+                            <div className="mt-1">
+                              <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                                {(item.attributes || item.variant_attributes || [])
+                                  .map((attr: VariantAttribute) => attr.attribute_value)
+                                  .filter(Boolean)
+                                  .join(', ')}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell className="text-center font-semibold">
