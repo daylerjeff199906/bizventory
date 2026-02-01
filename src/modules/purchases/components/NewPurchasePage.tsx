@@ -10,9 +10,7 @@ import {
   Plus,
   Trash2,
   RefreshCw,
-  Edit,
-  ChevronDown,
-  ChevronRight
+  Edit
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -291,9 +289,6 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
   const [applyTax, setApplyTax] = useState(false)
   const [searchSupplier, setSearchSupplier] = useState<string>('')
   const [confirmOpen, setConfirmOpen] = useState(false)
-  const [expandedProducts, setExpandedProducts] = useState<Set<string>>(
-    new Set()
-  )
 
   const router = useRouter()
   const { suppliers } = useSuppliers({ businessId })
@@ -352,54 +347,38 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
     form.setValue('items', purchaseItems)
   }
 
-  const toggleProductExpansion = (productId: string) => {
-    setExpandedProducts((prev) => {
-      const newSet = new Set(prev)
-      if (newSet.has(productId)) {
-        newSet.delete(productId)
-      } else {
-        newSet.add(productId)
-      }
-      return newSet
-    })
-  }
+
 
   const handleAddProduct = (product: CombinedResult) => {
     // Si ya seleccionamos una variante específica desde el modal
     if (product.variant_id) {
-      // Verificar si ya existe como cabecera (obligatorio para variantes)
-      const existingProductHeader = purchaseItems.find(
-        (item) => item.product_id === product.id && item.is_product_header
+      // Verificar si la variante ya existe para evitar duplicados
+      const existingVariant = purchaseItems.find(
+        (item) => item.product_variant_id === product.variant_id
       )
 
-      let updatedItems = [...purchaseItems]
-
-      if (!existingProductHeader) {
-        const headerTempId = `${product.id}-header-${Date.now()}`
-        const productHeader: PurchaseItem = {
-          product_id: product.id,
-          product_variant_id: null,
-          quantity: 0,
-          price: 0,
-          discount: 0,
-          purchase_id: null,
-          _temp_id: headerTempId,
-          product: {
-            id: product.id,
-            name: product.name,
-            unit: product.unit,
-            brand: product.brand?.name || 'Sin marca',
-            description: product.description || null
-          },
-          original_product_name: product.description,
-          is_product_header: true,
-          has_variants: true
-        }
-        updatedItems.push(productHeader)
-        setExpandedProducts((prev) => new Set(prev).add(product.id))
+      if (existingVariant) {
+        toast.error(
+          <ToastCustom
+            title="Variante ya agregada"
+            message="Esta variante ya ha sido agregada a la compra."
+          />
+        )
+        return
       }
 
-      // Agregar la variante específica
+      // Crear nombre completo para la variante: marca + producto + nombre variante + atributos
+      const brandName = product.brand?.name || 'Sin marca'
+      const productName = product.name || ''
+      const variantName = product.name || ''
+      const attributesText = product.attributes
+        ?.map((attr) => attr.attribute_value)
+        .filter(Boolean)
+        .join(', ')
+      
+      const fullVariantName = `${brandName} ${productName} ${variantName}${attributesText ? ` (${attributesText})` : ''}`
+
+      // Agregar directamente la variante sin cabecera
       const variantTempId = `${product.variant_id}-var-${Date.now()}`
       const newVariantItem: PurchaseItem = {
         product_id: product.id,
@@ -411,7 +390,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
         _temp_id: variantTempId,
         product: {
           id: product.id,
-          name: product.name,
+          name: fullVariantName, // Usar el nombre completo
           unit: product.unit,
           brand: product.brand?.name || 'Sin marca',
           description: product.description || null
@@ -426,7 +405,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
         has_variants: true
       }
 
-      setPurchaseItems([...updatedItems, newVariantItem])
+      setPurchaseItems((prev) => [...prev, newVariantItem])
     } else if (
       product.has_variants &&
       product.variants &&
@@ -462,7 +441,6 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
         }
 
         setPurchaseItems((prev) => [...prev, productHeader])
-        setExpandedProducts((prev) => new Set(prev).add(product.id))
       }
     } else {
       // Producto sin variantes - agregar directamente
@@ -514,12 +492,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
           item.product_id !== itemToRemove.product_id || item.is_product_header
       )
       setPurchaseItems(updatedItems)
-      // Remover del conjunto de expandidos
-      setExpandedProducts((prev) => {
-        const newSet = new Set(prev)
-        newSet.delete(itemToRemove.product_id!)
-        return newSet
-      })
+
     } else {
       // Eliminar item individual
       const updatedItems = purchaseItems.filter(
@@ -631,16 +604,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
         : null
   }))
 
-  // Agrupar variantes por producto
-  const productVariantsMap = new Map()
-  purchaseItems.forEach((item) => {
-    if (!item.is_product_header && item.product_variant_id) {
-      if (!productVariantsMap.has(item.product_id)) {
-        productVariantsMap.set(item.product_id, [])
-      }
-      productVariantsMap.get(item.product_id).push(item)
-    }
-  })
+
 
   return (
     <div className="min-h-screen">
@@ -909,157 +873,12 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                     </TableHeader>
                     <TableBody>
                       {purchaseItems.map((item, index) => {
-                        const isHeader = item.is_product_header
-                        const isExpanded = expandedProducts.has(
-                          item.product_id!
-                        )
-                        const variants =
-                          productVariantsMap.get(item.product_id) || []
-                        const selectedVariantsCount = variants.length
-                        const totalVariantsCount = item.variants_count || 0
-
-                        if (isHeader) {
-                          return (
-                            <>
-                              <TableRow
-                                key={item._temp_id}
-                                className=""
-                              >
-                                <TableCell>
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() =>
-                                      toggleProductExpansion(item.product_id!)
-                                    }
-                                    className="h-6 w-6 p-0"
-                                  >
-                                    {isExpanded ? (
-                                      <ChevronDown className="h-4 w-4" />
-                                    ) : (
-                                      <ChevronRight className="h-4 w-4" />
-                                    )}
-                                  </Button>
-                                </TableCell>
-                                <TableCell
-                                  colSpan={isExpanded ? 1 : 6}
-                                  className="font-medium"
-                                >
-                                  <div className="flex items-center">
-                                    <span className="ml-2">
-                                      {item.product?.brand}{' '}
-                                      {item.product?.description}
-                                    </span>
-                                    <span className="ml-2 text-xs text-gray-500 bg-blue-100 px-2 py-1 rounded">
-                                      {selectedVariantsCount} de{' '}
-                                      {totalVariantsCount} variantes
-                                      seleccionadas
-                                    </span>
-                                  </div>
-                                </TableCell>
-                                {!isExpanded && (
-                                  <TableCell colSpan={3} className="text-right">
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() =>
-                                        handleRemoveItem(item, index)
-                                      }
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  </TableCell>
-                                )}
-                              </TableRow>
-                              {isExpanded &&
-                                variants.map((variant: PurchaseItem) => (
-                                  <TableRow
-                                    key={variant._temp_id}
-                                  >
-                                    <TableCell></TableCell>
-                                    <TableCell className="pl-8">
-                                      <div className="flex flex-col">
-                                        <span className="text-sm">
-                                          {variant.variant?.name}
-                                        </span>
-                                        <span className="text-xs text-gray-500">
-                                          {variant.variant_attributes
-                                            ?.map(
-                                              (attr) =>
-                                                `${attr.attribute_value}`
-                                            )
-                                            .join(', ')}
-                                        </span>
-                                      </div>
-                                    </TableCell>
-                                    <TableCell>
-                                      {variant.product?.unit}
-                                    </TableCell>
-                                    <TableCell className="font-medium">
-                                      {variant.quantity}
-                                    </TableCell>
-                                    <TableCell className="font-medium text-right">
-                                      {formatCurrencySoles(variant.price)}
-                                    </TableCell>
-                                    <TableCell className="text-red-600 text-right">
-                                      {variant.discount
-                                        ? formatCurrencySoles(variant.discount)
-                                        : '-'}
-                                    </TableCell>
-                                    <TableCell className="font-medium text-right">
-                                      {formatCurrencySoles(
-                                        variant.quantity * variant.price -
-                                        (variant.discount || 0)
-                                      )}
-                                    </TableCell>
-                                    {purchaseItems.some(
-                                      (item) => item.bar_code
-                                    ) && (
-                                        <TableCell className="text-xs text-gray-500">
-                                          {variant.bar_code ? (
-                                            <span className="bg-gray-100 px-2 py-1 rounded">
-                                              {variant.bar_code}
-                                            </span>
-                                          ) : (
-                                            '-'
-                                          )}
-                                        </TableCell>
-                                      )}
-                                    <TableCell>
-                                      <div className="flex gap-1">
-                                        <Button
-                                          type="button"
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() =>
-                                            handleEditItem(variant, index)
-                                          }
-                                          className="cursor-pointer"
-                                        >
-                                          <Edit className="h-4 w-4 text-blue-500" />
-                                        </Button>
-                                        <Button
-                                          type="button"
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() =>
-                                            handleRemoveItem(variant, index)
-                                          }
-                                          className="cursor-pointer"
-                                        >
-                                          <Trash2 className="h-4 w-4 text-red-500" />
-                                        </Button>
-                                      </div>
-                                    </TableCell>
-                                  </TableRow>
-                                ))}
-                            </>
-                          )
+                        // No mostrar cabeceras de productos con variantes
+                        if (item.is_product_header) {
+                          return null
                         }
 
-                        // Productos sin variantes
+                        // Mostrar todos los items (variantes y productos sin variantes) directamente
                         return (
                           <TableRow key={item._temp_id}>
                             <TableCell></TableCell>
@@ -1070,11 +889,20 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                                   <> {item.product.name}</>
                                 )}
                               </p>
-                              <p className="text-xs text-gray-500 break-words whitespace-normal line-clamp-2">
-                                {item.product?.description && (
-                                  <> {item.product.description}</>
-                                )}
-                              </p>
+                              {item.product?.description && (
+                                <p className="text-xs text-gray-500 break-words whitespace-normal line-clamp-2">
+                                  {item.product.description}
+                                </p>
+                              )}
+                              {item.has_variants && item.variant_attributes && (
+                                <div className="mt-1">
+                                  <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                                    {item.variant_attributes
+                                      .map((attr) => attr.attribute_value)
+                                      .join(', ')}
+                                  </span>
+                                </div>
+                              )}
                             </TableCell>
                             <TableCell>{item.product?.unit}</TableCell>
                             <TableCell className="font-medium">

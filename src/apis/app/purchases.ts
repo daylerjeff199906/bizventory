@@ -193,7 +193,8 @@ export async function getPurchaseById(
           variant_name: item.variant.name,
           variant_description: item.variant.description,
           variant_code: item.variant.code,
-          attributes: item.variant.attributes
+          attributes: item.variant.attributes,
+          variant_attributes: item.variant.attributes
         }
         : {}
 
@@ -207,8 +208,15 @@ export async function getPurchaseById(
         discount: item.discount,
         bar_code: item.bar_code,
         original_variant_name: item.original_variant_name,
-        original_product_name: item.original_product_name
-      } as CombinedResult
+        original_product_name: item.original_product_name,
+        product_id: item.product_id,
+        product_variant_id: item.product_variant_id,
+        variant: item.variant ? {
+          id: item.variant.id,
+          name: item.variant.name,
+          attributes: item.variant.attributes || []
+        } : undefined
+      } as any
     }) || []
 
   return { ...purchaseData, items, supplier: purchaseData.supplier || null }

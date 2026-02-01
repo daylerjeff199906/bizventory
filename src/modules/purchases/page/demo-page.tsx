@@ -16,6 +16,7 @@ import { Badge } from '@/components/ui/badge'
 import { Info } from 'lucide-react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { getProductDescription } from '../utils/generate-name'
 import { CombinedResultExtended } from '@/apis/app/productc.variants.list'
 import { Label } from '@/components/ui/label'
 
@@ -50,41 +51,6 @@ export default function PurchaseInvoice(props: PurchaseInvoiceProps) {
     return subtotal - discount
   }
 
-  const getProductDescription = (item: CombinedResultExtended) => {
-    console.log(item)
-    const parts = []
-    if (item?.brand?.name) parts.push(item.brand.name)
-    if (item.name) parts.push(item.name)
-    if (item.description) parts.push(item.description.substring(0, 20))
-    if (item.variants && item.variants.length > 0) {
-      const variantNames = item.variants
-        .map((v) => {
-          const attrs = v.attributes
-          let attrsStr = ''
-          if (Array.isArray(attrs) && attrs.length > 0) {
-            attrsStr =
-              ' (' +
-              attrs
-                .map((a) => {
-                  const value = a.attribute_value ?? ''
-                  const name = a.attribute_type ?? a.attribute_value ?? ''
-                  return name ? `${name}: ${value}` : `${value}`
-                })
-                .filter(Boolean)
-                .join(', ') +
-              ')'
-          }
-          return `${v.name ?? ''}${attrsStr}`.trim()
-        })
-        .filter(Boolean)
-        .join('; ')
-      if (variantNames) parts.push(variantNames)
-
-      return parts.join(' - ')
-    } else {
-      return parts.join(' - ')
-    }
-  }
 
   return (
     <div className="container mx-auto p-4 max-w-6xl">
@@ -269,7 +235,7 @@ export default function PurchaseInvoice(props: PurchaseInvoiceProps) {
                       </TableCell>
                       <TableCell>
                         <div className="min-w-0">
-                          <p className="text-sm font-medium  break-words whitespace-normal max-w-[200px]">
+                          <p className="text-sm font-medium  break-words whitespace-normal">
                             {getProductDescription(item)}
                           </p>
                         </div>

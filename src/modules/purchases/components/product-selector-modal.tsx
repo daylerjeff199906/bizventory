@@ -382,7 +382,7 @@ export const ProductSelectorModal = ({
                                       variant="outline"
                                       className="text-xs"
                                     >
-                                      {attr.attribute_value}
+                                      {attr.attribute_type}: {attr.attribute_value}
                                     </Badge>
                                   ))}
                                 </div>
