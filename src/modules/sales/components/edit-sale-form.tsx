@@ -98,7 +98,6 @@ export default function EditSaleForm({ sale }: EditSaleFormProps) {
         resolver: zodResolver(saleFormSchema),
         defaultValues: {
             currency: 'PEN', // TODO: Add currency to Sale model if supported, assumming PEN for now
-            reference_number: sale.reference_number,
             payment_method: sale.payment_method || 'efectivo',
             shipping_address: sale.shipping_address || '',
             tax_rate: sale.tax_amount > 0 ? (sale.tax_amount / (sale.total_amount - sale.tax_amount)) : 0, // Approximation
@@ -127,14 +126,13 @@ export default function EditSaleForm({ sale }: EditSaleFormProps) {
     const watchedStatus = watch('status')
 
     const currencySymbol = watchedCurrency === 'PEN' ? 'S/' : '$'
-    const currencyName = watchedCurrency === 'PEN' ? 'Soles' : 'Dólares'
 
     // Fetch customers
     useEffect(() => {
         const fetchCustomers = async () => {
             setIsLoadingCustomers(true)
             try {
-                const { data } = await getCustomers({ pageSize: 100 })
+                const { data } = await getCustomers({ pageSize: 100, businessId })
                 setCustomers(data)
             } catch (error) {
                 console.error('Error fetching customers:', error)
@@ -184,8 +182,8 @@ export default function EditSaleForm({ sale }: EditSaleFormProps) {
         const data = getValues()
 
         const saleData: SaleValues = {
-            customer_id: data.customer_id || null,
-            reference_number: data.reference_number,
+            business_id: businessId,
+            customer_id: data.customer_id === 'null_value' ? null : (data.customer_id || null),
             date: data.date,
             payment_method: data.payment_method,
             shipping_address: data.shipping_address || '',
@@ -219,7 +217,7 @@ export default function EditSaleForm({ sale }: EditSaleFormProps) {
                 toast.success(
                     <ToastCustom
                         title="Venta actualizada"
-                        message={`La venta ${data.reference_number} ha sido actualizada.`}
+                        message={`La venta ${response.reference_number} ha sido actualizada.`}
                     />
                 )
                 // Redirect using businessId
@@ -389,21 +387,6 @@ export default function EditSaleForm({ sale }: EditSaleFormProps) {
                                                 </FormItem>
                                             )}
                                         />
-
-                                        <FormField
-                                            control={form.control}
-                                            name="reference_number"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Número de Referencia</FormLabel>
-                                                    <FormControl>
-                                                        <Input className="w-full" {...field} />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-
                                         <FormField
                                             control={form.control}
                                             name="payment_method"
