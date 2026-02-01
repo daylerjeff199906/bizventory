@@ -52,6 +52,11 @@ export interface CombinedResultExtended extends CombinedResult {
   original_variant_name?: string | null
   variant_name?: string
   variant_attributes?: VariantAttribute[]
+  variant?: {
+    id: string
+    name: string
+    attributes: VariantAttribute[]
+  }
 }
 export interface CombinedResultExtendedSales extends Omit<CombinedResult, 'unit'> {
   quantity?: number

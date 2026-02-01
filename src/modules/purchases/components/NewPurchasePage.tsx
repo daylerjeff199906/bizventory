@@ -352,20 +352,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
   const handleAddProduct = (product: CombinedResult) => {
     // Si ya seleccionamos una variante específica desde el modal
     if (product.variant_id) {
-      // Verificar si la variante ya existe para evitar duplicados
-      const existingVariant = purchaseItems.find(
-        (item) => item.product_variant_id === product.variant_id
-      )
 
-      if (existingVariant) {
-        toast.error(
-          <ToastCustom
-            title="Variante ya agregada"
-            message="Esta variante ya ha sido agregada a la compra."
-          />
-        )
-        return
-      }
 
       // Crear nombre completo para la variante: marca + producto + nombre variante + atributos
       const brandName = product.brand?.name || 'Sin marca'
@@ -375,7 +362,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
         ?.map((attr) => attr.attribute_value)
         .filter(Boolean)
         .join(', ')
-      
+
       const fullVariantName = `${brandName} ${productName} ${variantName}${attributesText ? ` (${attributesText})` : ''}`
 
       // Agregar directamente la variante sin cabecera

@@ -256,16 +256,17 @@ export const ProductSelectorModal = ({
                       </TableCell>
 
                       <TableCell className="text-right">
-                        {isSelected && !hasVariants && (
-                          <span className="text-xs font-medium text-green-600 flex items-center">
-                            <CheckCircle2 className="h-4 w-4 mr-1" />
-                            Agregado
-                          </span>
-                        )}
-                        {!isSelected && !hasVariants && (
-                          <Button size="icon">
-                            <Plus className="h-4 w-4" />
-                          </Button>
+                        {!hasVariants && (
+                          <div className="flex items-center justify-end gap-2">
+                            {isSelected && (
+                              <span className="text-xs font-medium text-green-600 flex items-center">
+                                <CheckCircle2 className="h-4 w-4" />
+                              </span>
+                            )}
+                            <Button size="icon" onClick={() => handleSelectProduct(product)}>
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          </div>
                         )}
                         {!isSelected && hasVariants && (
                           <Button size="icon" variant="outline">
@@ -400,25 +401,9 @@ export const ProductSelectorModal = ({
                           <Button
                             size="sm"
                             onClick={() => handleSelectVariant(variant)}
-                            disabled={isSelected}
-                            variant={isSelected ? 'secondary' : 'default'}
-                            className={cn(
-                              'min-w-24',
-                              isSelected &&
-                              'bg-green-100 text-green-800 hover:bg-green-100 border-green-200'
-                            )}
                           >
-                            {isSelected ? (
-                              <>
-                                <Check className="h-4 w-4 mr-1" />
-                                Agregada
-                              </>
-                            ) : (
-                              <>
-                                <Plus className="h-4 w-4 mr-1" />
-                                Agregar
-                              </>
-                            )}
+                            <Plus className="h-4 w-4 mr-1" />
+                            {isSelected ? 'Agregar otro' : 'Agregar'}
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -433,8 +418,8 @@ export const ProductSelectorModal = ({
                 )}
               </TableBody>
             </Table>
-          </div>
-        </div>
+          </div >
+        </div >
       </>
     )
   }

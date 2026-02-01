@@ -8,7 +8,8 @@ import { z } from 'zod'
 import { PurchaseSchema } from '@/modules/purchases'
 import {
   CombinedResult,
-  CombinedResultExtended
+  CombinedResultExtended,
+  VariantAttribute
 } from './productc.variants.list'
 
 /**
@@ -188,22 +189,24 @@ export async function getPurchaseById(
         : null
 
 
-      const variantData = item.variant
-        ? {
+      let variantData: any = {}
+
+      if (item.variant) {
+        const sortedAttributes = (
+          item.variant.product_variant_attributes || []
+        ).sort((a: any, b: any) =>
+          a.attribute_type.localeCompare(b.attribute_type)
+        )
+
+        variantData = {
           variant_id: item.variant.id,
           variant_name: item.variant.name,
           variant_description: item.variant.description,
           variant_code: item.variant.code,
-          attributes: (item.variant.product_variant_attributes || []).sort(
-            (a: any, b: any) => a.attribute_type.localeCompare(b.attribute_type)
-          ),
-          variant_attributes: (
-            item.variant.product_variant_attributes || []
-          ).sort((a: any, b: any) =>
-            a.attribute_type.localeCompare(b.attribute_type)
-          )
+          attributes: sortedAttributes,
+          variant_attributes: sortedAttributes
         }
-        : {}
+      }
 
       return {
         ...baseProduct,
@@ -223,7 +226,7 @@ export async function getPurchaseById(
           name: item.variant.name,
           attributes: item.variant.product_variant_attributes || []
         } : undefined
-      } as any
+      }
     }) || []
 
   return { ...purchaseData, items, supplier: purchaseData.supplier || null }
