@@ -36,6 +36,7 @@ interface ProductSelectionModalProps {
   onAddProduct: (item: SelectedProductItem) => void
   addedProductIds: string[]
   currency: Currency
+  businessId: string
 }
 
 // Componente de configuración del producto (panel lateral)
@@ -380,7 +381,8 @@ export default function ProductSelectionModal({
   onClose,
   onAddProduct,
   addedProductIds,
-  currency
+  currency,
+  businessId
 }: ProductSelectionModalProps) {
   const { items: products, loading, fetchItems } = useProductsPrices()
   const [searchTerm, setSearchTerm] = useState('')
@@ -389,7 +391,9 @@ export default function ProductSelectionModal({
 
   useEffect(() => {
     if (isOpen) {
-      fetchItems({ searchQuery: searchTerm, page: 1, pageSize: 20 })
+      if (isOpen) {
+        fetchItems({ searchQuery: searchTerm, page: 1, pageSize: 20, businessId })
+      }
     }
   }, [isOpen, searchTerm])
 

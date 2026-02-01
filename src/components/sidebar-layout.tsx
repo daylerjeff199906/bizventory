@@ -2,6 +2,7 @@
 import type React from 'react'
 import { useState } from 'react'
 import Link from 'next/link'
+import { useParams } from 'next/navigation'
 import {
   PackageCheck,
   Warehouse,
@@ -28,79 +29,7 @@ import { cn } from '@/lib/utils'
 import { APP_URLS } from '@/config/app-urls'
 import { UserSection } from './user-section'
 
-const navMain = [
-  {
-    title: 'Productos',
-    url: '#',
-    icon: PackageCheck,
-    items: [
-      // {
-      //   title: 'Marcas',
-      //   url: APP_URLS.BRANDS.LIST
-      // },
-      { title: 'Lista de productos', url: APP_URLS.PRODUCTS.LIST }
-      // { title: 'Nuevo producto', url: APP_URLS.PRODUCTS.CREATE }
-    ]
-  },
-  {
-    title: 'Inventario',
-    url: '#',
-    icon: Warehouse,
-    items: [
-      { title: 'Estado de Stock', url: APP_URLS.PRODUCTS.PRODUCTS_STOCK },
-      { title: 'Historial de Movimientos', url: APP_URLS.PURCHASES.INVENTORY }
-    ]
-  },
-  {
-    title: 'Entradas (Compras)',
-    url: '#',
-    icon: FileDown,
-    items: [
-      { title: 'Nueva Compra', url: APP_URLS.PURCHASES.CREATE },
-      { title: 'Lista de Compras', url: APP_URLS.PURCHASES.LIST },
-      { title: 'Comprobantes (PDF)', url: APP_URLS.PURCHASES.RECEIPTS.LIST }
-    ]
-  },
-  {
-    title: 'Salidas (Ventas)',
-    url: '#',
-    icon: FileUp,
-    items: [
-      { title: 'Nueva Venta', url: APP_URLS.SALES.CREATE },
-      { title: 'Lista de Ventas', url: APP_URLS.SALES.LIST }
-    ]
-  },
-  {
-    title: 'Reportes',
-    url: '#',
-    icon: BarChartBig,
-    items: [
-      { title: 'Stock Actual', url: APP_URLS.REPORTS.STOCK },
-      {
-        title: 'Movimientos de inventario',
-        url: APP_URLS.REPORTS.INVENTORY
-      }
-    ]
-  },
-  {
-    title: 'Clientes y Proveedores',
-    url: '#',
-    icon: Contact2,
-    items: [
-      { title: 'Clientes', url: APP_URLS.CUSTOMERS.LIST },
-      { title: 'Proveedores', url: APP_URLS.SUPPLIERS.LIST }
-    ]
-  },
-  {
-    title: 'Configuración',
-    url: '#',
-    icon: Users,
-    items: [
-      { title: 'Usuarios y roles', url: APP_URLS.SETTINGS.USERS },
-      { title: 'Configuración', url: APP_URLS.SETTINGS.GENERAL }
-    ]
-  }
-]
+
 
 interface SidebarContentProps {
   isCollapsed?: boolean
@@ -118,7 +47,95 @@ function SidebarContent({
   onNavigate,
   user
 }: SidebarContentProps) {
+  const { uuid } = useParams()
+  const businessId = uuid as string
   const [openItems, setOpenItems] = useState<string[]>([])
+
+  const navMain = [
+    {
+      title: 'Productos',
+      url: '#',
+      icon: PackageCheck,
+      items: [
+        // {
+        //   title: 'Marcas',
+        //   url: APP_URLS.BRANDS.LIST
+        // },
+        { title: 'Lista de productos', url: APP_URLS.PRODUCTS.LIST }
+        // { title: 'Nuevo producto', url: APP_URLS.PRODUCTS.CREATE }
+      ]
+    },
+    {
+      title: 'Inventario',
+      url: '#',
+      icon: Warehouse,
+      items: [
+        { title: 'Estado de Stock', url: APP_URLS.PRODUCTS.PRODUCTS_STOCK },
+        { title: 'Historial de Movimientos', url: APP_URLS.PURCHASES.INVENTORY }
+      ]
+    },
+    {
+      title: 'Entradas (Compras)',
+      url: '#',
+      icon: FileDown,
+      items: [
+        { title: 'Nueva Compra', url: APP_URLS.PURCHASES.CREATE },
+        { title: 'Lista de Compras', url: APP_URLS.PURCHASES.LIST },
+        { title: 'Comprobantes (PDF)', url: APP_URLS.PURCHASES.RECEIPTS.LIST }
+      ]
+    },
+    {
+      title: 'Salidas (Ventas)',
+      url: '#',
+      icon: FileUp,
+      items: [
+        {
+          title: 'Nueva Venta',
+          url:
+            typeof APP_URLS.SALES.CREATE === 'function' && businessId
+              ? APP_URLS.SALES.CREATE(businessId)
+              : '#'
+        },
+        {
+          title: 'Lista de Ventas',
+          url:
+            typeof APP_URLS.SALES.LIST === 'function' && businessId
+              ? APP_URLS.SALES.LIST(businessId)
+              : '#'
+        }
+      ]
+    },
+    {
+      title: 'Reportes',
+      url: '#',
+      icon: BarChartBig,
+      items: [
+        { title: 'Stock Actual', url: APP_URLS.REPORTS.STOCK },
+        {
+          title: 'Movimientos de inventario',
+          url: APP_URLS.REPORTS.INVENTORY
+        }
+      ]
+    },
+    {
+      title: 'Clientes y Proveedores',
+      url: '#',
+      icon: Contact2,
+      items: [
+        { title: 'Clientes', url: APP_URLS.CUSTOMERS.LIST },
+        { title: 'Proveedores', url: APP_URLS.SUPPLIERS.LIST }
+      ]
+    },
+    {
+      title: 'Configuración',
+      url: '#',
+      icon: Users,
+      items: [
+        { title: 'Usuarios y roles', url: APP_URLS.SETTINGS.USERS },
+        { title: 'Configuración', url: APP_URLS.SETTINGS.GENERAL }
+      ]
+    }
+  ]
 
   const toggleItem = (title: string) => {
     setOpenItems((prev) =>

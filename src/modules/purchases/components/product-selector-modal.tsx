@@ -91,9 +91,11 @@ export const ProductSelectorModal = ({
     // Crear un CombinedResult para la variante seleccionada
     const variantProduct: CombinedResult = {
       ...selectedProduct,
+      variant_id: variant.id,
       name: variant.name,
       description: variant.description || selectedProduct.description,
-      code: variant.code
+      code: variant.code,
+      attributes: variant.attributes
     }
 
     onSelectProduct(variantProduct)
@@ -207,7 +209,7 @@ export const ProductSelectorModal = ({
                               </div>
                             )}
                           </div>
-                          <div className="min-w-0 flex-1">
+                          <div className="min-w-0 flex-1 whitespace-normal max-w-[200px]">
                             <p className="text-sm break-words whitespace-normal line-clamp-2">
                               {product?.brand?.name && (
                                 <span className="font-medium">
@@ -254,16 +256,17 @@ export const ProductSelectorModal = ({
                       </TableCell>
 
                       <TableCell className="text-right">
-                        {isSelected && !hasVariants && (
-                          <span className="text-xs font-medium text-green-600 flex items-center">
-                            <CheckCircle2 className="h-4 w-4 mr-1" />
-                            Agregado
-                          </span>
-                        )}
-                        {!isSelected && !hasVariants && (
-                          <Button size="icon">
-                            <Plus className="h-4 w-4" />
-                          </Button>
+                        {!hasVariants && (
+                          <div className="flex items-center justify-end gap-2">
+                            {isSelected && (
+                              <span className="text-xs font-medium text-green-600 flex items-center">
+                                <CheckCircle2 className="h-4 w-4" />
+                              </span>
+                            )}
+                            <Button size="icon" onClick={() => handleSelectProduct(product)}>
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          </div>
                         )}
                         {!isSelected && hasVariants && (
                           <Button size="icon" variant="outline">
@@ -326,7 +329,6 @@ export const ProductSelectorModal = ({
                 <TableRow>
                   <TableHead className="bg-muted">Variante</TableHead>
                   <TableHead className="bg-muted">Atributos</TableHead>
-                  <TableHead className="bg-muted">Código</TableHead>
                   <TableHead className="w-28 bg-muted"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -346,7 +348,7 @@ export const ProductSelectorModal = ({
                       >
                         <TableCell>
                           <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
+                            <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0 whitespace-normal max-w-[200px]">
                               {selectedProduct.images &&
                                 selectedProduct.images.length > 0 ? (
                                 <img
@@ -363,7 +365,7 @@ export const ProductSelectorModal = ({
                                 </div>
                               )}
                             </div>
-                            <div className="min-w-0 flex-1">
+                            <div className="min-w-0 flex-1 whitespace-nowrap max-w-[260px]">
                               <p className="text-sm font-medium break-words whitespace-normal line-clamp-2">
                                 {variant.name}
                               </p>
@@ -372,31 +374,25 @@ export const ProductSelectorModal = ({
                                   {variant.description}
                                 </p>
                               )}
+                              {variant.attributes &&
+                                variant.attributes.length > 0 ? (
+                                <div className="flex flex-wrap gap-1">
+                                  {variant.attributes.map((attr, index) => (
+                                    <Badge
+                                      key={index}
+                                      variant="outline"
+                                      className="text-xs"
+                                    >
+                                      {attr.attribute_type}: {attr.attribute_value}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              ) : (
+                                <></>
+                              )}
                             </div>
                           </div>
                         </TableCell>
-
-                        <TableCell>
-                          {variant.attributes &&
-                            variant.attributes.length > 0 ? (
-                            <div className="flex flex-wrap gap-1">
-                              {variant.attributes.map((attr, index) => (
-                                <Badge
-                                  key={index}
-                                  variant="outline"
-                                  className="text-xs"
-                                >
-                                  {attr.attribute_value}
-                                </Badge>
-                              ))}
-                            </div>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">
-                              Sin atributos
-                            </span>
-                          )}
-                        </TableCell>
-
                         <TableCell className="text-sm text-muted-foreground">
                           {variant.code}
                         </TableCell>
@@ -405,25 +401,9 @@ export const ProductSelectorModal = ({
                           <Button
                             size="sm"
                             onClick={() => handleSelectVariant(variant)}
-                            disabled={isSelected}
-                            variant={isSelected ? 'secondary' : 'default'}
-                            className={cn(
-                              'min-w-24',
-                              isSelected &&
-                              'bg-green-100 text-green-800 hover:bg-green-100 border-green-200'
-                            )}
                           >
-                            {isSelected ? (
-                              <>
-                                <Check className="h-4 w-4 mr-1" />
-                                Agregada
-                              </>
-                            ) : (
-                              <>
-                                <Plus className="h-4 w-4 mr-1" />
-                                Agregar
-                              </>
-                            )}
+                            <Plus className="h-4 w-4 mr-1" />
+                            {isSelected ? 'Agregar otro' : 'Agregar'}
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -438,8 +418,8 @@ export const ProductSelectorModal = ({
                 )}
               </TableBody>
             </Table>
-          </div>
-        </div>
+          </div >
+        </div >
       </>
     )
   }

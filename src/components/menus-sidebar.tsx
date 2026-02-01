@@ -10,9 +10,21 @@ export const adminNavMain: (uuid: string) => NavItem[] = (uuid: string) => [
     items: []
   },
   {
+    title: 'Marcas',
+    url: APP_URLS.ORGANIZATION.BRANDS.LIST(uuid),
+    icon: 'Tag',
+    items: []
+  },
+  {
     title: 'Productos',
     url: APP_URLS.ORGANIZATION.PRODUCTS.LIST(uuid),
     icon: 'Box',
+    items: []
+  },
+  {
+    title: 'Inventario',
+    url: APP_URLS.ORGANIZATION.INVENTORY.LIST(uuid),
+    icon: 'Package',
     items: []
   },
   {

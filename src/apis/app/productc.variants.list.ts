@@ -19,7 +19,7 @@ async function getSupabase() {
  * @returns Promise<Array<ProductSelectionItem>>
  */
 
-interface VariantAttribute {
+export interface VariantAttribute {
   attribute_type: string
   attribute_value: string
 }
@@ -29,26 +29,34 @@ export interface ProductVariantItem {
   name: string
   description: string | null
   code: string
+  price?: number
   attributes: VariantAttribute[]
 }
 
 export interface CombinedResult extends ProductDetails {
   variants?: ProductVariantItem[]
+  variant_id?: string
+  attributes?: VariantAttribute[]
 }
 
 export interface CombinedResultPrice extends CombinedResult {
-  price?: number
   discount?: number
   temp_id?: string // ID temporal para gestión local
 }
 
 export interface CombinedResultExtended extends CombinedResult {
   quantity?: number
-  price?: number
   bar_code?: string
   discount?: number
   original_product_name?: string | null
   original_variant_name?: string | null
+  variant_name?: string
+  variant_attributes?: VariantAttribute[]
+  variant?: {
+    id: string
+    name: string
+    attributes: VariantAttribute[]
+  }
 }
 export interface CombinedResultExtendedSales extends Omit<CombinedResult, 'unit'> {
   quantity?: number
@@ -107,10 +115,7 @@ export async function getProductsAndVariantsForPurchase({
         *,
         brand:brand_id(*)
       ),
-      product_variant_attributes:product_variant_attributes(
-        attribute_type,
-        attribute_value
-      )
+      product_variant_attributes:product_variant_attributes(*)
     `
       )
       // .in('product_id', businessProductIds)
@@ -131,15 +136,18 @@ export async function getProductsAndVariantsForPurchase({
   const combinedResults: CombinedResult[] =
     productsWithoutVariants?.map((product) => ({
       ...product,
-
-      variants: productsWithVariants
+      variants: (productsWithVariants as any[])
         .filter((variant) => variant.product_id === product.id)
         .map((variant) => ({
           id: variant.id,
           name: variant.name,
           description: variant.description,
           code: variant.code,
-          attributes: variant.attributes
+          price: variant.price,
+          attributes: (variant.product_variant_attributes || []).sort(
+            (a: VariantAttribute, b: VariantAttribute) =>
+              a.attribute_type.localeCompare(b.attribute_type)
+          )
         }))
     })) || []
 

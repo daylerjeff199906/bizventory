@@ -14,6 +14,7 @@ export interface ProductVariant {
   id?: string
   product_id?: string
   name: string
+  price: number
   description: string | null
   code: string
   created_at?: string
@@ -30,6 +31,7 @@ interface DatabaseProductVariant {
   id: string
   product_id: string
   name: string
+  price: number
   description: string | null
   code: string
   created_at: string
@@ -82,6 +84,7 @@ async function manageProductVariants(
         const variantData: Partial<DatabaseProductVariant> = {
           product_id: productId,
           name: variant.name,
+          price: variant.price,
           description: variant.description,
           code: variant.code,
           is_active: true

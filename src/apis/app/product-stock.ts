@@ -15,6 +15,7 @@ export interface ProductVariant {
   updated_at: string | null
   attributes?: VariantAttributeType[]
   stock?: number // Calculado dinámicamente
+  price?: number
   price_unit?: number
   subtotal?: number // Para manejo de UI
 }
@@ -53,6 +54,7 @@ export interface GetProductsWithVariantsAndStockProps {
   pageSize?: number
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
+  businessId?: string
 }
 
 async function getSupabase() {
@@ -64,7 +66,8 @@ export async function getProductsWithVariantsAndStock({
   page = 1,
   pageSize = 20,
   sortBy = 'name',
-  sortOrder = 'asc'
+  sortOrder = 'asc',
+  businessId
 }: GetProductsWithVariantsAndStockProps): Promise<ProductListResponse> {
   const supabase = await getSupabase()
   const offset = (page - 1) * pageSize
@@ -73,9 +76,13 @@ export async function getProductsWithVariantsAndStock({
     // 1. Obtener productos principales
     let productsQuery = supabase
       .from('products')
-      .select('*, brand:brands(*)', { count: 'exact' })
+      .select('*, brand:brands!inner(*)', { count: 'exact' })
       .order(sortBy, { ascending: sortOrder === 'asc' })
       .range(offset, offset + pageSize - 1)
+
+    if (businessId) {
+      productsQuery = productsQuery.eq('brands.business_id', businessId)
+    }
 
     // Aplicar filtro de búsqueda en productos principales
     if (searchQuery) {
@@ -147,7 +154,8 @@ export async function getProductsWithVariantsAndStock({
         variants?.filter((v) => v.product_id === product.id) || []
 
       // Si tiene variantes, calcular stock para cada una y añadir atributos
-      if (product.has_variants && productVariants.length > 0) {
+      // Relaxed check: trust existence of variants over has_variants flag for visibility
+      if (productVariants.length > 0) {
         const variantsWithStockAndAttributes = productVariants.map(
           (variant) => {
             const attributes = variantAttributes
@@ -183,35 +191,35 @@ export async function getProductsWithVariantsAndStock({
     // 7. Filtrar por búsqueda en variantes si es necesario
     const filteredProducts = searchQuery
       ? processedProducts.filter((product) => {
-          // Si coincide con el producto principal, mantenerlo
-          if (
-            product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            product.description
-              ?.toLowerCase()
-              .includes(searchQuery.toLowerCase()) ||
-            product.code.toLowerCase().includes(searchQuery.toLowerCase())
-          ) {
-            return true
-          }
+        // Si coincide con el producto principal, mantenerlo
+        if (
+          product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          product.description
+            ?.toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          product.code.toLowerCase().includes(searchQuery.toLowerCase())
+        ) {
+          return true
+        }
 
-          // Si tiene variantes que coincidan, mantenerlo
-          if (
-            product.variants?.some(
-              (variant: ProductVariant) =>
-                variant.name
-                  .toLowerCase()
-                  .includes(searchQuery.toLowerCase()) ||
-                variant.description
-                  ?.toLowerCase()
-                  .includes(searchQuery.toLowerCase()) ||
-                variant.code.toLowerCase().includes(searchQuery.toLowerCase())
-            )
-          ) {
-            return true
-          }
+        // Si tiene variantes que coincidan, mantenerlo
+        if (
+          product.variants?.some(
+            (variant: ProductVariant) =>
+              variant.name
+                .toLowerCase()
+                .includes(searchQuery.toLowerCase()) ||
+              variant.description
+                ?.toLowerCase()
+                .includes(searchQuery.toLowerCase()) ||
+              variant.code.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+        ) {
+          return true
+        }
 
-          return false
-        })
+        return false
+      })
       : processedProducts
 
     return {

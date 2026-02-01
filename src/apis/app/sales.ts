@@ -85,7 +85,9 @@ export async function getSales({
   sortBy = 'date',
   sortDirection = 'desc',
   page,
-  pageSize
+  pageSize,
+  fromDate,
+  toDate
 }: {
   businessId?: string
   page?: number
@@ -93,6 +95,8 @@ export async function getSales({
   filters?: Partial<Sale>
   sortBy: string
   sortDirection: 'asc' | 'desc'
+  fromDate?: string
+  toDate?: string
 }): Promise<ResApi<SaleList>> {
   const supabase = await getSupabase()
   const currentPage = page ?? 1
@@ -140,6 +144,14 @@ export async function getSales({
         }
       }
     })
+  }
+
+  // Apply date range filter
+  if (fromDate) {
+    query = query.gte('date', fromDate)
+  }
+  if (toDate) {
+    query = query.lte('date', toDate)
   }
 
   query = query.order(sortColumn, { ascending: sortDirection === 'asc' })
@@ -313,7 +325,7 @@ export async function createSale({
     }
   }
 
-  revalidatePath(APP_URLS.SALES.LIST)
+  revalidatePath(APP_URLS.SALES.LIST('[uuid]'))
   return sale
 }
 
@@ -382,7 +394,7 @@ export async function updateSale({
 
   if (itemsError) throw itemsError
 
-  revalidatePath(APP_URLS.SALES.LIST)
+  revalidatePath(APP_URLS.SALES.LIST('[uuid]'))
   revalidatePath(`${APP_URLS.SALES.EDIT}/${id}`)
   return sale
 }
@@ -408,8 +420,8 @@ export async function patchSaleField(
     .single()
 
   if (error || !data) throw error || new Error('Patch failed')
-  revalidatePath(APP_URLS.SALES.LIST)
-  revalidatePath(`${APP_URLS.SALES.VIEW(id)}`)
+  revalidatePath(APP_URLS.SALES.LIST('[uuid]'))
+  revalidatePath(`${APP_URLS.SALES.VIEW('[uuid]', id)}`)
   return data
 }
 
@@ -434,7 +446,7 @@ export async function deleteSale(id: string): Promise<void> {
 
   if (error) throw error
 
-  revalidatePath(APP_URLS.SALES.LIST)
+  revalidatePath(APP_URLS.SALES.LIST('[uuid]'))
 }
 
 /**
@@ -470,7 +482,7 @@ export async function updateSaleStatus(
     if (stockError) throw stockError
   }
 
-  revalidatePath(APP_URLS.SALES.LIST)
-  revalidatePath(`${APP_URLS.SALES.VIEW(id)}`)
+  revalidatePath(APP_URLS.SALES.LIST('[uuid]'))
+  revalidatePath(`${APP_URLS.SALES.VIEW('[uuid]', id)}`)
   return sale
 }

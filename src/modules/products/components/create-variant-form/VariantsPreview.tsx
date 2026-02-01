@@ -44,7 +44,7 @@ interface VariantsPreviewProps {
 
 interface EditingState {
   variantIndex: number | null
-  field: 'name' | 'attribute' | 'new-attribute'
+  field: 'name' | 'price' | 'attribute' | 'new-attribute'
   attributeIndex?: number
 }
 
@@ -76,7 +76,7 @@ export const VariantsPreview = ({
 
   const startEdit = (
     variantIndex: number,
-    field: 'name' | 'attribute' | 'new-attribute',
+    field: 'name' | 'price' | 'attribute' | 'new-attribute',
     attributeIndex?: number
   ) => {
     const variant = localVariants[variantIndex]
@@ -84,6 +84,8 @@ export const VariantsPreview = ({
 
     if (field === 'name') {
       currentValue = variant.name || `Variante ${variantIndex + 1}`
+    } else if (field === 'price') {
+      currentValue = (variant.price || 0).toString()
     } else if (field === 'attribute' && attributeIndex !== undefined) {
       currentValue = variant.attributes[attributeIndex]?.attribute_value || ''
     }
@@ -107,6 +109,8 @@ export const VariantsPreview = ({
 
     if (editing.field === 'name') {
       variant.name = editValue.trim() || `Variante ${editing.variantIndex + 1}`
+    } else if (editing.field === 'price') {
+      variant.price = parseFloat(editValue) || 0
     } else if (
       editing.field === 'attribute' &&
       editing.attributeIndex !== undefined
@@ -191,11 +195,11 @@ export const VariantsPreview = ({
       </div>
 
       {!isLoading && (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {localVariants.map((variant, index) => (
             <Card
               key={index}
-              className="transition-all duration-200 group hover:border-primary/50 overflow-hidden"
+              className="py-0 transition-all duration-200 group hover:border-primary/50 overflow-hidden"
             >
               {/* Header de la variante */}
               <div className="flex items-start justify-between p-4 pb-2 border-b bg-muted/20">
@@ -257,6 +261,55 @@ export const VariantsPreview = ({
                           )}
                       </div>
                     )}
+
+                    {/* Price section */}
+                    <div className="mt-1 flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">Precio:</span>
+                      {editing.variantIndex === index &&
+                        editing.field === 'price' ? (
+                        <div className="flex items-center gap-1">
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            className="h-7 w-24 text-xs"
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') saveEdit()
+                              if (e.key === 'Escape') cancelEdit()
+                            }}
+                          />
+                          <Button
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={saveEdit}
+                          >
+                            <Check className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={cancelEdit}
+                            className="h-7 w-7"
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 group/price">
+                          <span className="text-sm font-medium">S/ {(variant.price || 0).toFixed(2)}</span>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => startEdit(index, 'price')}
+                            className="h-5 w-5 opacity-0 group-hover/price:opacity-100 transition-opacity"
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -300,7 +353,7 @@ export const VariantsPreview = ({
                 </div>
 
                 {/* Lista de atributos existentes */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {variant.attributes.map((attr, attrIndex) => (
                     <div key={attrIndex} className="relative group/attr bg-muted/30 rounded-md border border-transparent hover:border-border transition-colors">
                       <div className="flex items-center gap-2 px-3 py-2">
@@ -406,7 +459,7 @@ export const VariantsPreview = ({
                             value={newAttributeType}
                             onValueChange={setNewAttributeType}
                           >
-                            <SelectTrigger className="h-9 bg-background">
+                            <SelectTrigger className="h-9 bg-background w-full">
                               <SelectValue placeholder="Seleccionar" />
                             </SelectTrigger>
                             <SelectContent>

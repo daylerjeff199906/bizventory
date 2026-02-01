@@ -10,6 +10,7 @@ import {
   StatusPurchaseEnum
 } from '@/modules/purchases'
 import { z } from 'zod'
+import console from 'console'
 
 /**
  * Instancia de Supabase en contexto de servidor
@@ -66,7 +67,7 @@ export async function createPurchaseWithItems({
       })
       .select()
       .single()
-
+    console.log('Error', purchaseError)
     if (purchaseError || !purchase) {
       throw purchaseError || new Error('Failed to create purchase')
     }
@@ -84,7 +85,7 @@ export async function createPurchaseWithItems({
       .select(
         '*, product:products(*), variant:product_variants(*), purchase:purchases(*)'
       )
-
+    console.log('Error', itemsError)
 
     if (itemsData.length === 0) {
       throw new Error('Debe haber al menos un item en la compra.')
@@ -100,7 +101,7 @@ export async function createPurchaseWithItems({
         'update_product_stock_after_purchase',
         {
           p_movement_type: PurchaseMovementTypeEnum.ENTRY,
-          p_reference: purchase.id
+          p_purchase_id: purchase.id
         }
       )
 
@@ -207,7 +208,7 @@ export async function updatePurchaseWithItems({
     const validatedNewItems = newItems.map((item, index) => {
       try {
         const parsed = PurchaseItemSchema.parse(item)
-        
+
         console.log(`Processing NEW item ${index}:`, {
           product_id: parsed.product_id,
           product_variant_id: parsed.product_variant_id
@@ -234,7 +235,7 @@ export async function updatePurchaseWithItems({
     const validatedExistingItems = existingItems.map((item, index) => {
       try {
         const parsed = PurchaseItemSchema.parse(item)
-        
+
         console.log(`Processing EXISTING item ${index}:`, {
           id: parsed.id,
           quantity: parsed.quantity,
@@ -269,7 +270,7 @@ export async function updatePurchaseWithItems({
 
     // 6. Actualizar items existentes (solo campos modificables)
     if (validatedExistingItems.length > 0) {
-      const updatePromises = validatedExistingItems.map(item => 
+      const updatePromises = validatedExistingItems.map(item =>
         supabase
           .from('purchase_items')
           .update({
@@ -287,7 +288,7 @@ export async function updatePurchaseWithItems({
       )
 
       const updateResults = await Promise.all(updatePromises)
-      
+
       // Verificar errores en las actualizaciones
       for (const result of updateResults) {
         if (result.error) {
@@ -314,7 +315,7 @@ export async function updatePurchaseWithItems({
 
     // 8. Eliminar items que ya no están en la lista
     const allItemIds = itemsData.map(item => item.id).filter(Boolean)
-    
+
     if (allItemIds.length > 0) {
       const { error: deleteError } = await supabase
         .from('purchase_items')
@@ -344,7 +345,7 @@ export async function updatePurchaseWithItems({
         'update_product_stock_after_purchase',
         {
           p_movement_type: PurchaseMovementTypeEnum.ENTRY,
-          p_reference: purchase.id
+          p_purchase_id: purchase.id
         }
       )
 
