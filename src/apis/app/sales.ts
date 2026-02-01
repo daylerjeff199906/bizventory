@@ -48,12 +48,13 @@ export type SaleWithItems = Sale & {
 export type Customer = {
   id: string
   person_id: string
+  person?: any
   created_at?: string
   updated_at?: string
 }
 
 export type SaleList = Sale & {
-  customer: Customer | null
+  customer: (Customer & { person: { name: string, document_number: string } }) | null
 }
 
 export type ResApi<T> = {
@@ -119,8 +120,7 @@ export async function getSales({
 
   let query = supabase
     .from('sales')
-    // .select('*, customer:customers(*)')
-    .select('*')
+    .select('*, customer:customers(id, person:persons(name, document_number))')
     .eq('business_id', businessId)
     .range(from, to)
     .order(sortColumn, { ascending: sortDirection === 'asc' })

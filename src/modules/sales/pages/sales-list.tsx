@@ -377,8 +377,13 @@ export const SalesList = ({
                   </TableCell>
                   <TableCell>
                     <div className="font-medium text-sm">
-                      {sale.customer?.name || 'Cliente varios'}
+                      {sale.customer?.person?.name || 'Cliente varios'}
                     </div>
+                    {sale.customer?.person?.document_number && (
+                      <div className="text-xs text-muted-foreground">
+                        {sale.customer.person.document_number}
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell>
                     <div className="font-medium text-sm">

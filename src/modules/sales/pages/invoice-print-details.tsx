@@ -25,6 +25,7 @@ import {
 } from '@react-pdf/renderer'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { numberToWords } from '@/utils/number-to-words'
 
 interface InvoiceDetailProps {
     company?: CompanyInfo | null
@@ -254,6 +255,7 @@ const InvoicePDF = ({
             <Page size="A4" style={InvoiceStyles.page}>
                 <View style={InvoiceStyles.header}>
                     <Text style={InvoiceStyles.title}>COMPROBANTE DE VENTA</Text>
+                    <Text style={InvoiceStyles.title}>{sale.reference_number}</Text>
                     <View style={InvoiceStyles.companyInfo}>
                         <View style={InvoiceStyles.infoRow}>
                             <Text style={InvoiceStyles.label}>Empresa:</Text>
@@ -281,8 +283,16 @@ const InvoicePDF = ({
                         <Text style={InvoiceStyles.value}>{sale.customer?.person?.name || 'Cliente Varios'}</Text>
                     </View>
                     <View style={InvoiceStyles.infoRow}>
-                        <Text style={InvoiceStyles.label}>Referencia:</Text>
-                        <Text style={InvoiceStyles.value}>{sale.reference_number}</Text>
+                        <Text style={InvoiceStyles.label}>DNI/RUC:</Text>
+                        <Text style={InvoiceStyles.value}>{sale.customer?.person?.document_number || 'N/A'}</Text>
+                    </View>
+                    <View style={InvoiceStyles.infoRow}>
+                        <Text style={InvoiceStyles.label}>Teléfono:</Text>
+                        <Text style={InvoiceStyles.value}>{sale.customer?.person?.whatsapp || 'N/A'}</Text>
+                    </View>
+                    <View style={InvoiceStyles.infoRow}>
+                        <Text style={InvoiceStyles.label}>Email:</Text>
+                        <Text style={InvoiceStyles.value}>{sale.customer?.person?.email || 'N/A'}</Text>
                     </View>
                     <View style={InvoiceStyles.infoRow}>
                         <Text style={InvoiceStyles.label}>Fecha:</Text>
@@ -301,7 +311,14 @@ const InvoicePDF = ({
                     {sale.items.map((item, index) => (
                         <View key={index} style={InvoiceStyles.tableRow}>
                             <Text style={InvoiceStyles.col1}>{item.quantity}</Text>
-                            <Text style={InvoiceStyles.col2}>{item.name}</Text>
+                            <View style={InvoiceStyles.col2}>
+                                <Text>{item.name}</Text>
+                                {item.attributes && item.attributes.length > 0 && (
+                                    <Text style={{ fontSize: 7, color: '#666' }}>
+                                        {item.attributes.map(attr => `${attr.attribute_type}: ${attr.attribute_value}`).join(', ')}
+                                    </Text>
+                                )}
+                            </View>
                             <Text style={InvoiceStyles.col3}>{formatCurrency(item.unit_price ?? 0)}</Text>
                             <Text style={InvoiceStyles.col4}>{item.discount_amount ? `-${formatCurrency(item.discount_amount)}` : '-'}</Text>
                             <Text style={InvoiceStyles.col5}>{formatCurrency(item.total_price ?? 0)}</Text>
@@ -323,6 +340,9 @@ const InvoicePDF = ({
                     <View style={[InvoiceStyles.totalRow, InvoiceStyles.finalTotal]}>
                         <Text style={InvoiceStyles.totalLabel}>TOTAL:</Text>
                         <Text style={InvoiceStyles.totalValue}>{formatCurrency(sale.total_amount)}</Text>
+                    </View>
+                    <View style={{ marginTop: 10 }}>
+                        <Text style={{ fontSize: 9, fontStyle: 'italic' }}>{numberToWords(sale.total_amount)}</Text>
                     </View>
                 </View>
 
@@ -377,7 +397,14 @@ const TicketPDF = ({
                     {sale.items.map((item, index) => (
                         <View key={index} style={TicketStyles.tableRow}>
                             <Text style={TicketStyles.col1}>{item.quantity}</Text>
-                            <Text style={TicketStyles.col2}>{item.name}</Text>
+                            <View style={TicketStyles.col2}>
+                                <Text>{item.name}</Text>
+                                {item.attributes && item.attributes.length > 0 && (
+                                    <Text style={{ fontSize: 6, color: '#666' }}>
+                                        {item.attributes.map(attr => `${attr.attribute_value}`).join(', ')}
+                                    </Text>
+                                )}
+                            </View>
                             <Text style={TicketStyles.col3}>{formatCurrency(item.total_price ?? 0)}</Text>
                         </View>
                     ))}
@@ -521,9 +548,19 @@ export const InvoiceDetailPrint = ({ company: propCompany, sale }: InvoiceDetail
                             Cliente
                         </CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="space-y-2">
                         <p className="font-bold">{sale.customer?.person?.name || 'Cliente Varios'}</p>
-                        <p className="text-sm text-muted-foreground">{sale.customer?.person?.email || 'Sin correo'}</p>
+                        <div className="text-sm space-y-1">
+                            <p className="flex items-center gap-1.5 text-muted-foreground">
+                                <span className="font-medium text-foreground">DNI/RUC:</span> {sale.customer?.person?.document_number || 'N/A'}
+                            </p>
+                            <p className="flex items-center gap-1.5 text-muted-foreground">
+                                <span className="font-medium text-foreground">Teléfono:</span> {sale.customer?.person?.whatsapp || 'N/A'}
+                            </p>
+                            <p className="flex items-center gap-1.5 text-muted-foreground">
+                                <span className="font-medium text-foreground">Email:</span> {sale.customer?.person?.email || 'N/A'}
+                            </p>
+                        </div>
                         {sale.shipping_address && (
                             <div className="mt-2 text-sm flex items-start gap-1">
                                 <MapPin className="h-3 w-3 mt-1" />
@@ -554,7 +591,16 @@ export const InvoiceDetailPrint = ({ company: propCompany, sale }: InvoiceDetail
                                         <TableCell>
                                             <p className="font-medium">{item.name}</p>
                                             {item.variant_name && (
-                                                <p className="text-xs text-muted-foreground">{item.variant_name}</p>
+                                                <p className="text-xs text-muted-foreground italic">{item.variant_name}</p>
+                                            )}
+                                            {item.attributes && item.attributes.length > 0 && (
+                                                <div className="flex flex-wrap gap-1 mt-1">
+                                                    {item.attributes.map((attr, idx) => (
+                                                        <span key={idx} className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground">
+                                                            {attr.attribute_type}: {attr.attribute_value}
+                                                        </span>
+                                                    ))}
+                                                </div>
                                             )}
                                         </TableCell>
                                         <TableCell className="text-center">{item.quantity}</TableCell>
@@ -583,6 +629,11 @@ export const InvoiceDetailPrint = ({ company: propCompany, sale }: InvoiceDetail
                                 <div className="flex justify-between text-xl font-bold border-t pt-2">
                                     <span>Total</span>
                                     <span className="text-primary">{formatCurrency(sale.total_amount)}</span>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-xs text-muted-foreground italic mt-2">
+                                        {numberToWords(sale.total_amount)}
+                                    </p>
                                 </div>
                             </div>
                         </div>
