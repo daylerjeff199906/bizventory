@@ -266,7 +266,6 @@ export async function createSale({
   const { data: sale, error: saleError } = await supabase
     .from('sales')
     .insert({
-      // reference_number: validatedData.reference_number,
       date: validatedData.date,
       customer_id: validatedData.customer_id,
       status: validatedData.status,
@@ -276,7 +275,6 @@ export async function createSale({
       discount_amount: validatedData.discount_amount,
       total_items: validatedData.total_items,
       total_amount: validatedData.total_amount
-      // salesperson_id: validatedData.salesperson_id
     })
     .select()
     .single()
@@ -351,7 +349,6 @@ export async function updateSale({
   const { data: sale, error: saleError } = await supabase
     .from('sales')
     .update({
-      // reference_number: validatedData.reference_number,
       date: validatedData.date,
       customer_id: validatedData.customer_id,
       status: validatedData.status,

@@ -31,7 +31,6 @@ export const saleItemSchema = z.object({
 
 export const saleFormSchema = z.object({
   currency: z.string().min(1, 'Selecciona una moneda').optional(),
-  // reference_number: z.string().min(1, 'El número de referencia es requerido'),
   payment_method: z.string().min(1, 'Selecciona un método de pago'),
   shipping_address: z.string().optional(),
   tax_rate: z.number().min(0).max(1, 'La tasa de IGV debe estar entre 0 y 1'),
@@ -43,7 +42,6 @@ export const saleFormSchema = z.object({
 
 // Schema for validation
 export const SaleSchema = z.object({
-  // reference_number: z.string().min(1, 'Reference number is required'),
   date: z.string().min(1, 'Date is required'),
   customer_id: z.string().nullable(),
   status: z.string().default('pending'),

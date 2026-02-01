@@ -76,7 +76,6 @@ export default function CreateSaleForm() {
     resolver: zodResolver(saleFormSchema),
     defaultValues: {
       currency: 'PEN',
-      // reference_number: '',
       payment_method: 'efectivo',
       shipping_address: '',
       tax_rate: 0,
@@ -162,7 +161,6 @@ export default function CreateSaleForm() {
 
     const saleData: SaleValues = {
       customer_id: data.customer_id || null,
-      // reference_number: data.reference_number,
       date: data.date,
       payment_method: data.payment_method,
       shipping_address: data.shipping_address || '',
@@ -195,7 +193,7 @@ export default function CreateSaleForm() {
         toast.success(
           <ToastCustom
             title="Venta creada exitosamente"
-            message={`La venta con número de referencia  ha sido creada.`}
+            message={`La venta ha sido creada exitosamente. COD. ${response.reference_number}`}
           />
         )
         router.push(`/dashboard/${businessId}/sales/${response.id}/edit`) // Redirect to edit/view
@@ -244,18 +242,12 @@ export default function CreateSaleForm() {
             {/* Información de la venta */}
             <div className="lg:col-span-2 space-y-6">
               <div className="p-4 border rounded-md">
-                <div>
-                  <h3 className="flex items-center gap-2 text-lg font-semibold mb-2">
-                    <ShoppingCart className="h-5 w-5" />
-                    Información de la Venta
-                  </h3>
-                  <p className="text-sm mb-4">
-                    Detalles generales de la venta
-                  </p>
-                </div>
+                <p className="text-sm mb-4">
+                  Detalles generales de la venta
+                </p>
                 <hr className="my-4" />
                 <div className="grid grid-cols-1 gap-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="date"
@@ -274,9 +266,6 @@ export default function CreateSaleForm() {
                         </FormItem>
                       )}
                     />
-
-
-
                     <FormField
                       control={form.control}
                       name="customer_id"
@@ -314,9 +303,6 @@ export default function CreateSaleForm() {
                         </FormItem>
                       )}
                     />
-
-                    <div></div>
-                    <div></div>
                     <FormField
                       control={form.control}
                       name="currency"
@@ -351,25 +337,6 @@ export default function CreateSaleForm() {
                         </FormItem>
                       )}
                     />
-
-                    {/* <FormField
-                      control={form.control}
-                      name="reference_number"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Número de Referencia</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="VTA-240101-001"
-                              className="w-full"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    /> */}
-
                     <FormField
                       control={form.control}
                       name="payment_method"
@@ -432,13 +399,8 @@ export default function CreateSaleForm() {
               <div className="p-4 border rounded-md grid grid-cols-1 gap-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="flex items-center gap-2">
-                      <Package className="h-5 w-5" />
-                      <h3 className="text-lg font-semibold">
-                        Productos de la Venta
-                      </h3>
-                    </div>
                     <p className="text-sm mb-2">
+                      Productos: {` `}
                       {watchedItems && watchedItems?.length > 0
                         ? `${watchedItems?.length} producto${watchedItems?.length !== 1 ? 's' : ''
                         } agregado${watchedItems?.length !== 1 ? 's' : ''}`
@@ -450,6 +412,7 @@ export default function CreateSaleForm() {
                     type="button"
                     onClick={() => setIsProductModalOpen(true)}
                     className="flex items-center gap-2"
+                    size="sm"
                   >
                     <Plus className="h-4 w-4" />
                     Agregar Productos
@@ -501,11 +464,11 @@ export default function CreateSaleForm() {
                                 key={index}
                                 className="border-b"
                               >
-                                <td className="py-3 px-2 text-sm">
+                                <td className="py-3 px-2 text-xs">
                                   {index + 1}
                                 </td>
                                 <td className="py-3 px-2">
-                                  <div className="text-sm font-medium ">
+                                  <div className="text-xs font-medium ">
                                     {item.brand?.name}{' '}
                                     {item.product_description && item?.product_description.substring(0, 50)}
                                     {item.variant_name && (
@@ -525,15 +488,15 @@ export default function CreateSaleForm() {
                                   </div>
                                 </td>
                                 <td className="py-3 px-2 text-center">
-                                  <span className="text-sm font-medium">
+                                  <span className="text-xs font-medium">
                                     {item.quantity}
                                   </span>
                                 </td>
-                                <td className="py-3 px-2 text-right text-sm">
+                                <td className="py-3 px-2 text-right text-xs">
                                   {currencySymbol}
                                   {item?.price_unit?.toFixed(2)}
                                 </td>
-                                <td className="py-3 px-2 text-right text-sm font-semibold">
+                                <td className="py-3 px-2 text-right text-xs font-semibold">
                                   {currencySymbol}
                                   {(
                                     (item?.price_unit ?? 0) *
@@ -543,7 +506,7 @@ export default function CreateSaleForm() {
                                 <td className="py-3 px-2 text-right">
                                   {item?.discount && item?.discount > 0 ? (
                                     <div>
-                                      <div className="text-sm text-red-600 truncate">
+                                      <div className="text-xs text-red-600 truncate">
                                         -{currencySymbol}
                                         {item?.discount?.toFixed(2)}
                                       </div>
@@ -558,12 +521,12 @@ export default function CreateSaleForm() {
                                       </div>
                                     </div>
                                   ) : (
-                                    <span className="text-gray-300 text-sm">
+                                    <span className="text-gray-300 text-xs">
                                       -
                                     </span>
                                   )}
                                 </td>
-                                <td className="py-3 px-2 text-right text-sm font-semibold">
+                                <td className="py-3 px-2 text-right text-xs font-semibold">
                                   {currencySymbol}
                                   {item?.subtotal?.toFixed(2)}
                                 </td>
@@ -612,7 +575,7 @@ export default function CreateSaleForm() {
                         <p className="text-lg font-medium mb-2">
                           No hay productos agregados
                         </p>
-                        <p className="text-sm mb-4">
+                        <p className="text-xs mb-4">
                           Comienza agregando productos a tu venta
                         </p>
                         <Button
