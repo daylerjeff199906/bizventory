@@ -28,6 +28,12 @@ export const adminNavMain: (uuid: string) => NavItem[] = (uuid: string) => [
     items: []
   },
   {
+    title: 'Clientes',
+    url: APP_URLS.ORGANIZATION.CUSTOMERS.LIST(uuid),
+    icon: 'Users',
+    items: []
+  },
+  {
     title: 'Proveedores',
     url: APP_URLS.ORGANIZATION.SUPPLIERS.LIST(uuid),
     icon: 'Building2',

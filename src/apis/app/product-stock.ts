@@ -109,7 +109,6 @@ export async function getProductsWithVariantsAndStock({
       .select('*')
       .in('product_id', productIds)
 
-    console.log('Variants found:', variants)
     if (variantsError) {
       console.error('Error fetching variants:', variantsError)
       throw variantsError
@@ -121,7 +120,6 @@ export async function getProductsWithVariantsAndStock({
       .from('product_variant_attributes')
       .select('*')
       .in('variant_id', variantIds)
-    console.log('Attributes found:', variantAttributes)
 
     if (attributesError) throw attributesError
 

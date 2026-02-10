@@ -29,7 +29,7 @@ export async function getPurchases({
   bussinessId,
   filters,
   sortBy = 'date',
-  sortDirection = 'asc',
+  sortDirection = 'desc',
   page,
   pageSize,
   fromDate,
