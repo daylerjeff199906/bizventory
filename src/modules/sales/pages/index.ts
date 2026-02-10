@@ -1,4 +1,3 @@
-// import { InvoiceDetailPrint } from './invoice-print-details'
-// import { InvoiceDetail } from './invoice-detail'
+import { InvoiceDetailPrint } from './invoice-print-details'
 
-// export { InvoiceDetailPrint, InvoiceDetail }
+export { InvoiceDetailPrint }
