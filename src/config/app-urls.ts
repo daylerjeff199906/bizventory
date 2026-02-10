@@ -32,6 +32,10 @@ export const APP_URLS = {
       VIEW: (uuid: string, id: string) =>
         `${URL_PREFIX}/${uuid}/purchases/${id}`
     },
+    CUSTOMERS: {
+      LIST: (uuid: string) => `${URL_PREFIX}/${uuid}/customers`,
+      CREATE: (uuid: string) => `${URL_PREFIX}/${uuid}/customers/create`
+    },
     SUPPLIERS: {
       LIST: (uuid: string) => `${URL_PREFIX}/${uuid}/suppliers`,
       CREATE: (uuid: string) => `${URL_PREFIX}/${uuid}/suppliers/create`
@@ -50,6 +54,9 @@ export const APP_URLS = {
     BRANDS: {
       LIST: (uuid: string) => `${URL_PREFIX}/${uuid}/brands`,
       CREATE: (uuid: string) => `${URL_PREFIX}/${uuid}/brands/create`
+    },
+    SETTINGS: {
+      GENERAL: (uuid: string) => `${URL_PREFIX}/${uuid}/settings`
     }
   },
 

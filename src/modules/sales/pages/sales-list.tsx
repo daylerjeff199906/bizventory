@@ -10,7 +10,8 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow
+  TableRow,
+  TableFooter
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -456,7 +457,34 @@ export const SalesList = ({
                 </TableRow>
               ))
             )}
+
           </TableBody>
+          {salesData.data.length > 0 && (
+            <TableFooter>
+              <TableRow>
+                <TableCell colSpan={3} className="font-medium text-right">
+                  Totales (Página)
+                </TableCell>
+                <TableCell className="font-medium">
+                  {formatCurrency(
+                    salesData.data.reduce(
+                      (acc, sale) => acc + (sale.total_amount || 0),
+                      0
+                    )
+                  )}
+                </TableCell>
+                <TableCell className="font-bold">
+                  {formatCurrency(
+                    salesData.data.reduce(
+                      (acc, sale) => acc + (sale.total_amount || 0),
+                      0
+                    )
+                  )}
+                </TableCell>
+                <TableCell colSpan={4} />
+              </TableRow>
+            </TableFooter>
+          )}
         </Table>
         {salesData.data.length > 0 && (
           <div className="px-4 py-3 text-sm text-muted-foreground border-t">
@@ -468,37 +496,39 @@ export const SalesList = ({
       </div>
 
       {/* Paginación */}
-      {salesData.total_pages > 0 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-2">
-          <div className="text-sm text-muted-foreground order-2 sm:order-1">
-            Mostrando {salesData.data.length} de {salesData.total} ventas
-            {salesData.total_pages > 1 && ` (Página ${salesData.page} de ${salesData.total_pages})`}
-          </div>
-          <div className="flex items-center gap-2 order-1 sm:order-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(salesData.page - 1)}
-              disabled={salesData.page <= 1}
-              className="h-8 w-8 p-0"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <div className="text-sm font-medium mx-2">
-              {salesData.page}
+      {
+        salesData.total_pages > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-2">
+            <div className="text-sm text-muted-foreground order-2 sm:order-1">
+              Mostrando {salesData.data.length} de {salesData.total} ventas
+              {salesData.total_pages > 1 && ` (Página ${salesData.page} de ${salesData.total_pages})`}
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(salesData.page + 1)}
-              disabled={salesData.page >= salesData.total_pages}
-              className="h-8 w-8 p-0"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-2 order-1 sm:order-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(salesData.page - 1)}
+                disabled={salesData.page <= 1}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <div className="text-sm font-medium mx-2">
+                {salesData.page}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(salesData.page + 1)}
+                disabled={salesData.page >= salesData.total_pages}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   )
 }

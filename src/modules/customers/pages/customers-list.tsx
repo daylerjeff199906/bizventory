@@ -29,7 +29,7 @@ export const CustomersList = (props: IProps) => {
 
   return (
     <>
-      <div className="flex flex-col space-y-6 p-2">
+      <div className="flex flex-col gap-4">
         {/* Table */}
         <div className="border rounded-lg">
           {customers && customers?.length > 0 ? (

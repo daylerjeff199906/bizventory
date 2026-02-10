@@ -12,7 +12,8 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow
+  TableRow,
+  TableFooter
 } from '@/components/ui/table'
 import {
   DropdownMenu,
@@ -551,6 +552,29 @@ export const PurchasesList = ({
                 ))
               )}
             </TableBody>
+            {purchasesData.length > 0 && (
+              <TableFooter>
+                <TableRow>
+                  <TableCell colSpan={4} className="font-medium text-right">
+                    Totales (Página)
+                  </TableCell>
+                  <TableCell className="text-right font-bold">
+                    {formatCurrency(
+                      purchasesData.reduce((acc, p) => acc + (p.subtotal || 0), 0)
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right font-bold">
+                    {formatCurrency(
+                      purchasesData.reduce(
+                        (acc, p) => acc + (p.total_amount || 0),
+                        0
+                      )
+                    )}
+                  </TableCell>
+                  <TableCell colSpan={3} />
+                </TableRow>
+              </TableFooter>
+            )}
           </Table>
           {purchasesData.length > 0 && (
             <div className="px-4 py-3 text-sm text-muted-foreground border-t">

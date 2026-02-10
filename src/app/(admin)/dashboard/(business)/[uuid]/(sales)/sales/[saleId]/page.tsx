@@ -13,8 +13,6 @@ export default async function SaleDetailsPage(props: Props) {
     const saleId = params.saleId as string
     const sale = await getSaleById(saleId)
 
-    console.log(sale)
-
     if (!sale) {
         notFound()
     }

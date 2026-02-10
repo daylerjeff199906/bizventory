@@ -578,6 +578,7 @@ export const InvoiceDetailPrint = ({ company: propCompany, sale }: InvoiceDetail
                         <Table>
                             <TableHeader>
                                 <TableRow>
+                                    <TableHead>Cod.</TableHead>
                                     <TableHead>Producto</TableHead>
                                     <TableHead className="text-center">Cant.</TableHead>
                                     <TableHead className="text-right">Precio</TableHead>
@@ -588,6 +589,7 @@ export const InvoiceDetailPrint = ({ company: propCompany, sale }: InvoiceDetail
                             <TableBody>
                                 {sale.items.map((item, index) => (
                                     <TableRow key={index}>
+                                        <TableCell>{item.code}</TableCell>
                                         <TableCell>
                                             <p className="font-medium">{item.name}</p>
                                             {item.variant_name && (
