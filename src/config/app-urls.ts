@@ -54,6 +54,9 @@ export const APP_URLS = {
     BRANDS: {
       LIST: (uuid: string) => `${URL_PREFIX}/${uuid}/brands`,
       CREATE: (uuid: string) => `${URL_PREFIX}/${uuid}/brands/create`
+    },
+    SETTINGS: {
+      GENERAL: (uuid: string) => `${URL_PREFIX}/${uuid}/settings`
     }
   },
 
