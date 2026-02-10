@@ -578,8 +578,8 @@ export const InvoiceDetailPrint = ({ company: propCompany, sale }: InvoiceDetail
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Producto</TableHead>
                                     <TableHead className="text-center">Cod.</TableHead>
+                                    <TableHead>Producto</TableHead>
                                     <TableHead className="text-center">Cant.</TableHead>
                                     <TableHead className="text-right">Precio</TableHead>
                                     <TableHead className="text-right">Descuento</TableHead>
