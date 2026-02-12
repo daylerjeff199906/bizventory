@@ -10,18 +10,23 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { MoreHorizontal, UserPlus, Pencil, Trash2 } from 'lucide-react'
+import { UserPlus, Pencil, Trash2, Loader2 } from 'lucide-react'
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { useState } from 'react'
-import { BusinessForm } from '@/schemas/business/register.busines'
-import { ManageMembersDialog } from './manage-members-dialog'
+import { EditBusinessDialog } from './edit-business-dialog'
+import { deleteBusinessAction } from '../../_actions'
+import { toast } from 'react-toastify'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 interface BusinessTableProps {
     businesses: any[]
@@ -29,7 +34,29 @@ interface BusinessTableProps {
 
 export function BusinessTable({ businesses }: BusinessTableProps) {
     const [selectedBusiness, setSelectedBusiness] = useState<any | null>(null)
-    const [isMembersOpen, setIsMembersOpen] = useState(false)
+    const [isEditOpen, setIsEditOpen] = useState(false)
+    const [isDeleteOpen, setIsDeleteOpen] = useState(false)
+    const [isDeleting, setIsDeleting] = useState(false)
+    const router = useRouter()
+
+    async function handleDelete() {
+        if (!selectedBusiness) return
+        setIsDeleting(true)
+        try {
+            const result = await deleteBusinessAction(selectedBusiness.id)
+            if (result.success) {
+                toast.success('Negocio eliminado')
+                router.refresh()
+            } else {
+                toast.error(result.error || 'Error al eliminar')
+            }
+        } catch (error) {
+            toast.error('Error inesperado')
+        } finally {
+            setIsDeleting(false)
+            setIsDeleteOpen(false)
+        }
+    }
 
     return (
         <div className="rounded-md border bg-card">
@@ -68,35 +95,40 @@ export function BusinessTable({ businesses }: BusinessTableProps) {
                                     </Badge>
                                 </TableCell>
                                 <TableCell className="text-right">
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" className="h-8 w-8 p-0">
-                                                <MoreHorizontal className="h-4 w-4" />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                            <DropdownMenuLabel className="text-xs">Acciones</DropdownMenuLabel>
-                                            <DropdownMenuItem
-                                                className="text-sm"
-                                                onClick={() => {
-                                                    setSelectedBusiness(business)
-                                                    setIsMembersOpen(true)
-                                                }}
-                                            >
-                                                <UserPlus className="mr-2 h-4 w-4" />
-                                                Gestionar Miembros
-                                            </DropdownMenuItem>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuItem className="text-sm">
-                                                <Pencil className="mr-2 h-4 w-4" />
-                                                Editar
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem className="text-sm text-destructive">
-                                                <Trash2 className="mr-2 h-4 w-4" />
-                                                Eliminar
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
+                                    <div className="flex justify-end gap-1">
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                            asChild
+                                        >
+                                            <Link href={`/admin/businesses/${business.id}/members`}>
+                                                <UserPlus className="h-4 w-4" />
+                                            </Link>
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                                            onClick={() => {
+                                                setSelectedBusiness(business)
+                                                setIsEditOpen(true)
+                                            }}
+                                        >
+                                            <Pencil className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                            onClick={() => {
+                                                setSelectedBusiness(business)
+                                                setIsDeleteOpen(true)
+                                            }}
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
                                 </TableCell>
                             </TableRow>
                         ))
@@ -104,13 +136,48 @@ export function BusinessTable({ businesses }: BusinessTableProps) {
                 </TableBody>
             </Table>
 
+            {/* Edit Dialog */}
             {selectedBusiness && (
-                <ManageMembersDialog
+                <EditBusinessDialog
                     business={selectedBusiness}
-                    open={isMembersOpen}
-                    onOpenChange={setIsMembersOpen}
+                    open={isEditOpen}
+                    onOpenChange={setIsEditOpen}
                 />
             )}
+
+            {/* Delete Confirmation */}
+            <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>¿Estás completamente seguro?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Esta acción no se puede deshacer. Se eliminará permanentemente el negocio
+                            <span className="font-bold"> {selectedBusiness?.business_name}</span> and all its associated data.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={(e) => {
+                                e.preventDefault()
+                                handleDelete()
+                            }}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            disabled={isDeleting}
+                        >
+                            {isDeleting ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Eliminando...
+                                </>
+                            ) : (
+                                'Eliminar'
+                            )}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     )
 }
+

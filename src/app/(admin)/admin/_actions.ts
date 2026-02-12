@@ -29,6 +29,51 @@ export async function createBusinessAction(values: BusinessForm) {
     }
 }
 
+export async function updateBusinessAction(id: string, values: BusinessForm) {
+    const supabase = await createClient()
+
+    try {
+        const { data, error } = await supabase
+            .from('business')
+            .update({
+                business_name: values.business_name,
+                business_type: values.business_type,
+                business_email: values.business_email,
+                status: values.status,
+            })
+            .eq('id', id)
+            .select()
+            .single()
+
+        if (error) throw error
+
+        revalidatePath('/admin/businesses')
+        return { success: true, data }
+    } catch (error: any) {
+        console.error('Error in updateBusinessAction:', error)
+        return { success: false, error: error.message }
+    }
+}
+
+export async function deleteBusinessAction(id: string) {
+    const supabase = await createClient()
+
+    try {
+        const { error } = await supabase
+            .from('business')
+            .delete()
+            .eq('id', id)
+
+        if (error) throw error
+
+        revalidatePath('/admin/businesses')
+        return { success: true }
+    } catch (error: any) {
+        console.error('Error in deleteBusinessAction:', error)
+        return { success: false, error: error.message }
+    }
+}
+
 export async function addMemberToBusinessAction(businessId: string, userId: string, roles: string[]) {
     const supabase = await createClient()
 
@@ -106,6 +151,27 @@ export async function getBusinessMembersAction(businessId: string) {
         return { success: true, data }
     } catch (error: any) {
         console.error('Error in getBusinessMembersAction:', error)
+        return { success: false, error: error.message }
+    }
+}
+
+export async function updateMemberRoleAction(memberId: string, roles: string[]) {
+    const supabase = await createClient()
+
+    try {
+        const { data, error } = await supabase
+            .from('business_members')
+            .update({ roles })
+            .eq('id', memberId)
+            .select()
+            .single()
+
+        if (error) throw error
+
+        revalidatePath('/admin/businesses')
+        return { success: true, data }
+    } catch (error: any) {
+        console.error('Error in updateMemberRoleAction:', error)
         return { success: false, error: error.message }
     }
 }
