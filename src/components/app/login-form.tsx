@@ -18,6 +18,7 @@ import {
   FormMessage
 } from '@/components/ui/form'
 import { SupabaseUser } from '@/types'
+import { createClient } from '@/utils/supabase/client'
 
 const formSchema = z.object({
   email: z.string().email('Debe ser un email válido'),
@@ -73,6 +74,25 @@ export function LoginForm({
     }
   }
 
+  const handleGoogleLogin = async () => {
+    const supabase = createClient()
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`
+      }
+    })
+
+    if (error) {
+      toast.error(
+        <ToastCustom
+          title="Error de autenticación"
+          message={error.message}
+        />
+      )
+    }
+  }
+
   return (
     <div className={cn('flex flex-col gap-6', className)} {...props}>
       <Card className="overflow-hidden p-0">
@@ -110,6 +130,12 @@ export function LoginForm({
                     <FormItem className="grid gap-3">
                       <div className="flex items-center">
                         <FormLabel>Password</FormLabel>
+                        <a
+                          href="/forgot-password"
+                          className="ml-auto text-sm underline-offset-4 hover:underline"
+                        >
+                          Forgot your password?
+                        </a>
                       </div>
                       <FormControl>
                         <Input
@@ -152,10 +178,10 @@ export function LoginForm({
                     <span className="sr-only">Login with Apple</span>
                   </Button>
                   <Button
-                    disabled
                     variant="outline"
                     type="button"
                     className="w-full"
+                    onClick={handleGoogleLogin}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                       <path
