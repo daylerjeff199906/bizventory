@@ -76,7 +76,7 @@ export function SettingsForm({ initialData, businessId }: SettingsFormProps) {
                             <FormItem>
                                 <FormLabel>Nombre del Negocio</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Mi Empresa S.A.C." {...field} />
+                                    <Input placeholder="Mi Empresa S.A.C." {...field} value={field.value || ''} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -89,7 +89,7 @@ export function SettingsForm({ initialData, businessId }: SettingsFormProps) {
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Tipo de Negocio</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <Select onValueChange={field.onChange} defaultValue={field.value || ''}>
                                     <FormControl>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Selecciona un tipo" />
@@ -129,7 +129,7 @@ export function SettingsForm({ initialData, businessId }: SettingsFormProps) {
                             <FormItem>
                                 <FormLabel>Email de Contacto</FormLabel>
                                 <FormControl>
-                                    <Input type="email" placeholder="contacto@empresa.com" {...field} />
+                                    <Input type="email" placeholder="contacto@empresa.com" {...field} value={field.value || ''} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
