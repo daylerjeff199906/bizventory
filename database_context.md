@@ -1,215 +1,229 @@
-# Contexto de Base de Datos - Bizventory
+# Database Schema Context
 
-Este documento describe la estructura de la base de datos del proyecto Bizventory, inferida a partir de las definiciones de tipos TypeScript y el uso de Supabase en el código.
+## Tables
 
-## Tecnologías
-- **Base de Datos:** PostgreSQL (vía Supabase)
-- **ORM/Query Builder:** Supabase Client (`@supabase/ssr`)
-- **Gestión de Tipos:** TypeScript manual (inferido)
+### public.brands
+- id: uuid (PK)
+- created_at: timestamp with time zone
+- name: text
+- updated_at: timestamp with time zone
+- logo_url: text
+- status: USER-DEFINED ("ACTIVO")
+- business_id: uuid (FK -> public.business.id)
 
-## Esquema de Tablas (Inferred)
+### public.business
+- id: uuid (PK)
+- created_at: timestamp with time zone
+- business_name: text
+- business_type: text
+- description: text
+- business_email: text
+- document_number: text
+- brand: text
+- acronym: text
+- cover_image_url: text
+- map_iframe_url: text
+- contact_phone: text
+- address: text
+- documents: jsonb
+- validation_status: text
+- updated_at: timestamp with time zone
+- status: text
 
-### `products`
-Almacena la información principal de los productos.
-- `id` (uuid): Identificador único.
-- `name` (text): Nombre del producto.
-- `description` (text, nullable): Descripción detallada.
-- `code` (text): Código interno del producto (SKU).
-- `category_id` (numeric, nullable): ID de la categoría (referencia externa o enum).
-- `unit` (text): Unidad de medida.
-- `brand_id` (uuid, nullable): Referencia a la tabla `brands`.
-- `supplier_code` (text, nullable): Código del proveedor.
-- `location` (text, nullable): Ubicación en almacén.
-- `created_at` (timestamp): Fecha de creación.
-- `updated_at` (timestamp, nullable): Fecha de actualización.
-- `is_active` (boolean): Estado del producto.
-- `has_variants` (boolean): Indica si tiene variantes.
-- `tags` (text[] | jsonb, nullable): Etiquetas.
+### public.business_members
+- id: uuid (PK)
+- business_id: uuid (FK -> public.business.id)
+- user_id: uuid (FK -> public.profiles.id)
+- role: text (NOT NULL, CHECK IN 'owner', 'admin', 'editor', 'viewer')
+- is_active: boolean
+- created_at: timestamp with time zone
+- updated_at: timestamp with time zone
+- roles: ARRAY (text[])
 
-### `product_images` (Inferred via `ProductImage`)
-Imágenes asociadas a los productos.
-- `uuid` (uuid): Identificador único.
-- `product_uuid` (uuid): Referencia a `products.id`.
-- `url` (text): URL de la imagen.
-- `is_banner` (boolean): Si es imagen principal/banner.
-- `created_at` (timestamp)
-- `updated_at` (timestamp)
+### public.categories
+- id: bigint (PK)
+- name: text
+- uuid: uuid
 
-### `brands`
-Marcas de productos.
-- `id` (uuid): ID único.
-- `name` (text): Nombre de la marca.
-- `business_id` (uuid): Referencia al negocio.
-- `logo_url` (text, nullable): URL del logo.
-- `status` (text): Estado (activo/inactivo).
-- `created_at` (timestamp)
-- `updated_at` (timestamp)
+### public.customers
+- id: uuid (PK)
+- created_at: timestamp with time zone
+- person_id: uuid (FK -> public.persons.id)
+- updated_at: timestamp with time zone
+- business_id: uuid (FK -> public.business.id)
 
-### `product_variants`
-Variantes de un producto (talla, color, etc.).
-- `id` (uuid): ID único.
-- `product_id` (uuid): Referencia a `products.id`.
-- `name` (text): Nombre de la variante.
-- `description` (text, nullable): Descripción.
-- `code` (text): Código/SKU de la variante.
-- `created_at` (timestamp)
-- `updated_at` (timestamp, nullable)
+### public.inventory_movements
+- id: uuid (PK)
+- product_id: uuid (FK -> public.products.id)
+- product_variant_id: uuid (FK -> public.product_variants.id)
+- quantity: integer
+- movement_date: timestamp with time zone
+- reference_id: uuid
+- reference_type: varchar
+- movement_status: varchar
+- notes: text
+- created_at: timestamp with time zone
+- movement_type: text
+- date: timestamp with time zone
+- business_id: uuid (FK -> public.business.id)
 
-### `product_variant_attributes`
-Atributos específicos de las variantes.
-- `id` (uuid): ID único.
-- `variant_id` (uuid): Referencia a `product_variants.id`.
-- `attribute_type` (text): Tipo de atributo (ej. "Color").
-- `attribute_value` (text): Valor (ej. "Rojo").
-- `created_at` (timestamp)
-- `updated_at` (timestamp, nullable)
+### public.persons
+- name: text
+- whatsapp: text
+- secondary_phone: text
+- email: text
+- address: text
+- country: text
+- created_at: timestamp with time zone
+- id: uuid (PK)
+- document_number: text
+- updated_at: timestamp without time zone
+- document_type: text
 
-### `sales`
-Registro de ventas.
-- `id` (uuid): ID único.
-- `date` (timestamp/date): Fecha de venta.
-- `total_amount` (numeric): Monto total.
-- `customer_id` (uuid, nullable): Referencia a `customers.id`.
-- `status` (text): Estado (ej. 'pending', 'completed').
-- `payment_method` (text, nullable): Método de pago.
-- `shipping_address` (text, nullable): Dirección de envío.
-- `tax_amount` (numeric): Impuestos.
-- `discount_amount` (numeric): Descuento total.
-- `total_items` (numeric): Cantidad de items.
-- `reference_number` (text): Número de referencia/factura.
-- `salesperson_id` (uuid, nullable): Vendedor.
-- `business_id` (uuid): Referencia al negocio.
-- `created_at` (timestamp)
-- `updated_at` (timestamp)
+### public.product_details
+- id: bigint (PK)
+- product_id: uuid (FK -> public.products.id)
+- additional_description: text
+- created_at: timestamp with time zone
 
-### `sale_items`
-Detalle de items en una venta.
-- `id` (uuid): ID único.
-- `sale_id` (uuid): Referencia a `sales.id`.
-- `product_id` (uuid, nullable): Referencia a `products.id`.
-- `product_variant_id` (uuid, nullable): Referencia a `product_variants.id`.
-- `quantity` (numeric): Cantidad vendida.
-- `unit_price` (numeric): Precio unitario.
-- `discount_amount` (numeric): Descuento por item.
-- `total_price` (numeric): Precio total de la línea.
-- `created_at` (timestamp)
-- `updated_at` (timestamp)
+### public.product_variant_attributes
+- id: uuid (PK)
+- variant_id: uuid (FK -> public.product_variants.id)
+- attribute_type: text
+- attribute_value: text
+- created_at: timestamp with time zone
+- updated_at: timestamp with time zone
 
-### `purchases`
-Registro de compras a proveedores.
-- `id` (uuid): ID único.
-- `business_id` (uuid, nullable): Referencia al negocio.
-- `supplier_id` (uuid): Referencia a `suppliers.id`.
-- `date` (timestamp, nullable): Fecha de compra.
-- `total_amount` (numeric): Monto total.
-- `code` (text, nullable): Código interno.
-- `guide_number` (text, nullable): Número de guía.
-- `subtotal` (numeric): Subtotal.
-- `discount` (numeric, nullable): Descuento.
-- `tax_rate` (numeric, nullable): Tasa impositiva.
-- `tax_amount` (numeric, nullable): Monto de impuestos.
-- `status` (enum/text, nullable): 'pending', 'completed', 'cancelled'.
-- `payment_status` (enum/text, nullable): 'pending', 'paid', 'partially_paid', 'cancelled'.
-- `reference_number` (text, nullable): Referencia externa.
-- `notes` (text, nullable): Notas.
-- `created_at` (timestamp)
-- `updated_at` (timestamp)
+### public.product_variants
+- id: uuid (PK)
+- product_id: uuid (FK -> public.products.id)
+- name: text
+- description: text
+- code: text
+- created_at: timestamp with time zone
+- updated_at: timestamp with time zone
+- is_active: boolean
+- price: numeric
 
-### `purchase_items` (Inferred via `PurchaseItem`)
-Detalle de items en una compra.
-- `id` (uuid): ID único.
-- `purchase_id` (uuid, nullable): Referencia a `purchases.id`.
-- `product_id` (uuid, nullable): Referencia a `products.id`.
-- `quantity` (numeric): Cantidad.
-- `price` (numeric): Precio de compra.
-- `code` (text, nullable): Código.
-- `bar_code` (text, nullable): Código de barras.
-- `discount` (numeric, nullable): Descuento.
+### public.products
+- id: uuid (PK)
+- name: text
+- description: text
+- category_id: bigint (FK -> public.categories.id)
+- unit: text
+- location: text
+- created_at: timestamp with time zone
+- is_active: boolean
+- has_variants: boolean
+- tags: ARRAY
+- updated_at: timestamp with time zone
+- brand_id: uuid (FK -> public.brands.id)
+- code: text
+- price: numeric
+- discount_active: boolean
+- discount_value: numeric
 
-### `suppliers`
-Proveedores.
-- `id` (uuid): ID único.
-- `name` (text): Nombre.
-- `company_type` (text): Tipo de compañía.
-- `contact` (text): Contacto principal.
-- `email` (text): Email.
-- `phone` (text): Teléfono.
-- `address` (text): Dirección.
-- `currency` (text): Moneda preferida.
-- `status` (text): Estado.
-- `document_type` (text): Tipo de documento.
-- `document_number` (text): Número de documento.
-- `notes` (text): Notas.
-- `created_at` (timestamp)
-- `updated_at` (timestamp)
+### public.profiles
+- id: uuid (PK, FK -> auth.users.id)
+- email: text
+- first_name: text
+- last_name: text
+- avatar_url: text
+- is_active: boolean
+- created_at: timestamp with time zone
+- updated_at: timestamp with time zone
+- is_super_admin: boolean
 
-### `customers`
-Clientes (entidad que agrupa personas u organizaciones).
-- `id` (uuid): ID único.
-- `person_id` (uuid): Referencia a `people.id`.
-- `created_at` (timestamp)
-- `updated_at` (timestamp)
+### public.purchase_items
+- id: uuid (PK)
+- purchase_id: uuid (FK -> public.purchases.id)
+- product_id: uuid (FK -> public.products.id)
+- quantity: integer
+- price: numeric
+- code: text
+- bar_code: text
+- discount: real
+- product_variant_id: uuid (FK -> public.product_variants.id)
+- variant_attributes: jsonb
+- original_variant_name: text
+- original_product_name: text
 
-### `people` (Inferred via `Person` type, linked to customers)
-Información personal de clientes.
-- `id` (uuid): ID único.
-- `name` (text): Nombre completo.
-- `whatsapp` (text): WhatsApp.
-- `secondary_phone` (text): Teléfono secundario.
-- `email` (text): Email.
-- `address` (text): Dirección.
-- `country` (text): País.
-- `created_at` (timestamp)
-- `updated_at` (timestamp)
+### public.purchases
+- id: uuid (PK)
+- date: timestamp with time zone
+- supplier_id: uuid (FK -> public.suppliers.id)
+- total_amount: numeric
+- code: varchar
+- guide_number: varchar
+- subtotal: numeric
+- discount: numeric
+- tax_rate: numeric
+- tax_amount: numeric
+- created_at: timestamp with time zone
+- updated_at: timestamp with time zone
+- inventory_updated: boolean
+- status: varchar
+- reference_number: varchar
+- notes: text
+- payment_status: varchar
+- business_id: uuid (FK -> public.business.id)
 
-### `users` (or `profiles`)
-Usuarios del sistema.
-- `id` (uuid): ID (probablemente ligado a `auth.users`).
-- `first_name` (text)
-- `last_name` (text)
-- `username` (text, nullable)
-- `email` (text, nullable)
-- `profile_image` (text, nullable)
-- `country` (text, nullable)
-- `birth_date` (date, nullable)
-- `phone` (text, nullable)
-- `gender` (text, nullable)
-- `created_at` (timestamp)
-- `updated_at` (timestamp)
+### public.roles
+- id: bigint (PK)
+- name: text
+- uuid: uuid
+- description: text
 
-### `user_roles`
-Roles y permisos de usuarios.
-- `id` (uuid): ID único.
-- `user_id` (uuid): Referencia a `users.id`.
-- `role` (text): Nombre del rol.
-- `institution_id` (uuid, nullable): Referencia a instituciones (si aplica).
-- `access_enabled` (boolean, nullable): Acceso habilitado.
-- `role_action` (text[]?, nullable): Permisos específicos.
-- `created_at` (timestamp)
-- `updated_at` (timestamp)
+### public.sale_items
+- id: uuid (PK)
+- sale_id: uuid (FK -> public.sales.id)
+- product_id: uuid (FK -> public.products.id)
+- product_variant_id: uuid (FK -> public.product_variants.id)
+- quantity: integer
+- unit_price: numeric
+- discount_amount: numeric
+- total_price: numeric
+- created_at: timestamp with time zone
+- updated_at: timestamp with time zone
 
-## Funciones RPC Conocidas
+### public.sales
+- id: uuid (PK)
+- date: timestamp with time zone
+- total_amount: numeric
+- customer_id: uuid (FK -> public.customers.id)
+- status: varchar
+- payment_method: varchar
+- shipping_address: text
+- tax_amount: numeric
+- discount_amount: numeric
+- total_items: integer
+- reference_number: varchar
+- salesperson_id: uuid
+- created_at: timestamp with time zone
+- updated_at: timestamp with time zone
+- business_id: uuid (FK -> public.business.id)
 
-### `update_product_stock_after_sale`
-Actualiza el stock de productos tras completar una venta.
-- **Parámetros:**
-  - `p_sale_id` (uuid): ID de la venta completada.
-- **Lógica:** Probablemente itera sobre los items de la venta y resta el stock disponible de los productos/variantes correspondientes.
+### public.suppliers
+- id: uuid (PK)
+- name: text
+- contact: text
+- email: text
+- phone: text
+- address: text
+- currency: text
+- status: text
+- notes: text
+- created_at: timestamp with time zone
+- updated_at: timestamp with time zone
+- company_type: text
+- document_type: text
+- document_number: text
+- business_id: uuid (FK -> public.business.id)
 
-### `update_product_stock_after_purchase` (Esperada/En desarrollo)
-Actualiza el stock tras completar una compra.
-- **Parámetros:**
-  - `p_purchase_id` (uuid)
+### public.users
+- id: uuid (PK, FK -> auth.users.id)
+- name: text
+- email: text
+- created_at: timestamp with time zone
+- role: ARRAY
 
-## Relaciones Clave
-
-- **Ventas -> Items -> Productos/Variantes:** Relación jerárquica para calcular totales y detallar facturas.
-- **Productos -> Marcas:** Clasificación de productos.
-- **Productos -> Variantes:** Relación 1:N para manejo de SKU múltiples por producto base.
-- **Clientes -> Personas:** Separación de la entidad "Cliente" de los datos personales.
-- **Usuarios -> Roles:** Control de acceso (RBAC).
-
-## Notas Importantes
-- Los tipos UUID son strings en TypeScript.
-- Los tipos numéricos (`numeric`, `decimal`) son `number` en TypeScript.
-- Las fechas (`timestamp`) suelen manejarse como strings ISO en el frontend y Date objects en transformaciones.

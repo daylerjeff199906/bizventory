@@ -58,3 +58,30 @@ export const adminNavMain: (uuid: string) => NavItem[] = (uuid: string) => [
     items: []
   }
 ]
+
+export const superAdminNavMain: () => NavItem[] = () => [
+  {
+    title: 'Panel de Control',
+    url: APP_URLS.ADMIN.BASE,
+    icon: 'LayoutDashboard',
+    items: []
+  },
+  {
+    title: 'Negocios',
+    url: APP_URLS.ADMIN.BUSINESSES,
+    icon: 'Building2',
+    items: []
+  },
+  {
+    title: 'Usuarios',
+    url: APP_URLS.ADMIN.USERS,
+    icon: 'Users',
+    items: []
+  },
+  {
+    title: 'Volver al App',
+    url: APP_URLS.BASE,
+    icon: 'ArrowLeft',
+    items: []
+  }
+]

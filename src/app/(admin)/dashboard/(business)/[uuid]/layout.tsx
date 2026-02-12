@@ -34,19 +34,19 @@ export default async function Layout(props: LayoutProps) {
 
   const userData = profile
     ? {
-        name: profile?.name || 'Usuario',
-        email: user?.user?.email || '',
-        avatar: user?.user?.user_metadata.avatar_url || ''
-      }
+      name: profile?.name || 'Usuario',
+      email: user?.user?.email || '',
+      avatar: user?.user?.user_metadata.avatar_url || ''
+    }
     : null
 
   const responseData = await getBusinessesByUserRole(user?.user?.id || '')
 
   const teamSwitcherData: TeamSwitcherType[] = responseData.map((business) => ({
-    name: business.business_name,
-    plan: business.business_type,
+    name: business.business_name || 'Sin nombre',
+    plan: business.business_type || 'Sin plan',
     url_logo: business.brand || undefined,
-    href: APP_URLS.ORGANIZATION.BASE.HOME(business.id)
+    href: APP_URLS.ORGANIZATION.BASE.HOME(business.id || '')
   }))
 
   return (

@@ -11,17 +11,16 @@ export async function getBusinessesByUserRole(
 ): Promise<BusinessForm[]> {
   const supabase = await getSupabase()
   const { data, error } = await supabase
-    .from('user_roles')
-    .select('business(*)')
+    .from('business_members')
+    .select('business:business(*)')
     .eq('user_id', userId)
+    .eq('is_active', true) // Filter only active memberships
 
   if (error) {
     console.error('Error fetching businesses:', error)
     return []
   }
-
-  // Flatten the result to return only businesses
-  return data?.flatMap((row) => row.business) ?? []
+  return data?.map((row: any) => row.business).filter(Boolean) ?? []
 }
 
 export async function getFullUserRoleByBusiness(
@@ -29,8 +28,8 @@ export async function getFullUserRoleByBusiness(
 ): Promise<IUserRoleFull[]> {
   const supabase = await getSupabase()
   const { data, error } = await supabase
-    .from('user_roles')
-    .select('*, user:user_id(*)')
+    .from('business_members')
+    .select('*, access_enabled:is_active, user:profiles(*)')
     .eq('business_id', businessId)
   if (error) {
     console.error('Error fetching user roles:', error)
@@ -68,26 +67,26 @@ export async function upsertUserRole({
   idRole,
   businessId,
   userId,
-  role,
+  roles,
   urlRevalidate
 }: {
   idRole: string
   userId: string
   businessId: string
-  role: 'institution_owner' | 'member' | 'editor'
+  roles: string[]
   urlRevalidate?: string
 }): Promise<{ data: IUserRoleFull | null; error: Error | null }> {
   const supabase = await getSupabase()
   try {
     const { data, error } = await supabase
-      .from('user_roles')
+      .from('business_members')
       .upsert({
         id: idRole,
         user_id: userId,
         business_id: businessId,
-        role
+        roles
       })
-      .select('*, user:user_id(*)')
+      .select('*, access_enabled:is_active, user:profiles(*)')
       .single()
     if (error) {
       console.error('Error upserting user role:', error)
@@ -107,28 +106,28 @@ export async function upsertAccessEnabled({
   userId,
   businessId,
   access_enabled,
-  role,
+  roles,
   urlRevalidate
 }: {
   userRoleId?: string
   userId: string
   businessId: string
   access_enabled: boolean
-  role: 'institution_owner' | 'member' | 'editor'
+  roles: string[]
   urlRevalidate?: string
 }): Promise<{ data: IUserRoleFull | null; error: Error | null }> {
   const supabase = await getSupabase()
   try {
     const { data, error } = await supabase
-      .from('user_roles')
+      .from('business_members')
       .upsert({
         id: userRoleId,
         user_id: userId,
-        role,
+        roles,
         business_id: businessId,
-        access_enabled
+        is_active: access_enabled
       })
-      .select('*, user:user_id(*)')
+      .select('*, access_enabled:is_active, user:profiles(*)')
       .single()
     if (error) {
       console.error('Error upserting access enabled:', error)
@@ -145,24 +144,24 @@ export async function upsertAccessEnabled({
 export async function createUserRole({
   userId,
   businessId,
-  role,
+  roles,
   urlRevalidate
 }: {
   userId: string
   businessId: string
-  role: 'institution_owner' | 'member' | 'editor'
+  roles: string[]
   urlRevalidate?: string
 }): Promise<{ data: IUserRoleFull | null; error: Error | null }> {
   const supabase = await getSupabase()
   try {
     const { data, error } = await supabase
-      .from('user_roles')
+      .from('business_members')
       .insert({
         user_id: userId,
         business_id: businessId,
-        role
+        roles
       })
-      .select('*, user:user_id(*)')
+      .select('*, access_enabled:is_active, user:profiles(*)')
       .single()
     if (error) {
       console.error('Error creating user role:', error)
