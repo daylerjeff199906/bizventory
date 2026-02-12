@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { UserPlus, Pencil, Trash2, Loader2 } from 'lucide-react'
+import { UserPlus, Trash2, Loader2, Edit } from 'lucide-react'
 import {
     AlertDialog,
     AlertDialogAction,
@@ -27,10 +27,12 @@ import { deleteBusinessAction } from '../../_actions'
 import { toast } from 'react-toastify'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { Business } from '@/types'
 
 interface BusinessTableProps {
-    businesses: any[]
+    businesses: Business[]
 }
+
 
 export function BusinessTable({ businesses }: BusinessTableProps) {
     const [selectedBusiness, setSelectedBusiness] = useState<any | null>(null)
@@ -115,7 +117,7 @@ export function BusinessTable({ businesses }: BusinessTableProps) {
                                                 setIsEditOpen(true)
                                             }}
                                         >
-                                            <Pencil className="h-4 w-4" />
+                                            <Edit className="h-4 w-4" />
                                         </Button>
                                         <Button
                                             variant="outline"
