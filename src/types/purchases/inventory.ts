@@ -11,6 +11,7 @@ export interface InventoryMovementWithProduct {
   id: string
   product_id?: string | null
   product_variant_id?: string | null
+  business_id?: string | null
   quantity: number
   movement_date: string
   reference_id: string

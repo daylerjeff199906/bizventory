@@ -79,10 +79,8 @@ export async function getProductsWithVariantsAndStock({
       .from('products')
       .select('*, brand:brands!inner(*)', { count: 'exact' })
       .order(sortBy, { ascending: sortOrder === 'asc' })
-      .range(offset, offset + pageSize - 1)
-
     if (businessId) {
-      productsQuery = productsQuery.eq('brands.business_id', businessId)
+      productsQuery = productsQuery.eq('brand.business_id', businessId)
     }
 
     // Aplicar filtro de búsqueda en productos principales
@@ -91,6 +89,11 @@ export async function getProductsWithVariantsAndStock({
         `name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%,code.ilike.%${searchQuery}%`
       )
     }
+
+    productsQuery = productsQuery
+      .range(offset, offset + pageSize - 1)
+
+
 
     const { data: products, count, error: productsError } = await productsQuery
     if (productsError) throw productsError
@@ -263,10 +266,10 @@ export async function getProductsWithVariantsAndStock({
 }
 
 // get_inventory_stats
-export async function fetchInventoryStats(): Promise<totalStats | null> {
+export async function fetchInventoryStats(businessId: string): Promise<totalStats | null> {
   const supabase = await getSupabase()
   try {
-    const { data, error } = await supabase.rpc('get_inventory_stats').single()
+    const { data, error } = await supabase.rpc('get_inventory_stats', { p_business_id: businessId }).single()
 
     if (error) return null
 
