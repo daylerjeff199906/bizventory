@@ -29,6 +29,7 @@ import {
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
 import { URL_CONFIG } from '@/config/urlConfig'
+import { useSidebar } from '@/components/ui/sidebar'
 
 // Datos de ejemplo para el menú de opciones
 // Opciones del dropdown del usuario
@@ -71,6 +72,7 @@ export function NavActions({
   } | null
 }) {
   const router = useRouter()
+  const { state } = useSidebar()
   // Datos de usuario de ejemplo (deberías obtenerlos de tu estado de autenticación real)
   const user = userData || {
     name: 'Juan Pérez',
@@ -93,30 +95,36 @@ export function NavActions({
     }
   }
 
+  const isCollapsed = state === 'collapsed'
+
   return (
-    <div className="flex items-center gap-2 text-sm">
+    <div className="flex items-center gap-2 text-sm w-full">
       {isAuthenticated ? (
         // Usuario autenticado - mostrar avatar con dropdown
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="relative h-8 w-full px-2 flex items-center gap-2"
+              className={`relative h-12 w-full flex items-center gap-2 ${isCollapsed ? 'justify-center px-0' : 'px-2'}`}
             >
-              <Avatar className="h-6 w-6">
+              <Avatar className="h-8 w-8">
                 <AvatarImage src={user.avatar} alt={user.name} />
                 <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
               </Avatar>
-              <div className="flex flex-col items-start mr-2">
-                <span className="text-xs font-medium">{user.name}</span>
-                <span className="text-xs text-muted-foreground">
-                  {user.email}
-                </span>
-              </div>
-              <ChevronDown className="h-4 w-4" />
+              {!isCollapsed && (
+                <>
+                  <div className="flex flex-col items-start mr-2 overflow-hidden flex-1">
+                    <span className="text-xs font-medium truncate w-full text-left">{user.name}</span>
+                    <span className="text-xs text-muted-foreground truncate w-full text-left">
+                      {user.email}
+                    </span>
+                  </div>
+                  <ChevronDown className="h-4 w-4 shrink-0" />
+                </>
+              )}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" align="end" forceMount>
+          <DropdownMenuContent className="w-56" align={isCollapsed ? "start" : "end"} side={isCollapsed ? "right" : "bottom"} forceMount>
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
                 <p className="text-sm font-medium leading-none">{user.name}</p>
@@ -201,11 +209,13 @@ export function NavActions({
         </DropdownMenu>
       ) : (
         // Usuario no autenticado - mostrar botones de inicio de sesión y comprar plan
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" className="rounded-full border" asChild>
-            <Link href="/login">Iniciar sesión</Link>
+        <div className={`flex items-center gap-2 ${isCollapsed ? 'flex-col' : ''}`}>
+          <Button variant="ghost" className={`rounded-full border ${isCollapsed ? 'p-2' : ''}`} asChild>
+            <Link href="/login">
+              {isCollapsed ? <User className="h-4 w-4" /> : "Iniciar sesión"}
+            </Link>
           </Button>
-          <Button className="rounded-full">Comprar plan</Button>
+          {!isCollapsed && <Button className="rounded-full">Comprar plan</Button>}
         </div>
       )}
     </div>
