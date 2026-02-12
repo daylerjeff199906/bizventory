@@ -51,13 +51,12 @@ export const BusinessesPage = ({ businessesList }: BusinessPageProps) => {
                   <Avatar className="h-10 w-10 flex-shrink-0">
                     <AvatarImage
                       src={business.brand || undefined}
-                      alt={business.business_name}
+                      alt={business.business_name || 'default.alt'}
                       className="object-cover"
                     />
 
                     <AvatarFallback className="bg-muted text-muted-foreground font-medium text-sm">
-                      {business.business_name
-                        .split(' ')
+                      {business?.business_name?.split(' ')
                         .map((word) => word[0])
                         .join('')
                         .toUpperCase()
@@ -85,16 +84,16 @@ export const BusinessesPage = ({ businessesList }: BusinessPageProps) => {
                         variant="outline"
                         className={`text-xs rounded-full ${getStatusColor(
                           business.validation_status as
-                            | 'pending'
-                            | 'approved'
-                            | 'rejected'
+                          | 'pending'
+                          | 'approved'
+                          | 'rejected'
                         )}`}
                       >
                         {business.validation_status === 'pending'
                           ? 'Pendiente'
                           : business.validation_status === 'approved'
-                          ? 'Aprobado'
-                          : 'Rechazado'}
+                            ? 'Aprobado'
+                            : 'Rechazado'}
                       </Badge>
                       {business.status && (
                         <Badge
