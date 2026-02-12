@@ -16,4 +16,5 @@ export interface Business {
     validation_status: string | null
     updated_at: string | null
     status: string | null
+    deleted_at: string | null
 }

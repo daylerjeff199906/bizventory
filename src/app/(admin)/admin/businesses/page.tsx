@@ -1,7 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
 import { BusinessTable } from './_components/business-table'
-import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
 import { CreateBusinessDialog } from './_components/create-business-dialog'
 
 export default async function BusinessesPage() {
@@ -10,6 +8,7 @@ export default async function BusinessesPage() {
     const { data: businesses, error } = await supabase
         .from('business')
         .select('*')
+        .is('deleted_at', null)
         .order('created_at', { ascending: false })
 
     if (error) {

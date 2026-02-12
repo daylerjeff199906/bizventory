@@ -75,9 +75,13 @@ export async function deleteBusinessAction(id: string) {
     const supabase = await createClient()
 
     try {
+        // Soft delete: marcar como eliminado sin borrar físicamente
         const { error } = await supabase
             .from('business')
-            .delete()
+            .update({
+                deleted_at: new Date().toISOString(),
+                status: 'INACTIVE'
+            })
             .eq('id', id)
 
         if (error) throw error
