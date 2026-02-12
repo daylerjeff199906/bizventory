@@ -11,9 +11,10 @@ export async function getBusinessesByUserRole(
 ): Promise<BusinessForm[]> {
   const supabase = await getSupabase()
   const { data, error } = await supabase
-    .from('user_roles')
-    .select('business(*)')
+    .from('business_members')
+    .select('business:businesses(*)')
     .eq('user_id', userId)
+    .eq('is_active', true) // Filter only active memberships
 
   if (error) {
     console.error('Error fetching businesses:', error)
@@ -21,7 +22,10 @@ export async function getBusinessesByUserRole(
   }
 
   // Flatten the result to return only businesses
-  return data?.flatMap((row) => row.business) ?? []
+  // data is { business: { ... } }[]
+  // we want BusinessForm[]
+  // Ensure we map correctly
+  return data?.map((row: any) => row.business).filter(Boolean) ?? []
 }
 
 export async function getFullUserRoleByBusiness(
@@ -29,8 +33,8 @@ export async function getFullUserRoleByBusiness(
 ): Promise<IUserRoleFull[]> {
   const supabase = await getSupabase()
   const { data, error } = await supabase
-    .from('user_roles')
-    .select('*, user:user_id(*)')
+    .from('business_members')
+    .select('*, user:profiles(*)')
     .eq('business_id', businessId)
   if (error) {
     console.error('Error fetching user roles:', error)
