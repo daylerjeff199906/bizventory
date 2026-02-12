@@ -1,65 +1,34 @@
 import { createClient } from '@/utils/supabase/server'
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
+import { BusinessTable } from './_components/business-table'
 import { Button } from '@/components/ui/button'
+import { Plus } from 'lucide-react'
+import { CreateBusinessDialog } from './_components/create-business-dialog'
 
-export default async function BusinessesAdminPage() {
+export default async function BusinessesPage() {
     const supabase = await createClient()
 
-    // Fetch businesses, ordering by creation date
     const { data: businesses, error } = await supabase
         .from('business')
         .select('*')
         .order('created_at', { ascending: false })
 
+    if (error) {
+        console.error('Error fetching businesses:', error)
+    }
+
     return (
-        <div className="space-y-4">
+        <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold">Gestión de Negocios</h2>
-                <Button>Crear Negocio</Button>
+                <div>
+                    <h1 className="text-2xl font-bold tracking-tight">Gestión de Negocios</h1>
+                    <p className="text-muted-foreground text-sm">
+                        Administra todos los negocios registrados en la plataforma.
+                    </p>
+                </div>
+                <CreateBusinessDialog />
             </div>
-            <div className="rounded-md border bg-card">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Nombre</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Creado</TableHead>
-                            <TableHead className="text-right">Acciones</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {businesses?.map((business: any) => (
-                            <TableRow key={business.id}>
-                                <TableCell className="font-medium">{business.name}</TableCell>
-                                <TableCell>
-                                    <Badge variant={business.is_active || business.status === 'active' ? 'default' : 'secondary'}>
-                                        {business.status || (business.is_active ? 'Activo' : 'Inactivo')}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell>{business.created_at ? new Date(business.created_at).toLocaleDateString() : '-'}</TableCell>
-                                <TableCell className="text-right">
-                                    <Button variant="ghost" size="sm">Administrar</Button>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                        {!businesses?.length && (
-                            <TableRow>
-                                <TableCell colSpan={4} className="text-center h-24 text-muted-foreground">
-                                    No se encontraron negocios.
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
+
+            <BusinessTable businesses={businesses || []} />
         </div>
     )
 }

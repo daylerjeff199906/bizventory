@@ -116,5 +116,10 @@ export const APP_URLS = {
   REPORTS: {
     INVENTORY: `${URL_PREFIX}/history-inventory`,
     STOCK: `${URL_PREFIX}/history-stock`
+  },
+  ADMIN: {
+    BASE: '/admin',
+    BUSINESSES: '/admin/businesses',
+    USERS: '/admin/users'
   }
 }
