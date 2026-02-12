@@ -1,8 +1,7 @@
-// lib/auth/session.ts
 import 'server-only'
-import { SignJWT, jwtVerify } from 'jose'
+import { SignJWT, jwtVerify, type JWTPayload } from 'jose'
 import { cookies } from 'next/headers'
-import { AuthResponse } from '@/types'
+import { AuthResponse, SupabaseUser, Session } from '@/types'
 
 const secretKey = process.env.SESSION_SECRET
 if (!secretKey) {
@@ -10,8 +9,10 @@ if (!secretKey) {
 }
 const encodedKey = new TextEncoder().encode(secretKey)
 
-interface SessionPayload {
-  [key: string]: string | number | boolean | object | SessionPayload
+export interface SessionPayload extends JWTPayload {
+  user: SupabaseUser
+  session: Session
+  expires: string
 }
 
 export async function encrypt(payload: SessionPayload) {
@@ -27,7 +28,7 @@ export async function decrypt(session: string | undefined = '') {
     const { payload } = await jwtVerify(session, encodedKey, {
       algorithms: ['HS256']
     })
-    return payload as SessionPayload
+    return payload as unknown as SessionPayload
   } catch (error) {
     console.error('Failed to verify session:', error)
     return null
