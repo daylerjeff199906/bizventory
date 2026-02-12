@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { UserPlus, Trash2, Loader2, Edit } from 'lucide-react'
+import { UserPlus, Trash2, Loader2, Edit, Building2 } from 'lucide-react'
 import {
     AlertDialog,
     AlertDialogAction,
@@ -28,6 +28,7 @@ import { toast } from 'react-toastify'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Business } from '@/types'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 interface BusinessTableProps {
     businesses: Business[]
@@ -83,7 +84,24 @@ export function BusinessTable({ businesses }: BusinessTableProps) {
                         businesses.map((business) => (
                             <TableRow key={business.id}>
                                 <TableCell className="font-medium text-sm">
-                                    {business.business_name}
+                                    <div className="flex items-center gap-3">
+                                        <Avatar className="h-9 w-9 border">
+                                            <AvatarImage src={business.brand || ''} alt={business.business_name || ''} />
+                                            <AvatarFallback className="bg-primary/5 text-primary text-xs font-bold">
+                                                {business.business_name ? business.business_name.substring(0, 2).toUpperCase() : <Building2 className="h-4 w-4" />}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        <div className="flex flex-col">
+                                            <span className="font-semibold text-foreground leading-none mb-1">
+                                                {business.business_name}
+                                            </span>
+                                            {business.acronym && (
+                                                <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
+                                                    {business.acronym}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
                                 </TableCell>
                                 <TableCell className="text-sm">
                                     {business.business_type}
