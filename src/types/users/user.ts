@@ -18,7 +18,7 @@ export interface IUser {
 export interface IUserRole {
   id: string
   user_id: string
-  role: string
+  roles: string[]
   institution_id?: string | null
   access_enabled?: boolean | null
   created_at?: Date | null
@@ -35,5 +35,5 @@ export interface IUserFilter extends Pagination {
   email?: string
   first_name?: string
   last_name?: string
-  role?: string
+  roles?: string[]
 }

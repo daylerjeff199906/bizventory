@@ -15,7 +15,7 @@ export default async function BusinessesAdminPage() {
 
     // Fetch businesses, ordering by creation date
     const { data: businesses, error } = await supabase
-        .from('businesses')
+        .from('business')
         .select('*')
         .order('created_at', { ascending: false })
 
