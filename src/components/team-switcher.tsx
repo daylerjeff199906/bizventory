@@ -51,6 +51,23 @@ export function TeamSwitcher({ teams }: { teams: TeamSwitcherType[] }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, teams])
 
+  // Helper to construct URL for switching teams while preserving current page
+  const getTeamUrl = (teamHref: string | undefined) => {
+    if (!teamHref) return '#'
+
+    // Check if we are currently in a business dashboard route
+    // Pattern: /dashboard/[uuid]/...
+    const dashboardMatch = pathname?.match(/^\/dashboard\/([^/]+)(.*)/)
+
+    if (dashboardMatch) {
+      const currentSubPath = dashboardMatch[2] // This captures everything after the UUID
+      // Ensure teamHref doesn't already have a trailing slash if subpath has leading slash (it does from regex)
+      return `${teamHref.replace(/\/$/, '')}${currentSubPath}`
+    }
+
+    return teamHref
+  }
+
   if (!activeTeam) {
     return null
   }
@@ -106,12 +123,11 @@ export function TeamSwitcher({ teams }: { teams: TeamSwitcherType[] }) {
             {teams.map((team) => (
               <DropdownMenuItem key={team.name} className="gap-2 p-2" asChild>
                 <Link
-                  href={team.href || '#'}
-                  className={`flex items-center rounded-md px-2 py-2 text-sm hover:bg-accent hover:text-accent-foreground ${
-                    team.name === activeTeam.name
+                  href={getTeamUrl(team.href)}
+                  className={`flex items-center rounded-md px-2 py-2 text-sm hover:bg-accent hover:text-accent-foreground ${team.name === activeTeam.name
                       ? 'bg-accent text-accent-foreground'
                       : ''
-                  }`}
+                    }`}
                 >
                   <img
                     src={team.url_logo || '/placeholder-team-logo.png'}

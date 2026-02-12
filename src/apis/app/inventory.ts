@@ -20,8 +20,10 @@ export async function getInventoryMovements({
   sortBy = 'date',
   sortDirection = 'desc',
   page,
-  pageSize
+  pageSize,
+  businessId
 }: {
+  businessId?: string
   page?: number
   pageSize?: number
   filters?: Record<string, string | number | string[] | undefined>
@@ -56,8 +58,12 @@ export async function getInventoryMovements({
     `,
       { count: 'exact' }
     )
-    .range(from, to)
     .order(sortColumn, { ascending: sortDirection === 'asc' })
+
+  if (businessId) {
+    query = query.eq('business_id', businessId)
+  }
+
 
   if (filters) {
     for (const [key, value] of Object.entries(filters)) {
@@ -77,6 +83,8 @@ export async function getInventoryMovements({
       }
     }
   }
+
+  query = query.range(from, to)
 
   const { data, error, count } = await query
 

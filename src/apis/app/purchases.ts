@@ -253,6 +253,7 @@ export async function createPurchase({
     .insert({
       code: validatedData.code,
       date: validatedData.date,
+      business_id: validatedData.business_id,
       supplier_id: validatedData.supplier_id,
       guide_number: validatedData.guide_number,
       subtotal: validatedData.subtotal,
