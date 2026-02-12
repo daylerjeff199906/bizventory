@@ -34,6 +34,8 @@ import { businessSchema, businessTypes, BusinessForm } from '@/schemas/business/
 import { createBusinessAction } from '../../_actions'
 import { toast } from 'react-toastify'
 import { useRouter } from 'next/navigation'
+import { Textarea } from '@/components/ui/textarea'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 export function CreateBusinessDialog() {
     const [open, setOpen] = useState(false)
@@ -45,7 +47,13 @@ export function CreateBusinessDialog() {
             business_name: '',
             business_type: '',
             business_email: '',
-            status: 'ACTIVE' as any
+            description: '',
+            document_number: '',
+            brand: '',
+            acronym: '',
+            contact_phone: '',
+            address: '',
+            status: 'ACTIVE'
         },
     })
 
@@ -73,76 +81,160 @@ export function CreateBusinessDialog() {
                     Nuevo Negocio
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[600px]">
                 <DialogHeader>
-                    <DialogTitle className="text-base">Crear Nuevo Negocio</DialogTitle>
+                    <DialogTitle className="text-base font-bold">Crear Nuevo Negocio</DialogTitle>
                     <DialogDescription className="text-sm">
                         Ingresa los detalles para registrar un nuevo negocio en la plataforma.
                     </DialogDescription>
                 </DialogHeader>
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
-                        <FormField
-                            control={form.control}
-                            name="business_name"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel className="text-sm">Nombre del Negocio</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Ej. Mi Empresa S.A." className="text-sm" {...field} />
-                                    </FormControl>
-                                    <FormMessage className="text-[10px]" />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="business_type"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel className="text-sm">Tipo de Negocio</FormLabel>
-                                    <Select
-                                        onValueChange={field.onChange}
-                                        defaultValue={field.value}
-                                    >
+                <ScrollArea className="max-h-[80vh] px-1">
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="business_name"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-xs uppercase font-semibold text-muted-foreground">Nombre del Negocio</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="Ej. Mi Empresa S.A." className="text-sm" {...field} value={field.value || ''} />
+                                            </FormControl>
+                                            <FormMessage className="text-[10px]" />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="business_type"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-xs uppercase font-semibold text-muted-foreground">Tipo de Negocio</FormLabel>
+                                            <Select
+                                                onValueChange={field.onChange}
+                                                defaultValue={field.value || ''}
+                                            >
+                                                <FormControl>
+                                                    <SelectTrigger className="text-sm">
+                                                        <SelectValue placeholder="Selecciona un tipo" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {businessTypes.map((type) => (
+                                                        <SelectItem key={type.value} value={type.value} className="text-sm">
+                                                            {type.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage className="text-[10px]" />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="business_email"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-xs uppercase font-semibold text-muted-foreground">Email de Contacto</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="contacto@empresa.com" className="text-sm" {...field} value={field.value || ''} />
+                                            </FormControl>
+                                            <FormMessage className="text-[10px]" />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="contact_phone"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-xs uppercase font-semibold text-muted-foreground">Teléfono</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="+51 987 654 321" className="text-sm" {...field} value={field.value || ''} />
+                                            </FormControl>
+                                            <FormMessage className="text-[10px]" />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="document_number"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-xs uppercase font-semibold text-muted-foreground">RUC / Documento</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="10XXXXXXXXX" className="text-sm" {...field} value={field.value || ''} />
+                                            </FormControl>
+                                            <FormMessage className="text-[10px]" />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="acronym"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-xs uppercase font-semibold text-muted-foreground">Siglas / Acrónimo</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="ABC" className="text-sm" {...field} value={field.value || ''} />
+                                            </FormControl>
+                                            <FormMessage className="text-[10px]" />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+
+                            <FormField
+                                control={form.control}
+                                name="address"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="text-xs uppercase font-semibold text-muted-foreground">Dirección</FormLabel>
                                         <FormControl>
-                                            <SelectTrigger className="text-sm">
-                                                <SelectValue placeholder="Selecciona un tipo" />
-                                            </SelectTrigger>
+                                            <Input placeholder="Av. Principal 123, Ciudad" className="text-sm" {...field} value={field.value || ''} />
                                         </FormControl>
-                                        <SelectContent>
-                                            {businessTypes.map((type) => (
-                                                <SelectItem key={type.value} value={type.value} className="text-sm">
-                                                    {type.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage className="text-[10px]" />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="business_email"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel className="text-sm">Email de Contacto</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="contacto@empresa.com" className="text-sm" {...field} />
-                                    </FormControl>
-                                    <FormMessage className="text-[10px]" />
-                                </FormItem>
-                            )}
-                        />
-                        <DialogFooter className="pt-4">
-                            <Button type="submit" disabled={form.formState.isSubmitting} className="text-sm">
-                                {form.formState.isSubmitting ? 'Guardando...' : 'Guardar Negocio'}
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                </Form>
+                                        <FormMessage className="text-[10px]" />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="description"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="text-xs uppercase font-semibold text-muted-foreground">Descripción</FormLabel>
+                                        <FormControl>
+                                            <Textarea
+                                                placeholder="Describe el negocio..."
+                                                className="text-sm resize-none"
+                                                {...field}
+                                                value={field.value || ''}
+                                            />
+                                        </FormControl>
+                                        <FormMessage className="text-[10px]" />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <DialogFooter className="pt-4">
+                                <Button type="submit" disabled={form.formState.isSubmitting} className="text-sm w-full sm:w-auto">
+                                    {form.formState.isSubmitting ? 'Guardando...' : 'Guardar Negocio'}
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    </Form>
+                </ScrollArea>
             </DialogContent>
         </Dialog>
     )
 }
+

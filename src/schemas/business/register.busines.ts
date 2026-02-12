@@ -10,23 +10,25 @@ export const businessSchema = z.object({
   id: z.string().optional(),
   business_name: z
     .string()
-    .min(2, 'El nombre de la empresa debe tener al menos 2 caracteres'),
-  business_type: z.string().min(1, 'Selecciona el tipo de empresa'),
-  description: z.string().optional(),
-  business_email: z.string().email('Ingresa un correo electrónico válido'),
-  document_number: z.string().optional(),
+    .min(2, 'El nombre de la empresa debe tener al menos 2 caracteres')
+    .nullable(),
+  business_type: z.string().min(1, 'Selecciona el tipo de empresa').nullable(),
+  description: z.string().optional().nullable(),
+  business_email: z.string().email('Ingresa un correo electrónico válido').nullable(),
+  document_number: z.string().optional().nullable(),
   brand: z.string().optional().nullable(),
-  acronym: z.string().optional(),
-  cover_image_url: z.string().optional(),
+  acronym: z.string().optional().nullable(),
+  cover_image_url: z.string().optional().nullable(),
   map_iframe_url: z.string().optional().nullable(),
-  contact_phone: z.string().optional(),
-  address: z.string().optional(),
-  documents: z.any().optional(), // jsonb field
-  validation_status: z.enum(['pending', 'approved', 'rejected']).optional(),
-  created_at: z.date().optional(),
-  updated_at: z.date().optional(),
-  status: z.enum([BusinessStatus.ACTIVE, BusinessStatus.INACTIVE]).optional()
+  contact_phone: z.string().optional().nullable(),
+  address: z.string().optional().nullable(),
+  documents: z.any().optional().nullable(), // jsonb field
+  validation_status: z.string().optional().nullable(),
+  created_at: z.string().optional().nullable(),
+  updated_at: z.string().optional().nullable(),
+  status: z.string().optional().nullable()
 })
+
 
 // Esquema para el formulario de búsqueda
 export const searchBusinessSchema = z.object({
@@ -96,5 +98,6 @@ export const businessTypes = [
   { value: 'asociacion', label: 'Asociación' },
   { value: 'cooperativa', label: 'Cooperativa' },
   { value: 'grupo-independiente', label: 'Grupo Independiente' },
+  { value: 'dropshipping', label: 'Dropshipping' },
   { value: 'otro', label: 'Otro' }
 ] as const

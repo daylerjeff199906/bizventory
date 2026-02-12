@@ -35,7 +35,7 @@ interface BusinessTableProps {
 
 
 export function BusinessTable({ businesses }: BusinessTableProps) {
-    const [selectedBusiness, setSelectedBusiness] = useState<any | null>(null)
+    const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null)
     const [isEditOpen, setIsEditOpen] = useState(false)
     const [isDeleteOpen, setIsDeleteOpen] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)

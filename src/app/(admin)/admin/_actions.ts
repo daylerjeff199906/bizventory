@@ -14,6 +14,14 @@ export async function createBusinessAction(values: BusinessForm) {
                 business_name: values.business_name,
                 business_type: values.business_type,
                 business_email: values.business_email,
+                description: values.description,
+                document_number: values.document_number,
+                brand: values.brand,
+                acronym: values.acronym,
+                cover_image_url: values.cover_image_url,
+                map_iframe_url: values.map_iframe_url,
+                contact_phone: values.contact_phone,
+                address: values.address,
                 status: values.status || 'ACTIVE',
             })
             .select()
@@ -39,6 +47,14 @@ export async function updateBusinessAction(id: string, values: BusinessForm) {
                 business_name: values.business_name,
                 business_type: values.business_type,
                 business_email: values.business_email,
+                description: values.description,
+                document_number: values.document_number,
+                brand: values.brand,
+                acronym: values.acronym,
+                cover_image_url: values.cover_image_url,
+                map_iframe_url: values.map_iframe_url,
+                contact_phone: values.contact_phone,
+                address: values.address,
                 status: values.status,
             })
             .eq('id', id)

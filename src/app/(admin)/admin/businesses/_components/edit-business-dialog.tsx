@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -32,9 +32,12 @@ import { businessSchema, businessTypes, BusinessForm } from '@/schemas/business/
 import { updateBusinessAction } from '../../_actions'
 import { toast } from 'react-toastify'
 import { useRouter } from 'next/navigation'
+import { Business } from '@/types'
+import { Textarea } from '@/components/ui/textarea'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 interface EditBusinessDialogProps {
-    business: any
+    business: Business
     open: boolean
     onOpenChange: (open: boolean) => void
 }
@@ -48,6 +51,12 @@ export function EditBusinessDialog({ business, open, onOpenChange }: EditBusines
             business_name: business?.business_name || '',
             business_type: business?.business_type || '',
             business_email: business?.business_email || '',
+            description: business?.description || '',
+            document_number: business?.document_number || '',
+            brand: business?.brand || '',
+            acronym: business?.acronym || '',
+            contact_phone: business?.contact_phone || '',
+            address: business?.address || '',
             status: business?.status || 'ACTIVE'
         },
     })
@@ -55,10 +64,16 @@ export function EditBusinessDialog({ business, open, onOpenChange }: EditBusines
     useEffect(() => {
         if (business) {
             form.reset({
-                business_name: business.business_name,
-                business_type: business.business_type,
-                business_email: business.business_email,
-                status: business.status
+                business_name: business.business_name || '',
+                business_type: business.business_type || '',
+                business_email: business.business_email || '',
+                description: business.description || '',
+                document_number: business.document_number || '',
+                brand: business.brand || '',
+                acronym: business.acronym || '',
+                contact_phone: business.contact_phone || '',
+                address: business.address || '',
+                status: business.status || 'ACTIVE'
             })
         }
     }, [business, form])
@@ -80,102 +95,187 @@ export function EditBusinessDialog({ business, open, onOpenChange }: EditBusines
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[600px]">
                 <DialogHeader>
-                    <DialogTitle className="text-base">Editar Negocio</DialogTitle>
+                    <DialogTitle className="text-base font-bold">Editar Negocio</DialogTitle>
                     <DialogDescription className="text-sm">
                         Modifica los detalles del negocio.
                     </DialogDescription>
                 </DialogHeader>
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
-                        <FormField
-                            control={form.control}
-                            name="business_name"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel className="text-sm">Nombre del Negocio</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Ej. Mi Empresa S.A." className="text-sm" {...field} />
-                                    </FormControl>
-                                    <FormMessage className="text-[10px]" />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="business_type"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel className="text-sm">Tipo de Negocio</FormLabel>
-                                    <Select
-                                        onValueChange={field.onChange}
-                                        defaultValue={field.value}
-                                        value={field.value}
-                                    >
+                <ScrollArea className="max-h-[80vh] px-1">
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="business_name"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-xs uppercase font-semibold text-muted-foreground">Nombre del Negocio</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="Ej. Mi Empresa S.A." className="text-sm" {...field} value={field.value || ''} />
+                                            </FormControl>
+                                            <FormMessage className="text-[10px]" />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="business_type"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-xs uppercase font-semibold text-muted-foreground">Tipo de Negocio</FormLabel>
+                                            <Select
+                                                onValueChange={field.onChange}
+                                                defaultValue={field.value || ''}
+                                                value={field.value || ''}
+                                            >
+                                                <FormControl>
+                                                    <SelectTrigger className="text-sm">
+                                                        <SelectValue placeholder="Selecciona un tipo" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {businessTypes.map((type) => (
+                                                        <SelectItem key={type.value} value={type.value} className="text-sm">
+                                                            {type.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage className="text-[10px]" />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="business_email"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-xs uppercase font-semibold text-muted-foreground">Email de Contacto</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="contacto@empresa.com" className="text-sm" {...field} value={field.value || ''} />
+                                            </FormControl>
+                                            <FormMessage className="text-[10px]" />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="contact_phone"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-xs uppercase font-semibold text-muted-foreground">Teléfono</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="+51 987 654 321" className="text-sm" {...field} value={field.value || ''} />
+                                            </FormControl>
+                                            <FormMessage className="text-[10px]" />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="document_number"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-xs uppercase font-semibold text-muted-foreground">RUC / Documento</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="10XXXXXXXXX" className="text-sm" {...field} value={field.value || ''} />
+                                            </FormControl>
+                                            <FormMessage className="text-[10px]" />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="acronym"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-xs uppercase font-semibold text-muted-foreground">Siglas / Acrónimo</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="ABC" className="text-sm" {...field} value={field.value || ''} />
+                                            </FormControl>
+                                            <FormMessage className="text-[10px]" />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+
+                            <FormField
+                                control={form.control}
+                                name="address"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="text-xs uppercase font-semibold text-muted-foreground">Dirección</FormLabel>
                                         <FormControl>
-                                            <SelectTrigger className="text-sm">
-                                                <SelectValue placeholder="Selecciona un tipo" />
-                                            </SelectTrigger>
+                                            <Input placeholder="Av. Principal 123, Ciudad" className="text-sm" {...field} value={field.value || ''} />
                                         </FormControl>
-                                        <SelectContent>
-                                            {businessTypes.map((type) => (
-                                                <SelectItem key={type.value} value={type.value} className="text-sm">
-                                                    {type.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage className="text-[10px]" />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="business_email"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel className="text-sm">Email de Contacto</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="contacto@empresa.com" className="text-sm" {...field} />
-                                    </FormControl>
-                                    <FormMessage className="text-[10px]" />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="status"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel className="text-sm">Estado</FormLabel>
-                                    <Select
-                                        onValueChange={field.onChange}
-                                        defaultValue={field.value}
-                                        value={field.value}
-                                    >
+                                        <FormMessage className="text-[10px]" />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="description"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="text-xs uppercase font-semibold text-muted-foreground">Descripción</FormLabel>
                                         <FormControl>
-                                            <SelectTrigger className="text-sm">
-                                                <SelectValue placeholder="Selecciona estado" />
-                                            </SelectTrigger>
+                                            <Textarea
+                                                placeholder="Describe el negocio..."
+                                                className="text-sm resize-none"
+                                                {...field}
+                                                value={field.value || ''}
+                                            />
                                         </FormControl>
-                                        <SelectContent>
-                                            <SelectItem value="ACTIVE" className="text-sm">Activo</SelectItem>
-                                            <SelectItem value="INACTIVE" className="text-sm">Inactivo</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage className="text-[10px]" />
-                                </FormItem>
-                            )}
-                        />
-                        <DialogFooter className="pt-4">
-                            <Button type="submit" disabled={form.formState.isSubmitting} className="text-sm">
-                                {form.formState.isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                </Form>
+                                        <FormMessage className="text-[10px]" />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="status"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="text-xs uppercase font-semibold text-muted-foreground">Estado</FormLabel>
+                                        <Select
+                                            onValueChange={field.onChange}
+                                            defaultValue={field.value || ''}
+                                            value={field.value || ''}
+                                        >
+                                            <FormControl>
+                                                <SelectTrigger className="text-sm">
+                                                    <SelectValue placeholder="Selecciona estado" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="ACTIVE" className="text-sm">Activo</SelectItem>
+                                                <SelectItem value="INACTIVE" className="text-sm">Inactivo</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage className="text-[10px]" />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <DialogFooter className="pt-4">
+                                <Button type="submit" disabled={form.formState.isSubmitting} className="text-sm w-full sm:w-auto">
+                                    {form.formState.isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    </Form>
+                </ScrollArea>
             </DialogContent>
         </Dialog>
     )
 }
+
