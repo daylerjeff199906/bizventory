@@ -11,7 +11,8 @@ export const productVariantSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1, 'El nombre es obligatorio'),
   price: z.coerce.number().min(0),
-  attributes: z.array(productVariantAttributeSchema)
+  attributes: z.array(productVariantAttributeSchema),
+  images: z.array(z.string()).max(3, 'Máximo 3 imágenes por variante')
 })
 
 export const productVariantsSchema = z.array(productVariantSchema)

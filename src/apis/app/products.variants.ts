@@ -34,6 +34,7 @@ export const createProductVariants = async ({
       attribute_type: string
       attribute_value: string
     }[]
+    images?: string[]
   }[]
   revalidateUrl?: string
 }): Promise<CreateProductVariantsResponse> => {
@@ -47,7 +48,8 @@ export const createProductVariants = async ({
         variants.map((variant) => ({
           product_id: productId,
           name: variant.name,
-          price: variant.price
+          price: variant.price,
+          images: variant.images || []
         }))
       )
       .select('id, code')
