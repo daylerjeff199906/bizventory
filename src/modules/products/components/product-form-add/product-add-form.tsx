@@ -42,6 +42,7 @@ import { toast } from 'react-toastify'
 import { SearchSelectPopover } from '@/components/app/SearchSelectPopover'
 import { useBrands } from '@/hooks/use-brands'
 import { useParams } from 'next/navigation'
+import { ImageUpload } from '@/components/ui/image-upload'
 
 export const NewProductForm = () => {
   const [isLoading, setIsLoading] = useState(false)
@@ -368,6 +369,39 @@ export const NewProductForm = () => {
                   />
                 )}
               </div>
+            </section>
+
+
+            {/* Multimedia */}
+            <section className="space-y-6">
+              <div className="border-b border-gray-200 pb-4">
+                <h2 className="text-xl font-semibold">Multimedia</h2>
+                <p className="text-muted-foreground mt-1">
+                  Imágenes del producto (Máximo 5)
+                </p>
+              </div>
+
+              <FormField<CreateProductData, 'images'>
+                control={form.control}
+                name="images"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <ImageUpload
+                        value={field.value || []}
+                        onChange={(url) => field.onChange(url)}
+                        onRemove={(url) =>
+                          field.onChange(
+                            (field.value || []).filter((curr) => curr !== url)
+                          )
+                        }
+                        maxFiles={5}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </section>
 
             {/* Información adicional */}

@@ -59,6 +59,7 @@ import { handleProductVariantsUpdate } from '@/apis/app/product-variant-update'
 import { ProductVariant as ProductVariantType } from '@/apis/app/product-variant-update'
 import { getLastPurchasePrice } from '@/apis/app/purchases'
 import { useEffect } from 'react'
+import { ImageUpload } from '@/components/ui/image-upload'
 
 interface CreateVariantFormProps {
   productId: string
@@ -112,7 +113,8 @@ export const CreateVariantForm = ({
         {
           name: '',
           price: productPrice ?? 0,
-          attributes: []
+          attributes: [],
+          images: []
         }
       ]
     }
@@ -136,7 +138,8 @@ export const CreateVariantForm = ({
     append({
       name: '',
       price: productPrice || 0,
-      attributes: createCommonAttributesForVariant()
+      attributes: createCommonAttributesForVariant(),
+      images: []
     })
   }
 
@@ -226,7 +229,8 @@ export const CreateVariantForm = ({
             {
               name: '',
               price: productPrice || 0,
-              attributes: createCommonAttributesForVariant()
+              attributes: createCommonAttributesForVariant(),
+              images: []
             }
           ]
         })
@@ -326,7 +330,8 @@ export const CreateVariantForm = ({
                     {
                       name: '',
                       price: productPrice || 0,
-                      attributes: createCommonAttributesForVariant()
+                      attributes: createCommonAttributesForVariant(),
+                      images: []
                     }
                   ]
                 })
@@ -338,7 +343,8 @@ export const CreateVariantForm = ({
                     {
                       name: '',
                       price: productPrice || 0,
-                      attributes: createCommonAttributesForVariant()
+                      attributes: createCommonAttributesForVariant(),
+                      images: []
                     }
                   ]
                 })
@@ -355,7 +361,10 @@ export const CreateVariantForm = ({
           productWithVariants &&
           productWithVariants.variants.length > 0 && (
             <VariantsPreview
-              variants={productWithVariants?.variants || []}
+              variants={(productWithVariants?.variants || []).map((v) => ({
+                ...v,
+                images: v.images || []
+              }))}
               productName={productName}
               productCode={productCode}
               isLoading={isLoading}
@@ -475,7 +484,8 @@ export const CreateVariantForm = ({
                           {
                             name: '',
                             price: productPrice || 0,
-                            attributes: createCommonAttributesForVariant()
+                            attributes: createCommonAttributesForVariant(),
+                            images: []
                           }
                         ]
                       })
@@ -643,6 +653,31 @@ const VariantCard = ({
                   />
                 </FormControl>
                 <FormMessage className="text-xs" />
+              </FormItem>
+            )}
+          />
+        </div>
+
+
+        {/* Images Field */}
+        <div className="mb-4">
+          <FormLabel className="text-sm font-medium mb-2 block">Imágenes (Máximo 3)</FormLabel>
+          <FormField
+            control={form.control}
+            name={`variants.${index}.images`}
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <ImageUpload
+                    value={field.value || []}
+                    onChange={(url) => field.onChange(url)}
+                    onRemove={(url) =>
+                      field.onChange((field.value || []).filter((c) => c !== url))
+                    }
+                    maxFiles={3}
+                  />
+                </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />

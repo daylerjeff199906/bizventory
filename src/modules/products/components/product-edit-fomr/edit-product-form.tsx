@@ -32,6 +32,7 @@ import { SearchSelectPopover } from '@/components/app/SearchSelectPopover'
 import { useBrands } from '@/hooks/use-brands'
 import { getLastPurchasePrice } from '@/apis/app/purchases'
 import { useEffect } from 'react'
+import { ImageUpload } from '@/components/ui/image-upload'
 
 interface ProductFormProps {
   productDefault: ProductDetails
@@ -84,7 +85,8 @@ export const EditProductPage = (props: ProductFormProps) => {
     tags: productDefault.tags || [],
     price: productDefault.price || 0,
     discount_active: productDefault.discount_active || false,
-    discount_value: productDefault.discount_value || 0
+    discount_value: productDefault.discount_value || 0,
+    images: productDefault.images || []
   }
 
   const form = useForm<EditProductData>({
@@ -100,7 +102,8 @@ export const EditProductPage = (props: ProductFormProps) => {
       name: defaultValues.name?.toString() || '',
       price: defaultValues.price || 0,
       discount_active: defaultValues.discount_active || false,
-      discount_value: defaultValues.discount_value || 0
+      discount_value: defaultValues.discount_value || 0,
+      images: defaultValues.images || []
     }
   })
 
@@ -380,6 +383,30 @@ export const EditProductPage = (props: ProductFormProps) => {
                   />
                 )}
               </div>
+            </div>
+
+            {/* Multimedia */}
+            <div className="space-y-4 border rounded-lg p-4">
+              <h3 className="font-medium">Multimedia</h3>
+              <FormField
+                control={form.control}
+                name="images"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <ImageUpload
+                        value={field.value || []}
+                        onChange={(url) => field.onChange(url)}
+                        onRemove={(url) =>
+                          field.onChange((field.value?.filter((current) => current !== url)))
+                        }
+                        maxFiles={5}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             <FormField
