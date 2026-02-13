@@ -1,7 +1,9 @@
 import React from 'react'
-import { ProductsList } from '@/modules/products'
+import { ProductsList, FiltersProducts } from '@/modules/products'
 import { getProductsByBusinessId } from '@/apis/app'
 import { Params, SearchParams } from '@/types'
+import { PageHeader } from '@/components/app/header-section'
+import { APP_URLS } from '@/config/app-urls'
 
 interface Props {
   searchParams: SearchParams
@@ -41,11 +43,20 @@ export default async function Page(props: Props) {
   })
 
   return (
-    <>
+    <div className="flex flex-col gap-4">
+      <PageHeader
+        title="Lista de Productos"
+        description="Gestiona los productos de tu negocio."
+        actionButton={{
+          label: 'Nuevo Producto',
+          href: APP_URLS.ORGANIZATION.PRODUCTS.CREATE(uuid?.toString() || '')
+        }}
+      />
+      <FiltersProducts placeholder="Buscar productos..." />
       <ProductsList
         bussinessId={uuid?.toString() || ''}
         dataProducts={products}
       />
-    </>
+    </div>
   )
 }

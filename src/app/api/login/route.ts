@@ -6,7 +6,7 @@ import { createClient } from '@/utils/supabase/server'
 import { NextResponse } from 'next/server'
 
 export async function POST(req: Request) {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   try {
     const { email, password } = await req.json()
@@ -28,13 +28,50 @@ export async function POST(req: Request) {
         { status: 401 }
       )
     }
+
+    // 1. Obtener perfil para verificar is_super_admin
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', data.user.id)
+      .single()
+
+    if (profile && profile.is_active === false) {
+      await supabase.auth.signOut()
+      return NextResponse.json(
+        { error: 'Tu cuenta ha sido desactivada. Contacta al administrador.' },
+        { status: 403 }
+      )
+    }
+
+    // 2. Obtener negocios del usuario
+    const { data: businesses } = await supabase
+      .from('business_members')
+      .select('*, business:business(*)')
+      .eq('user_id', data.user.id)
+      .eq('is_active', true)
+
+    // Sincronizar metadata con perfil
+    if (profile) {
+      data.user.user_metadata = {
+        ...data.user.user_metadata,
+        is_super_admin: profile.is_super_admin,
+        // firstName: profile.first_name,
+        // lastName: profile.last_name,
+      }
+    }
+
     const authData: AuthResponse = {
-      user: data.user as SupabaseUser | null, // Asegúrate de que el tipo coincida con tu definición de SupabaseUser
+      user: data.user as SupabaseUser | null,
       session: data.session as Session | null
     }
     await createSupabaseSession(authData)
 
-    return NextResponse.json({ user: data.user })
+    return NextResponse.json({
+      user: data.user,
+      profile,
+      businesses: businesses?.map(b => b.business) || []
+    })
   } catch (error) {
     console.error('Error en la autenticación:', error)
     return NextResponse.json(

@@ -13,11 +13,9 @@ export default async function Layout(props: LayoutProps) {
   const { data: user } = await supabase.auth.getUser()
 
   if (!user) {
-    // Si no hay usuario, redirigir a la página de login
     redirect(APP_URLS.AUTH.LOGIN)
   }
 
-  // Si hay sesión, continuar con el flujo normal
   const { data: profile } = await supabase
     .from('users')
     .select('*')
