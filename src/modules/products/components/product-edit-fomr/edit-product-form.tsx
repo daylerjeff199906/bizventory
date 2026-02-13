@@ -33,6 +33,7 @@ import { useBrands } from '@/hooks/use-brands'
 import { getLastPurchasePrice } from '@/apis/app/purchases'
 import { useEffect } from 'react'
 import { ImageUpload } from '@/components/ui/image-upload'
+import { updateProductImages } from '@/apis/app/images-update'
 
 interface ProductFormProps {
   productDefault: ProductDetails
@@ -385,7 +386,6 @@ export const EditProductPage = (props: ProductFormProps) => {
               </div>
             </div>
 
-            {/* Multimedia */}
             <div className="space-y-4 border rounded-lg p-4">
               <h3 className="font-medium">Multimedia</h3>
               <FormField
@@ -396,10 +396,19 @@ export const EditProductPage = (props: ProductFormProps) => {
                     <FormControl>
                       <ImageUpload
                         value={field.value || []}
-                        onChange={(url) => field.onChange(url)}
-                        onRemove={(url) =>
-                          field.onChange((field.value?.filter((current) => current !== url)))
-                        }
+                        onChange={async (newUrls) => {
+                          field.onChange(newUrls)
+                          if (productDefault.id) {
+                            await updateProductImages(productDefault.id, newUrls)
+                          }
+                        }}
+                        onRemove={async (url) => {
+                          const newUrls = (field.value || []).filter((current) => current !== url)
+                          field.onChange(newUrls)
+                          if (productDefault.id) {
+                            await updateProductImages(productDefault.id, newUrls)
+                          }
+                        }}
                         maxFiles={5}
                       />
                     </FormControl>

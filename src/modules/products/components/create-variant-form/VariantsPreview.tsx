@@ -33,6 +33,8 @@ import {
   type AttributeType,
   type ProductVariantsData
 } from '../../schemas'
+import { ImageUpload } from '@/components/ui/image-upload'
+import { updateVariantImages } from '@/apis/app/images-update'
 
 interface VariantsPreviewProps {
   variants: ProductVariantsData
@@ -331,6 +333,38 @@ export const VariantsPreview = ({
                     </Button>
                   </div>
                 </div>
+              </div>
+
+              <div className="px-4 py-2 border-b bg-muted/5">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                  Imágenes
+                </p>
+                <ImageUpload
+                  value={variant.images || []}
+                  maxFiles={3}
+                  onChange={async (newUrls) => {
+                    const updatedVariants = [...localVariants]
+                    updatedVariants[index].images = newUrls
+                    setLocalVariants(updatedVariants)
+                    // If variant exists in DB (has ID), update immediately
+                    if (variant.id) {
+                      await updateVariantImages(variant.id, newUrls)
+                    } else {
+                      // Only set hasChanges if it's a new variant not yet saved
+                      setHasChanges(true)
+                    }
+                  }}
+                  onRemove={async (url) => {
+                    const updatedVariants = [...localVariants]
+                    updatedVariants[index].images = (updatedVariants[index].images || []).filter(u => u !== url)
+                    setLocalVariants(updatedVariants)
+                    if (variant.id) {
+                      await updateVariantImages(variant.id, updatedVariants[index].images || [])
+                    } else {
+                      setHasChanges(true)
+                    }
+                  }}
+                />
               </div>
 
               {/* Atributos */}
