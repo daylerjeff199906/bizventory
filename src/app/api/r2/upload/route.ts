@@ -34,8 +34,7 @@ export async function POST(req: NextRequest) {
         }
 
         // @ts-ignore - ACL type mismatch issue in some versions, safe to ignore for basic usage
-        const res = await r2Client.send(new PutObjectCommand(uploadParams))
-        console.log(res)
+        await r2Client.send(new PutObjectCommand(uploadParams))
         const url = `${R2_PUBLIC_URL}/${fileName}`
 
         return NextResponse.json({ url })
