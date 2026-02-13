@@ -21,6 +21,7 @@ export interface ProductVariant {
   updated_at?: string
   attributes?: ProductVariantAttribute[]
   is_active?: boolean
+  images?: string[]
 }
 
 interface ProductVariantWithAttributes extends ProductVariant {
@@ -36,8 +37,10 @@ interface DatabaseProductVariant {
   code: string
   created_at: string
   updated_at: string
+  images: string[] | null // Assuming it's nullable or array in DB
   is_active?: boolean
 }
+
 
 interface DatabaseProductVariantAttribute {
   id: string
@@ -87,6 +90,7 @@ async function manageProductVariants(
           price: variant.price,
           description: variant.description,
           code: variant.code,
+          images: variant.images || null,
           is_active: true
         }
 

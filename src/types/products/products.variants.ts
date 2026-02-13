@@ -10,6 +10,7 @@ export interface ProductVariant {
   created_at: string
   updated_at: string | null
   attributes: ProductVariantAttribute[]
+  images: string[] | null
 }
 
 export interface ProductVariantAttribute {

@@ -18,7 +18,7 @@ export interface Product {
   has_variants: boolean
   tags: string[] | null
   updated_at: string | null
-  images: ProductImage[] | null
+  images: string[] | null
 }
 
 export interface ProductDetails extends Product {

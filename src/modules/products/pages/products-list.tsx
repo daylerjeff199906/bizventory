@@ -231,7 +231,7 @@ export const ProductsList = ({
                     <div className="w-10 h-10 bg-muted rounded-md flex-shrink-0 overflow-hidden">
                       {product.images && product.images.length > 0 ? (
                         <img
-                          src={product.images[0].url || '/placeholder.svg'}
+                          src={product.images[0] || '/placeholder.svg'}
                           alt={product.name}
                           className="w-full h-full object-cover"
                         />

@@ -10,7 +10,8 @@ export const productSchema = z.object({
   code: z.string().optional(),
   price: z.coerce.number().min(0).default(0),
   discount_active: z.boolean().default(false),
-  discount_value: z.coerce.number().min(0).default(0)
+  discount_value: z.coerce.number().min(0).default(0),
+  images: z.array(z.string()).max(5, 'Máximo 5 imágenes por producto').optional().default([])
 })
 
 export const editProductSchema = z.object({
@@ -28,7 +29,8 @@ export const editProductSchema = z.object({
   brand_id: z.string().optional(),
   price: z.coerce.number().min(0).optional(),
   discount_active: z.boolean().optional(),
-  discount_value: z.coerce.number().min(0).optional()
+  discount_value: z.coerce.number().min(0).optional(),
+  images: z.array(z.string()).max(5).optional()
 })
 
 export const createProductSchema = productSchema
