@@ -43,9 +43,28 @@ export async function createSupabaseSession(authData: AuthResponse) {
   const cookieStore = await cookies()
 
   const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 días
+
+  // Store minimal user info to keep cookie size small
+  const minimalUser = {
+    id: authData.user.id,
+    email: authData.user.email,
+    user_metadata: authData.user.user_metadata, // Needed for roles
+    role: authData.user.role,
+    aud: authData.user.aud
+  } as SupabaseUser
+
+  // Store minimal session info
+  const minimalSession = {
+    access_token: authData.session.access_token,
+    refresh_token: authData.session.refresh_token,
+    expires_in: authData.session.expires_in,
+    token_type: authData.session.token_type,
+    user: minimalUser
+  } as Session
+
   const sessionPayload: SessionPayload = {
-    user: authData.user,
-    session: authData.session,
+    user: minimalUser,
+    session: minimalSession,
     expires: expires.toISOString()
   }
 

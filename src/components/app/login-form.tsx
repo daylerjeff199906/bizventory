@@ -62,11 +62,10 @@ export function LoginForm({
           message={`Hola ${dataResponse.email}, has iniciado sesión correctamente.`}
         />
       )
-
-      if (isSuperAdmin) {
-        router.push('/admin')
-      } else {
+      if (!isSuperAdmin) {
         router.push('/dashboard')
+      } else {
+        router.push('/admin')
       }
     } catch (error) {
       console.error('Error en la autenticación:', error)
