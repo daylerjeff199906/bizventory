@@ -198,7 +198,7 @@ export const ProductSelectorModal = ({
                             {product.images && product.images.length > 0 ? (
                               <img
                                 src={
-                                  product.images[0]?.url || '/placeholder.svg'
+                                  product.images[0] || '/placeholder.svg'
                                 }
                                 alt={product.name}
                                 className="w-full h-full object-cover"
@@ -353,7 +353,7 @@ export const ProductSelectorModal = ({
                                 selectedProduct.images.length > 0 ? (
                                 <img
                                   src={
-                                    selectedProduct.images[0]?.url ||
+                                    selectedProduct.images[0] ||
                                     '/placeholder.svg'
                                   }
                                   alt={variant.name}
