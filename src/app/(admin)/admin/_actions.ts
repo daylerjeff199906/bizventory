@@ -5,6 +5,7 @@ import { BusinessForm } from '@/schemas/business/register.busines'
 import { revalidatePath } from 'next/cache'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { UserForm } from './users/user-schema'
+import { sendWelcomeEmail } from '@/services/email'
 
 export async function createBusinessAction(values: BusinessForm) {
     const supabase = await createClient()

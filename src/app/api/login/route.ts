@@ -36,6 +36,14 @@ export async function POST(req: Request) {
       .eq('id', data.user.id)
       .single()
 
+    if (profile && profile.is_active === false) {
+      await supabase.auth.signOut()
+      return NextResponse.json(
+        { error: 'Tu cuenta ha sido desactivada. Contacta al administrador.' },
+        { status: 403 }
+      )
+    }
+
     // 2. Obtener negocios del usuario
     const { data: businesses } = await supabase
       .from('business_members')
