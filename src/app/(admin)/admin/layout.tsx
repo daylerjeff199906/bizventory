@@ -43,11 +43,7 @@ export default async function SuperAdminLayout({
                     navMain: superAdminNavMain()
                 }}
             />
-            <main className="flex-1 overflow-auto bg-muted/10 p-4 md:p-6 lg:p-8">
-                <div className="mx-auto max-w-7xl space-y-6">
-                    {children}
-                </div>
-            </main>
+            {children}
         </SidebarProvider>
     )
 }
