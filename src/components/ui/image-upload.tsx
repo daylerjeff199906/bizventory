@@ -45,6 +45,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
                     body: formData
                 })
 
+
                 if (!response.ok) {
                     throw new Error('Error subiendo imagen')
                 }
