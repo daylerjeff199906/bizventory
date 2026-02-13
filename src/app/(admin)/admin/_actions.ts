@@ -268,8 +268,16 @@ export async function createUserAction(values: UserForm) {
         }
 
         // 3. Enviar correo de bienvenida (Simulado o real si hay servicio)
-        // Aquí se integraría con Resend/Nodemailer
-        console.log(`Usuario creado: ${values.email}, Password: ${password}`)
+        const emailResult = await sendWelcomeEmail({
+            firstName: values.firstName,
+            email: values.email,
+            password: password
+        })
+
+        if (!emailResult.success) {
+            console.error('Failed to send welcome email:', emailResult.error)
+            // No fallamos la creación del usuario si el correo falla, pero lo logueamos
+        }
 
         revalidatePath('/admin/users')
         return { success: true, password } // Retornamos password para mostrarlo al admin una vez
