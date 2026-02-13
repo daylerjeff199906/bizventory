@@ -54,6 +54,7 @@ export function LoginForm({
       }
 
       const dataResponse: SupabaseUser = data.user
+      const isSuperAdmin = data.profile?.is_super_admin || dataResponse.user_metadata?.is_super_admin
 
       toast.success(
         <ToastCustom
@@ -61,8 +62,11 @@ export function LoginForm({
           message={`Hola ${dataResponse.email}, has iniciado sesión correctamente.`}
         />
       )
-      router.refresh()
-      router.push('/dashboard')
+      if (!isSuperAdmin) {
+        router.push('/dashboard')
+      } else {
+        router.push('/admin')
+      }
     } catch (error) {
       console.error('Error en la autenticación:', error)
       toast.error(

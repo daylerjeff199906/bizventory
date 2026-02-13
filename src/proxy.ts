@@ -4,7 +4,6 @@ import { getSupabaseSession } from './lib/session'
 
 export async function proxy(request: NextRequest) {
   const session = await getSupabaseSession()
-
   if (!session && !request.nextUrl.pathname.startsWith('/login')) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
@@ -13,5 +12,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*']
+  matcher: ['/dashboard/:path*', '/admin/:path*']
 }

@@ -7,5 +7,7 @@ export default async function Page() {
   const { data: user } = await supabase.auth.getUser()
   const responseData = await getBusinessesByUserRole(user?.user?.id || '')
 
-  return <BusinessesPage businessesList={responseData} />
+  const filteredBusinesses = responseData.filter((business) => business.status?.toLowerCase() === 'active')
+
+  return <BusinessesPage businessesList={filteredBusinesses} />
 }

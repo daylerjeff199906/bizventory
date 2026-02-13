@@ -18,7 +18,21 @@ export async function GET(request: Request) {
                 user: data.user as any,
                 session: data.session as any
             })
-            return NextResponse.redirect(`${origin}${next}`)
+
+            // Fetch profile for accurate role checking
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('is_super_admin')
+                .eq('id', data.user.id)
+                .single()
+
+            const isSuperAdmin = profile?.is_super_admin || data.user.user_metadata?.is_super_admin
+
+            const redirectUrl = isSuperAdmin && (next === '/dashboard' || !next)
+                ? '/admin'
+                : next
+
+            return NextResponse.redirect(`${origin}${redirectUrl}`)
         }
     }
 

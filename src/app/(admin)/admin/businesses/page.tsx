@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { BusinessTable } from './_components/business-table'
 import { CreateBusinessDialog } from './_components/create-business-dialog'
+import { LayoutWrapper } from '@/components/layouts'
 
 export default async function BusinessesPage() {
     const supabase = await createClient()
@@ -16,18 +17,20 @@ export default async function BusinessesPage() {
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Gestión de Negocios</h1>
-                    <p className="text-muted-foreground text-sm">
-                        Administra todos los negocios registrados en la plataforma.
-                    </p>
+        <LayoutWrapper sectionTitle="Gestión de Negocios">
+            <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-base font-bold tracking-tight">Gestión de Negocios</h1>
+                        <p className="text-muted-foreground text-sm">
+                            Administra todos los negocios registrados en la plataforma.
+                        </p>
+                    </div>
+                    <CreateBusinessDialog />
                 </div>
-                <CreateBusinessDialog />
-            </div>
 
-            <BusinessTable businesses={businesses || []} />
-        </div>
+                <BusinessTable businesses={businesses || []} />
+            </div>
+        </LayoutWrapper>
     )
 }
