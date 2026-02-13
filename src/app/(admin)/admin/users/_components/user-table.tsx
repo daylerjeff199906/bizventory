@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { MoreHorizontal, Key, Shield, UserX } from 'lucide-react'
+import { MoreHorizontal, Key, Shield, UserX, Edit } from 'lucide-react'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -21,9 +21,11 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { resetUserPasswordAction } from '../../_actions'
 import { toast } from 'react-toastify'
+import { Profile } from '@/types/users/user'
+import Link from 'next/link'
 
 interface UserTableProps {
-    users: any[]
+    users: Profile[]
 }
 
 export function UserTable({ users }: UserTableProps) {
@@ -71,7 +73,7 @@ export function UserTable({ users }: UserTableProps) {
                                     )}
                                 </TableCell>
                                 <TableCell className="text-center">
-                                    <Badge variant={user.is_active ? 'default' : 'secondary'} className="text-[10px] px-2 py-0 bg-green-500/10 text-green-700 hover:bg-green-500/20 border-green-200">
+                                    <Badge variant={user.is_active ? 'default' : 'secondary'} className={`text-[10px] px-2 py-0 ${user.is_active ? 'bg-green-500/10 text-green-700 hover:bg-green-500/20 border-green-200' : ''}`}>
                                         {user.is_active ? 'Activo' : 'Inactivo'}
                                     </Badge>
                                 </TableCell>
@@ -84,21 +86,23 @@ export function UserTable({ users }: UserTableProps) {
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
                                             <DropdownMenuLabel className="text-xs">Acciones</DropdownMenuLabel>
+                                            <DropdownMenuItem asChild>
+                                                <Link href={`/admin/users/${user.id}`} className="flex items-center cursor-pointer">
+                                                    <Edit className="mr-2 h-4 w-4" />
+                                                    Editar Usuario
+                                                </Link>
+                                            </DropdownMenuItem>
                                             <DropdownMenuItem
-                                                className="text-sm"
+                                                className="text-sm cursor-pointer"
                                                 onClick={() => handleResetPassword(user.email)}
                                             >
                                                 <Key className="mr-2 h-4 w-4" />
-                                                Enviar Password Reset
+                                                Reset Password
                                             </DropdownMenuItem>
                                             <DropdownMenuSeparator />
-                                            <DropdownMenuItem className="text-sm">
-                                                <Shield className="mr-2 h-4 w-4" />
-                                                Cambiar Permisos
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem className="text-sm text-destructive">
+                                            <DropdownMenuItem className="text-sm text-destructive cursor-pointer">
                                                 <UserX className="mr-2 h-4 w-4" />
-                                                Desactivar Usuario
+                                                {user.is_active ? 'Desactivar' : 'Activar'}
                                             </DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>

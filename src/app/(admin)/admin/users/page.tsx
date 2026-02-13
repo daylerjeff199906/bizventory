@@ -1,7 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { UserTable } from './_components/user-table'
-
 import { LayoutWrapper } from '@/components/layouts'
+import { CreateUserDialog } from './_components/create-user-dialog'
 
 export default async function UsersPage() {
     const supabase = await createClient()
@@ -18,11 +18,14 @@ export default async function UsersPage() {
     return (
         <LayoutWrapper sectionTitle="Gestión de Usuarios">
             <div className="space-y-6">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Gestión de Usuarios</h1>
-                    <p className="text-muted-foreground text-sm">
-                        Administra los usuarios de la plataforma y sus accesos.
-                    </p>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-2xl font-bold tracking-tight">Gestión de Usuarios</h1>
+                        <p className="text-muted-foreground text-sm">
+                            Administra los usuarios de la plataforma y sus accesos.
+                        </p>
+                    </div>
+                    <CreateUserDialog />
                 </div>
 
                 <UserTable users={users || []} />
