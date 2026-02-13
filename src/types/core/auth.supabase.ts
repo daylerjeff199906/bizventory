@@ -18,7 +18,9 @@ interface AppMetadata {
 }
 
 interface UserMetadata {
-  email_verified: boolean
+  email_verified?: boolean
+  is_super_admin?: boolean
+  [key: string]: any
 }
 
 export interface SupabaseUser {
