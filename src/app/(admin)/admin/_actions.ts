@@ -199,15 +199,38 @@ export async function updateMemberRoleAction(memberId: string, roles: string[]) 
     }
 }
 
-export async function resetUserPasswordAction(email: string) {
-    const supabase = await createClient()
 
+
+
+import { createAdminClient } from '@/utils/supabase/admin'
+import { sendPasswordResetEmail } from '@/services/email'
+
+export async function resetUserPasswordAction(email: string) {
     try {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=/dashboard/settings/password`,
+        const supabase = createAdminClient()
+
+        const { data, error } = await supabase.auth.admin.generateLink({
+            type: 'recovery',
+            email: email,
+            options: {
+                redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=/reset-password`,
+            },
         })
 
         if (error) throw error
+
+        if (!data.properties?.action_link) {
+            throw new Error('No se pudo generar el enlace de recuperación')
+        }
+
+        const emailResult = await sendPasswordResetEmail({
+            email,
+            resetLink: data.properties.action_link
+        })
+
+        if (!emailResult.success) {
+            throw new Error('Error al enviar el correo')
+        }
 
         return { success: true }
     } catch (error: any) {
@@ -215,7 +238,6 @@ export async function resetUserPasswordAction(email: string) {
         return { success: false, error: error.message }
     }
 }
-
 
 export async function createUserAction(values: UserForm) {
     const adminSupabase = createSupabaseClient(

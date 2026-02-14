@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -14,6 +14,34 @@ export default function ResetPasswordPage() {
     const [password, setPassword] = useState('')
     const [loading, setLoading] = useState(false)
     const router = useRouter()
+
+    // Effect to handle hash fragment if present (fallback for some auth flows)
+    useEffect(() => {
+        const handleHashSession = async () => {
+            const hash = window.location.hash
+            if (hash && hash.includes('access_token')) {
+                const supabase = createClient()
+                const { data, error } = await supabase.auth.getSession()
+
+                if (!data.session) {
+                    // Try to recover session from hash manually if getSession didn't pick it up
+                    // usually supabase client picks it up automatically, but sometimes timing is off
+                    const params = new URLSearchParams(hash.substring(1))
+                    const accessToken = params.get('access_token')
+                    const refreshToken = params.get('refresh_token')
+
+                    if (accessToken && refreshToken) {
+                        await supabase.auth.setSession({
+                            access_token: accessToken,
+                            refresh_token: refreshToken
+                        })
+                    }
+                }
+            }
+        }
+
+        handleHashSession()
+    }, [])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()

@@ -10,9 +10,17 @@ export async function GET(request: Request) {
 
     if (code) {
         const supabase = await createClient()
+
+        // Exchange the code for a session
+        // This is crucial for PKCE flow
         const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
-        if (!error && data.session && data.user) {
+        if (error) {
+            console.error('Error exchanging code for session:', error)
+            return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/auth/auth-code-error?error=${error.message}`)
+        }
+
+        if (data.session && data.user) {
             // Create the custom session cookie required by the application
             await createSupabaseSession({
                 user: data.user as any,
@@ -32,10 +40,10 @@ export async function GET(request: Request) {
                 ? '/admin'
                 : next
 
-            return NextResponse.redirect(`${origin}${redirectUrl}`)
+            return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}${redirectUrl}`)
         }
     }
 
     // return the user to an error page with instructions
-    return NextResponse.redirect(`${origin}/auth/auth-code-error`)
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/auth/auth-code-error`)
 }
