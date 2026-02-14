@@ -17,6 +17,7 @@ export interface ProductVariant {
   stock?: number // Calculado dinámicamente
   price_unit?: number
   subtotal?: number // Para manejo de UI
+  price?: number
   images?: string[] | null
 }
 
