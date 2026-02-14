@@ -105,8 +105,20 @@ export default function EditProductModal({
         <div className="flex flex-col gap-3">
           {/* Información del producto */}
           <div className="p-3 bg-muted rounded-md">
-            <div className="flex items-start gap-2 mb-2">
-              <Package className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+            <div className="flex items-start gap-4 mb-2">
+              {product.image_url ? (
+                <div className="h-16 w-16 rounded overflow-hidden flex-shrink-0 border">
+                  <img
+                    src={product.image_url}
+                    alt={product.brand?.name || 'Producto'}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="h-16 w-16 rounded bg-muted flex items-center justify-center flex-shrink-0 border">
+                  <Package className="h-8 w-8 text-muted-foreground/30" />
+                </div>
+              )}
               <div className="flex-1">
                 <h4 className="font-medium text-sm">
                   {product.brand?.name} {product.product_description}

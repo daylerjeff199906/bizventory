@@ -15,6 +15,9 @@ export default async function LoginPage() {
       <div className="w-full max-w-sm md:max-w-3xl">
         <LoginForm />
       </div>
+      <footer className="absolute bottom-4 text-xs text-muted-foreground">
+        &copy; {new Date().getFullYear()} Bizventory Inc. Todos los derechos reservados.
+      </footer>
     </div>
   )
 }

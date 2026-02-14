@@ -102,6 +102,15 @@ function ProductConfigPanel({
         <div className="flex-1 p-4 space-y-4">
           <div className="p-3 bg-muted rounded-md flex flex-col gap-1">
             <div className="flex items-center gap-2">
+              {product.image_url && (
+                <div className="h-16 w-16 mb-2 rounded overflow-hidden flex-shrink-0 border">
+                  <img
+                    src={product.image_url}
+                    alt={product.product_name || 'Producto'}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              )}
               <p className="text-xs text-muted-foreground">{product.code}</p>
             </div>
             <div
@@ -283,8 +292,16 @@ function ProductItem({
       onClick={() => !isOutOfStock && !isSelected && onSelect(product)}
     >
       <div className="h-32 w-full bg-muted flex items-center justify-center relative">
-        {/* Placeholder de imagen */}
-        <Package className="h-12 w-12 text-muted-foreground/30" />
+        {/* Imagen del producto o placeholder */}
+        {product.image_url ? (
+          <img
+            src={product.image_url}
+            alt={product.product_name || 'Producto'}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <Package className="h-12 w-12 text-muted-foreground/30" />
+        )}
 
         {isOutOfStock && (
           <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
@@ -370,7 +387,13 @@ export const transformProductsToCombinedSelection = (
           stock: variant.stock,
           price_unit: variant.price_unit,
           attributes: variant.attributes || [],
-          _temp_id: `temp-${product.id}-${variant.id}`
+          _temp_id: `temp-${product.id}-${variant.id}`,
+          image_url:
+            variant.images && variant.images.length > 0
+              ? variant.images[0]
+              : product.images && product.images.length > 0
+                ? product.images[0]
+                : null
         })
       })
     } else {
@@ -386,7 +409,9 @@ export const transformProductsToCombinedSelection = (
         },
         stock: product.stock,
         price_unit: product.price_unit,
-        _temp_id: `temp-${product.id}`
+        _temp_id: `temp-${product.id}`,
+        image_url:
+          product.images && product.images.length > 0 ? product.images[0] : null
       })
     }
   })

@@ -91,7 +91,8 @@ export default function EditSaleForm({ sale }: EditSaleFormProps) {
         unit: item.unit || '',
         brand: item.brand ? { id: item.brand.id || '', name: item.brand.name || '' } : undefined,
         attributes: item.attributes || [],
-        max_stock: 99999 // Todo: fetch actual stock if needed
+        max_stock: 99999, // Todo: fetch actual stock if needed
+        image_url: item.images && item.images.length > 0 ? item.images[0] : null
     }))
 
     const form = useForm<SaleFormValues>({
@@ -474,8 +475,21 @@ export default function EditSaleForm({ sale }: EditSaleFormProps) {
                                                             <tr key={item._temp_id} className="border-b hover:bg-gray-50">
                                                                 <td className="py-3 px-2 text-sm text-gray-500">{index + 1}</td>
                                                                 <td className="py-3 px-2 text-sm">
-                                                                    {item.product_name}
-                                                                    {item.variant_name && <span className="text-gray-500 ml-1">({item.variant_name})</span>}
+                                                                    <div className="flex items-center gap-2">
+                                                                        {item.image_url && (
+                                                                            <div className="h-8 w-8 rounded overflow-hidden flex-shrink-0 border">
+                                                                                <img
+                                                                                    src={item.image_url}
+                                                                                    alt={item.product_name || 'Producto'}
+                                                                                    className="h-full w-full object-cover"
+                                                                                />
+                                                                            </div>
+                                                                        )}
+                                                                        <div className="flex flex-col">
+                                                                            <span>{item.product_name}</span>
+                                                                            {item.variant_name && <span className="text-gray-500 text-xs">({item.variant_name})</span>}
+                                                                        </div>
+                                                                    </div>
                                                                 </td>
                                                                 <td className="py-3 px-2 text-center text-sm">{item.quantity}</td>
                                                                 <td className="py-3 px-2 text-right text-sm">{currencySymbol}{item.price_unit?.toFixed(2)}</td>
