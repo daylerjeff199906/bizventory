@@ -114,20 +114,6 @@ export default function BusinessMembersPage({ params }: { params: Promise<{ id: 
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center gap-4">
-                <Button variant="ghost" size="sm" asChild className="h-9 w-9 p-0">
-                    <Link href="/admin/businesses">
-                        <ChevronLeft className="h-5 w-5" />
-                    </Link>
-                </Button>
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Gestionar Miembros</h1>
-                    <p className="text-muted-foreground text-sm">
-                        Administra los usuarios y sus roles para este negocio.
-                    </p>
-                </div>
-            </div>
-
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Search & Add Card */}
                 <Card className="lg:col-span-1">

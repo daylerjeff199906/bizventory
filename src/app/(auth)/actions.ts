@@ -13,7 +13,7 @@ export async function forgotPasswordAction(email: string) {
             type: 'recovery',
             email: email,
             options: {
-                redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=/reset-password`
+                redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=${encodeURIComponent('/forgot-password?type=recovery&code=valid')}`
             }
         })
 
