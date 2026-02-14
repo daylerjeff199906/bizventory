@@ -27,14 +27,14 @@ export default async function Layout(props: LayoutProps) {
 
   // Si hay sesión, continuar con el flujo normal
   const { data: profile } = await supabase
-    .from('users')
+    .from('profiles')
     .select('*')
     .eq('id', user.user?.id)
     .maybeSingle()
 
   const userData = profile
     ? {
-      name: profile?.name || 'Usuario',
+      name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Usuario',
       email: user?.user?.email || '',
       avatar: user?.user?.user_metadata.avatar_url || ''
     }
