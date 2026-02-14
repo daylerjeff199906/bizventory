@@ -1,4 +1,10 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Project Screens
+![Captura de pantalla (64)](https://github.com/user-attachments/assets/403b8faa-bec4-48c5-8e00-c0cfc63840ef)
+![Captura de pantalla (61)](https://github.com/user-attachments/assets/9dbea3bf-c813-484c-bae4-9a35a4713fd4)
+![Captura de pantalla (62)](https://github.com/user-attachments/assets/a71098b1-b7a8-48f0-91e4-ad39afa1e9ad)
+![Captura de pantalla (63)](https://github.com/user-attachments/assets/21ca65f9-042b-4651-a10a-7c57a12daa4a)
+
 
 ## Getting Started
 
