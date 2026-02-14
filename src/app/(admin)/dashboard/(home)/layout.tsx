@@ -17,16 +17,18 @@ export default async function Layout(props: LayoutProps) {
   }
 
   const { data: profile } = await supabase
-    .from('users')
+    .from('profiles')
     .select('*')
     .eq('id', user.user?.id)
     .maybeSingle()
+
+  const userName = profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : 'Usuario'
 
   return (
     <div className="flex h-screen w-screen flex-col">
       <NavBarCustom
         email={user?.user?.email || ''}
-        userName={profile?.name || 'Usuario'}
+        userName={userName || 'Usuario'}
         urlPhoto={user?.user?.user_metadata.avatar_url || ''}
       />
       <div className="container mx-auto px-4 sm:px-6 md:px-8 py-6 flex-1">
