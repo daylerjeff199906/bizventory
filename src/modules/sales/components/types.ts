@@ -133,6 +133,7 @@ export interface ProductCombinedSelection {
   stock?: number
   _temp_id?: string // ID temporal para gestión local
   price_unit?: number
+  image_url?: string | null
 }
 
 export interface SelectedProductItem extends ProductCombinedSelection {

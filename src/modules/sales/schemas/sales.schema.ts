@@ -26,7 +26,8 @@ export const saleItemSchema = z.object({
   price_unit: z.number().optional(),
   subtotal: z.number().optional(),
   quantity: z.number().optional(),
-  discount: z.number().optional()
+  discount: z.number().optional(),
+  image_url: z.string().optional().nullable()
 })
 
 export const saleFormSchema = z.object({
