@@ -44,15 +44,6 @@ export default async function Page(props: Props) {
 
   return (
     <div className="flex flex-col gap-4">
-      <PageHeader
-        title="Lista de Productos"
-        description="Gestiona los productos de tu negocio."
-        actionButton={{
-          label: 'Nuevo Producto',
-          href: APP_URLS.ORGANIZATION.PRODUCTS.CREATE(uuid?.toString() || '')
-        }}
-      />
-      <FiltersProducts placeholder="Buscar productos..." />
       <ProductsList
         bussinessId={uuid?.toString() || ''}
         dataProducts={products}
