@@ -270,7 +270,7 @@ export const InventoryList = ({
                                                                                 </div>
                                                                             </TableCell>
                                                                             <TableCell className="py-2 text-sm">
-                                                                                {variant.price ? `S/ ${variant.price.toFixed(2)}` : '-'}
+                                                                                {variant.price_unit ? `S/ ${variant.price_unit.toFixed(2)}` : '-'}
                                                                             </TableCell>
                                                                             <TableCell className="py-2 text-right font-bold">
                                                                                 {variant.stock}

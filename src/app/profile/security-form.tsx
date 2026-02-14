@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -50,8 +50,6 @@ export function SecurityForm({ }: SecurityFormProps) {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Cambiar Contraseña</CardTitle>
-                <CardDescription>Asegura tu cuenta cambiando tu contraseña regularmente.</CardDescription>
             </CardHeader>
             <CardContent>
                 <Form {...form}>

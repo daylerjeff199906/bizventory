@@ -476,23 +476,34 @@ export default function CreateSaleForm() {
                                   {index + 1}
                                 </td>
                                 <td className="py-3 px-2">
-                                  <div className="text-xs font-medium ">
-                                    {item.brand?.name}{' '}
-                                    {item.product_description && item?.product_description.substring(0, 50)}
-                                    {item.variant_name && (
-                                      <>{item.variant_name}</>
-                                    )}{' '}
-                                    {item.attributes &&
-                                      item.attributes.length > 0 && (
-                                        <>
-                                          {item.attributes
-                                            .map(
-                                              (attr) =>
-                                                `${attr.attribute_value}`
-                                            )
-                                            .join(', ')}
-                                        </>
-                                      )}
+                                  <div className="flex items-center gap-2">
+                                    {item.image_url && (
+                                      <div className="h-8 w-8 rounded overflow-hidden flex-shrink-0 border">
+                                        <img
+                                          src={item.image_url}
+                                          alt={item.product_name || 'Producto'}
+                                          className="h-full w-full object-cover"
+                                        />
+                                      </div>
+                                    )}
+                                    <div className="text-xs font-medium ">
+                                      {item.brand?.name}{' '}
+                                      {item.product_description && item?.product_description.substring(0, 50)}
+                                      {item.variant_name && (
+                                        <>{item.variant_name}</>
+                                      )}{' '}
+                                      {item.attributes &&
+                                        item.attributes.length > 0 && (
+                                          <>
+                                            {item.attributes
+                                              .map(
+                                                (attr) =>
+                                                  `${attr.attribute_value}`
+                                              )
+                                              .join(', ')}
+                                          </>
+                                        )}
+                                    </div>
                                   </div>
                                 </td>
                                 <td className="py-3 px-2 text-center">
