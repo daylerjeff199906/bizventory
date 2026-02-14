@@ -27,6 +27,7 @@ import { BusinessForm, businessSchema } from '@/schemas/business/register.busine
 import { updateBusiness } from '@/apis/app/business'
 import { toast } from 'react-toastify'
 import { businessTypes } from '@/schemas/business/register.busines'
+import { ImageUpload } from '@/components/ui/image-upload'
 
 interface SettingsFormProps {
     initialData: BusinessForm
@@ -40,7 +41,6 @@ export function SettingsForm({ initialData, businessId }: SettingsFormProps) {
         resolver: zodResolver(businessSchema),
         defaultValues: {
             ...initialData,
-            // Ensure optional fields are handled correctly
             description: initialData.description || '',
             document_number: initialData.document_number || '',
             brand: initialData.brand || '',
@@ -67,8 +67,28 @@ export function SettingsForm({ initialData, businessId }: SettingsFormProps) {
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 max-w-3xl mx-auto">
+                {/* Brand / Logo Upload */}
+                <FormField
+                    control={form.control}
+                    name="brand"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Logo de la Empresa (Brand)</FormLabel>
+                            <FormControl>
+                                <ImageUpload
+                                    value={field.value ? [field.value] : []}
+                                    onChange={(urls: string[]) => field.onChange(urls[0] || '')}
+                                    onRemove={() => field.onChange('')}
+                                    maxFiles={1}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <div className="grid grid-cols-1 gap-6">
                     <FormField
                         control={form.control}
                         name="business_name"
@@ -166,40 +186,40 @@ export function SettingsForm({ initialData, businessId }: SettingsFormProps) {
                             </FormItem>
                         )}
                     />
+
+                    <FormField
+                        control={form.control}
+                        name="address"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Dirección</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Av. Principal 123, Lima" {...field} value={field.value || ''} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Descripción</FormLabel>
+                                <FormControl>
+                                    <Textarea
+                                        placeholder="Breve descripción de la empresa..."
+                                        className="resize-none"
+                                        {...field}
+                                        value={field.value || ''}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
                 </div>
-
-                <FormField
-                    control={form.control}
-                    name="address"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Dirección</FormLabel>
-                            <FormControl>
-                                <Input placeholder="Av. Principal 123, Lima" {...field} value={field.value || ''} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Descripción</FormLabel>
-                            <FormControl>
-                                <Textarea
-                                    placeholder="Breve descripción de la empresa..."
-                                    className="resize-none"
-                                    {...field}
-                                    value={field.value || ''}
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
 
                 <div className="flex justify-end">
                     <Button type="submit" disabled={isLoading}>
