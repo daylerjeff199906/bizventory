@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ToastCustom } from '@/components/app/toast-custom'
 import { ForgotPasswordSendLink } from './forgot-password-send-link'
+import { AuthLayout } from '@/components/miscellaneous/auth-layout'
 import { ForgotPasswordWithToken } from './forgot-password-with-token'
 import { ForgotPasswordWithOTP } from './ForgotPasswordWithOTP'
 import { toast } from 'react-toastify'
@@ -35,6 +36,36 @@ export const ForgotPassword = ({ token, error, type }: ForgotPasswordProps) => {
         setTimeout(() => router.push(APP_URL.AUTH.LOGIN), 500)
     }
 
+    const getStepTitle = () => {
+        if (!token) {
+            return currentStep === 'send-link' ? 'Recuperar contraseña' : '¡Enlace enviado!'
+        }
+        switch (type) {
+            case 'with-otp':
+                return 'Verificar código'
+            case 'recovery':
+                return 'Cambiar contraseña'
+            default:
+                return 'Recuperar contraseña'
+        }
+    }
+
+    const getStepSubtitle = () => {
+        if (!token) {
+            return currentStep === 'send-link'
+                ? 'Te enviaremos un enlace a tu correo electrónico para restablecer tu contraseña.'
+                : `Revisa tu correo electrónico (${email}) para obtener el enlace de recuperación.`
+        }
+        switch (type) {
+            case 'with-otp':
+                return 'Ingresa el código que recibiste por correo y tu nueva contraseña.'
+            case 'recovery':
+                return 'Tu enlace de recuperación es válido. Ingresa tu nueva contraseña.'
+            default:
+                return 'Recupera el acceso a tu cuenta.'
+        }
+    }
+
     useEffect(() => {
         if (error) {
             toast.error(
@@ -47,19 +78,21 @@ export const ForgotPassword = ({ token, error, type }: ForgotPasswordProps) => {
     }, [error])
 
     return (
-        <>
+        <AuthLayout
+            hiddenName
+            logoSize={120}
+            title={getStepTitle()}
+            subTitle={getStepSubtitle()}
+        >
             {!token && (
                 <>
                     {currentStep === 'send-link' && (
                         <ForgotPasswordSendLink onLinkSent={handleLinkSent} />
                     )}
                     {currentStep === 'send-success' && (
+                        // Content handled by AuthLayout title/subtitle, keeping empty fragment or custom success view if needed beyond title
                         <div className="space-y-6 max-w-sm mx-auto">
-                            <h2 className="text-2xl font-bold">¡Enlace enviado!</h2>
-                            <p className="text-sm text-gray-600">
-                                Revisa tu correo electrónico ({email}) para obtener el enlace de
-                                recuperación.
-                            </p>
+                            {/* Success message is now in the subtitle */}
                         </div>
                     )}
                 </>
@@ -75,6 +108,6 @@ export const ForgotPassword = ({ token, error, type }: ForgotPasswordProps) => {
                     onBack={() => router.push('/forgot-password')}
                 />
             )}
-        </>
+        </AuthLayout>
     )
 }
