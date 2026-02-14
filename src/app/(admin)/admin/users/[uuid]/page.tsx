@@ -35,10 +35,6 @@ export default async function EditUserPage(props: Props) {
     }
 
     return (
-        <LayoutWrapper sectionTitle="Editar Usuario">
-            <div className="max-w-2xl mx-auto py-6">
-                <EditUserForm initialData={profile} />
-            </div>
-        </LayoutWrapper>
+        <EditUserForm initialData={profile} />
     )
 }
