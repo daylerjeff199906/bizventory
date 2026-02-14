@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/utils/supabase/client'
 import { Input } from '@/components/ui/input'
+import { forgotPasswordAction } from '../actions'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -18,13 +18,11 @@ export default function ForgotPasswordPage() {
         e.preventDefault()
         setLoading(true)
 
-        const supabase = createClient()
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
-        })
+        // Usamos la Server Action que envía el correo con Resend
+        const result = await forgotPasswordAction(email)
 
-        if (error) {
-            toast.error(<ToastCustom title="Error" message={error.message} />)
+        if (!result.success) {
+            toast.error(<ToastCustom title="Error" message={result.error || 'Error desconocido'} />)
         } else {
             toast.success(<ToastCustom title="Correo enviado" message="Revisa tu bandeja de entrada para restablecer tu contraseña." />)
         }
