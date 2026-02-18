@@ -130,7 +130,7 @@ export async function getProducts({
  * @param id - UUID del producto
  * @returns Promise<Product>
  */
-export async function getProductById(
+export async function getProductByIdDetails(
   id: string
 ): Promise<ProductDetails | null> {
   const supabase = await getSupabase()
