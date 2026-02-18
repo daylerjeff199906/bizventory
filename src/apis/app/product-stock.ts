@@ -267,6 +267,103 @@ export async function getProductsWithVariantsAndStock({
   }
 }
 
+export async function getProductById(productId: string): Promise<Product | null> {
+  const supabase = await getSupabase()
+
+  try {
+    // 1. Get Product
+    const { data: product, error: productError } = await supabase
+      .from('products')
+      .select('*, brand:brands!inner(*)')
+      .eq('id', productId)
+      .single()
+
+    if (productError || !product) {
+      // Ignore single result error if strictly not found? No, should log error usually if not found isn't expected.
+      // But for UI it might just be null.
+      if (productError?.code !== 'PGRST116') {
+        console.error('Error fetching product:', productError)
+      }
+      return null
+    }
+
+    // 2. Variants
+    const { data: variants, error: variantsError } = await supabase
+      .from('product_variants')
+      .select('*')
+      .eq('product_id', productId)
+
+    if (variantsError) throw variantsError
+
+    // 3. Attributes
+    const variantIds = variants?.map(v => v.id) || []
+    const { data: variantAttributes, error: attributesError } = await supabase
+      .from('product_variant_attributes')
+      .select('*')
+      .in('variant_id', variantIds)
+
+    if (attributesError) throw attributesError
+
+    // 4. Inventory Movements (Stock)
+    let orQuery = `product_id.eq.${productId}`
+    if (variantIds.length > 0) {
+      orQuery += `,product_variant_id.in.(${variantIds.join(',')})`
+    }
+
+    const { data: movements, error: movementsError } = await supabase
+      .from('inventory_movements')
+      .select('product_id, product_variant_id, quantity, movement_type, movement_status')
+      .or(orQuery)
+      .eq('movement_status', 'completed')
+
+    if (movementsError) throw movementsError
+
+    // 5. Calculate Stock
+    const stockMap = new Map<string, number>()
+    movements?.forEach((movement) => {
+      const key = movement.product_variant_id
+        ? `variant:${movement.product_variant_id}`
+        : `product:${movement.product_id}`
+
+      const adjustment = movement.movement_type === 'entry' ? movement.quantity : -movement.quantity
+      stockMap.set(key, (stockMap.get(key) || 0) + adjustment)
+    })
+
+    // 6. Assemble
+    const productVariants = variants?.map(variant => {
+      const attributes = variantAttributes
+        ?.filter(attr => attr.variant_id === variant.id)
+        .map(attr => ({
+          attribute_type: attr.attribute_type,
+          attribute_value: attr.attribute_value
+        }))
+
+      const variantStock = stockMap.get(`variant:${variant.id}`) || 0
+      const variantPrice = (variant.price && variant.price > 0) ? variant.price : (product.price || 0)
+
+      return {
+        ...variant,
+        stock: variantStock,
+        attributes: attributes || [],
+        price_unit: variantPrice
+      }
+    })
+
+    const finalProduct: Product = {
+      ...product,
+      variants: productVariants?.length ? productVariants : undefined,
+      stock: !productVariants?.length ? (stockMap.get(`product:${product.id}`) || 0) : 0,
+      price_unit: product.price || 0
+    }
+
+    return finalProduct
+
+  } catch (error) {
+    console.error('Error in getProductById:', error)
+    return null
+  }
+}
+
 // get_inventory_stats
 export async function fetchInventoryStats(businessId: string): Promise<totalStats | null> {
   const supabase = await getSupabase()
