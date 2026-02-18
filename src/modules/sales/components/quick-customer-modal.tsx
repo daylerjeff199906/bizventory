@@ -29,6 +29,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
+import { PhoneInput } from "@/components/ui/phone-input"
 import { UserPlus } from 'lucide-react'
 import { personSchema, PersonType } from '../../customers/schema'
 import { createPerson, createCustomer } from '@/apis/app/customers'
@@ -49,6 +52,7 @@ export default function QuickCustomerModal({
 }: QuickCustomerModalProps) {
     const [isOpen, setIsOpen] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
+    const [hasDocument, setHasDocument] = useState(true)
 
     const form = useForm<PersonType>({
         resolver: zodResolver(personSchema),
@@ -67,6 +71,12 @@ export default function QuickCustomerModal({
     const handleSubmit = async (data: PersonType) => {
         setIsLoading(true)
         try {
+            // Si no tiene documento, limpiar campos
+            if (!hasDocument) {
+                data.document_type = ''
+                data.document_number = ''
+            }
+
             // 1. Crear persona
             const personResponse = await createPerson(data)
 
@@ -95,6 +105,7 @@ export default function QuickCustomerModal({
             onSuccess(customerResponse as CustomerList)
             setIsOpen(false)
             form.reset()
+            setHasDocument(true)
         } catch (error: any) {
             console.error('Error in QuickCustomerModal:', error)
             toast.error(
@@ -146,47 +157,58 @@ export default function QuickCustomerModal({
                             )}
                         />
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <FormField
-                                control={form.control}
-                                name="document_type"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Tipo de Doc. *</FormLabel>
-                                        <Select
-                                            onValueChange={field.onChange}
-                                            defaultValue={field.value}
-                                        >
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Seleccionar" />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                <SelectItem value="DNI">DNI</SelectItem>
-                                                <SelectItem value="RUC">RUC</SelectItem>
-                                                <SelectItem value="Pasaporte">Pasaporte</SelectItem>
-                                                <SelectItem value="Carnet Extranjería">C.E.</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
+                        <div className="flex items-center space-x-2 pb-2">
+                            <Checkbox
+                                id="has_doc"
+                                checked={hasDocument}
+                                onCheckedChange={(checked) => setHasDocument(checked as boolean)}
                             />
-                            <FormField
-                                control={form.control}
-                                name="document_number"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>N° de Doc. *</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="12345678" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                            <Label htmlFor="has_doc">Agregar documento de identidad</Label>
                         </div>
+
+                        {hasDocument && (
+                            <div className="grid grid-cols-2 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="document_type"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Tipo de Doc. *</FormLabel>
+                                            <Select
+                                                onValueChange={field.onChange}
+                                                defaultValue={field.value}
+                                            >
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Seleccionar" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    <SelectItem value="DNI">DNI</SelectItem>
+                                                    <SelectItem value="RUC">RUC</SelectItem>
+                                                    <SelectItem value="Pasaporte">Pasaporte</SelectItem>
+                                                    <SelectItem value="Carnet Extranjería">C.E.</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="document_number"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>N° de Doc. *</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="12345678" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                        )}
 
                         <div className="grid grid-cols-2 gap-4">
                             <FormField
@@ -196,7 +218,7 @@ export default function QuickCustomerModal({
                                     <FormItem>
                                         <FormLabel>Teléfono / WhatsApp *</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="987654321" {...field} />
+                                            <PhoneInput placeholder="987654321" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
