@@ -2,8 +2,8 @@ import { z } from 'zod'
 
 export const personSchema = z.object({
   name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
-  document_type: z.string().min(2, 'El tipo de documento es requerido'),
-  document_number: z.string().min(5, 'El número de documento debe tener al menos 5 caracteres'),
+  document_type: z.string().min(2, 'El tipo de documento es requerido').optional().or(z.literal('')),
+  document_number: z.string().min(5, 'El número de documento debe tener al menos 5 caracteres').optional().or(z.literal('')),
   whatsapp: z
     .string()
     .min(9, 'El número de WhatsApp debe tener al menos 9 caracteres'),

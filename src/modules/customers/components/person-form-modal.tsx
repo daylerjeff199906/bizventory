@@ -16,6 +16,16 @@ import {
   DialogTrigger
 } from '@/components/ui/dialog'
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
+import { PhoneInput } from "@/components/ui/phone-input"
+import {
   Form,
   FormControl,
   FormDescription,
@@ -58,9 +68,20 @@ export default function PersonsCRUD(props: PersonCrudProps) {
     }
   })
 
+  // Initialize hasDocument based on whether document_number exists
+  const [hasDocument, setHasDocument] = useState<boolean>(
+    mode === 'edit' ? !!personData?.document_number : false
+  )
+
   const handleSubmit = async (data: PersonType) => {
     setIsLoading(true)
     try {
+      // Si no tiene documento, limpiar campos
+      if (!hasDocument) {
+        data.document_type = ''
+        data.document_number = ''
+      }
+
       if (mode === 'create') {
         const personResponse = await createPerson(data)
 
@@ -149,6 +170,60 @@ export default function PersonsCRUD(props: PersonCrudProps) {
                 </FormItem>
               )}
             />
+
+            <div className="flex items-center space-x-2 pb-2">
+              <Checkbox
+                id="has_doc_person"
+                checked={hasDocument}
+                onCheckedChange={(checked) => setHasDocument(checked as boolean)}
+              />
+              <Label htmlFor="has_doc_person">Agregar documento de identidad</Label>
+            </div>
+
+            {hasDocument && (
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="document_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tipo de Doc. *</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleccionar" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="DNI">DNI</SelectItem>
+                          <SelectItem value="RUC">RUC</SelectItem>
+                          <SelectItem value="Pasaporte">Pasaporte</SelectItem>
+                          <SelectItem value="Carnet Extranjería">C.E.</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="document_number"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>N° de Doc. *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="12345678" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+
             <FormField
               control={form.control}
               name="whatsapp"
@@ -156,7 +231,7 @@ export default function PersonsCRUD(props: PersonCrudProps) {
                 <FormItem>
                   <FormLabel>WhatsApp</FormLabel>
                   <FormControl>
-                    <Input placeholder="+34 612 345 678" {...field} />
+                    <PhoneInput placeholder="987654321" {...field} />
                   </FormControl>
                   <FormDescription>
                     Número de WhatsApp con código de país
@@ -172,7 +247,7 @@ export default function PersonsCRUD(props: PersonCrudProps) {
                 <FormItem>
                   <FormLabel>Teléfono Secundario</FormLabel>
                   <FormControl>
-                    <Input placeholder="+34 912 345 678" {...field} />
+                    <PhoneInput placeholder="987654321" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
