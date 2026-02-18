@@ -43,6 +43,7 @@
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-hook-form": "^7.56.4",
+    "react-phone-number-input": "^3.4.14",
     "react-toastify": "^11.0.5",
     "recharts": "^3.7.0",
     "resend": "^6.9.2",
