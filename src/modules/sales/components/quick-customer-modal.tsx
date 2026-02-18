@@ -108,10 +108,28 @@ export default function QuickCustomerModal({
             setHasDocument(true)
         } catch (error: any) {
             console.error('Error in QuickCustomerModal:', error)
+
+            let errorMessage = 'No se pudo crear el cliente.'
+
+            // Check for Supabase error structure (Postgres error code 23505 = unique_violation)
+            if (error?.code === '23505' || error?.message?.includes('23505')) {
+                if (error?.message?.includes('persons_email_key') || error?.details?.includes('email')) {
+                    errorMessage = 'El correo electrónico ya está registrado.'
+                    form.setError('email', { type: 'manual', message: errorMessage })
+                } else if (error?.message?.includes('persons_document_number_key') || error?.details?.includes('document_number')) {
+                    errorMessage = 'El número de documento ya está registrado.'
+                    form.setError('document_number', { type: 'manual', message: errorMessage })
+                } else {
+                    errorMessage = 'Ya existe un registro con estos datos únicos.'
+                }
+            } else if (error instanceof Error) {
+                errorMessage = error.message
+            }
+
             toast.error(
                 <ToastCustom
                     title="Error"
-                    message={error.message || 'No se pudo crear el cliente.'}
+                    message={errorMessage}
                 />
             )
         } finally {
@@ -176,7 +194,7 @@ export default function QuickCustomerModal({
                                             <FormLabel>Tipo de Doc. *</FormLabel>
                                             <Select
                                                 onValueChange={field.onChange}
-                                                defaultValue={field.value}
+                                                value={field.value}
                                             >
                                                 <FormControl>
                                                     <SelectTrigger>
@@ -270,7 +288,10 @@ export default function QuickCustomerModal({
                                 onClick={(e) => {
                                     e.preventDefault()
                                     e.stopPropagation()
-                                    form.handleSubmit(handleSubmit)()
+                                    form.handleSubmit(handleSubmit, (errors) => {
+                                        console.error('Validation errors:', errors)
+                                        toast.error('Por favor revise los campos requeridos')
+                                    })()
                                 }}
                             >
                                 {isLoading ? 'Guardando...' : 'Crear y Seleccionar'}
