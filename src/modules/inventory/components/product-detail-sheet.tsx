@@ -1,5 +1,6 @@
 'use client'
 
+import { createClient } from '@/utils/supabase/client'
 import { useEffect, useState } from 'react'
 import {
     Sheet,
@@ -43,24 +44,110 @@ export const ProductDetailSheet = ({
 }: ProductDetailSheetProps) => {
     const [details, setDetails] = useState<Product | null>(null)
     const [isLoading, setIsLoading] = useState(false)
+    const supabase = createClient()
 
     useEffect(() => {
-        if (open && product?.id) {
-            setIsLoading(true)
-            setDetails(null)
+        const fetchDetails = async () => {
+            if (!open || !product?.id) {
+                if (!open) setDetails(null)
+                return
+            }
 
-            // Call the REST API route to fetch full product details, variants & attributes
-            fetch(`/api/products/${product.id}`)
-                .then(async (res) => {
-                    if (!res.ok) throw new Error(`Failed to fetch product: ${res.status}`)
-                    return res.json()
+            setIsLoading(true)
+            try {
+                // 1. Get Product
+                const { data: productData, error: productError } = await supabase
+                    .from('products')
+                    .select('*, brand:brands(*)')
+                    .eq('id', product.id)
+                    .single()
+
+                if (productError) throw productError
+
+                // 2. Variants
+                const { data: variants, error: variantsError } = await supabase
+                    .from('product_variants')
+                    .select('*')
+                    .eq('product_id', product.id)
+
+                if (variantsError) throw variantsError
+
+                // 3. Attributes
+                const variantIds = variants?.map(v => v.id) || []
+                let variantAttributes: any[] = []
+
+                if (variantIds.length > 0) {
+                    const { data: attrs, error: attributesError } = await supabase
+                        .from('product_variant_attributes')
+                        .select('*')
+                        .in('variant_id', variantIds)
+
+                    if (attributesError) throw attributesError
+                    variantAttributes = attrs || []
+                }
+
+                // 4. Inventory Movements (Stock)
+                let orQuery = `product_id.eq.${product.id}`
+                if (variantIds.length > 0) {
+                    orQuery += `,product_variant_id.in.(${variantIds.join(',')})`
+                }
+
+                const { data: movements, error: movementsError } = await supabase
+                    .from('inventory_movements')
+                    .select('product_id, product_variant_id, quantity, movement_type, movement_status')
+                    .or(orQuery)
+                    .eq('movement_status', 'completed')
+
+                if (movementsError) throw movementsError
+
+                // 5. Calculate Stock
+                const stockMap = new Map<string, number>()
+                movements?.forEach((movement) => {
+                    const key = movement.product_variant_id
+                        ? `variant:${movement.product_variant_id}`
+                        : `product:${movement.product_id}`
+
+                    const adjustment = movement.movement_type === 'entry' ? movement.quantity : -movement.quantity
+                    stockMap.set(key, (stockMap.get(key) || 0) + adjustment)
                 })
-                .then((data: Product) => setDetails(data))
-                .catch((err) => console.error('ProductDetailSheet fetch error:', err))
-                .finally(() => setIsLoading(false))
-        } else if (!open) {
-            setDetails(null)
+
+                // 6. Assemble
+                const productVariants = variants?.map(variant => {
+                    const attributes = variantAttributes
+                        .filter(attr => attr.variant_id === variant.id)
+                        .map(attr => ({
+                            attribute_type: attr.attribute_type,
+                            attribute_value: attr.attribute_value
+                        }))
+
+                    const variantStock = stockMap.get(`variant:${variant.id}`) || 0
+                    const variantPrice = (variant.price && variant.price > 0) ? variant.price : (productData.price || 0)
+
+                    return {
+                        ...variant,
+                        stock: variantStock,
+                        attributes: attributes || [],
+                        price_unit: variantPrice
+                    }
+                })
+
+                const finalProduct: Product = {
+                    ...productData,
+                    variants: productVariants?.length ? productVariants : undefined,
+                    stock: !productVariants?.length ? (stockMap.get(`product:${productData.id}`) || 0) : 0,
+                    price_unit: productData.price || 0
+                }
+
+                setDetails(finalProduct)
+
+            } catch (error) {
+                console.error('Error fetching details:', error)
+            } finally {
+                setIsLoading(false)
+            }
         }
+
+        fetchDetails()
     }, [product?.id, open])
 
     if (!product) return null
@@ -91,7 +178,7 @@ export const ProductDetailSheet = ({
                             <Loader2 className="h-3 w-3 animate-spin text-neutral-400" />
                         </div>
                     )}
-                    <SheetHeader className="space-y-1.5 text-left">
+                    <SheetHeader className="flex flex-col gap-2 text-left pb-0">
                         <div className="space-y-1">
                             <div className="flex items-center gap-2 text-[10px] font-medium text-neutral-400 uppercase tracking-wider">
                                 <span>{displayProduct.code}</span>
