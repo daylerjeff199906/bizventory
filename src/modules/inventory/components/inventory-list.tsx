@@ -29,10 +29,12 @@ import {
     ChevronDown,
     ChevronRight,
     Package,
-    Layers
+    Layers,
+    Eye
 } from 'lucide-react'
 import { Product, ProductVariant } from '@/apis/app/product-stock'
 import { cn } from '@/lib/utils'
+import { ProductDetailSheet } from './product-detail-sheet'
 
 interface InventoryListProps {
     data: Product[]
@@ -54,6 +56,7 @@ export const InventoryList = ({
     const searchParams = useSearchParams()
     const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '')
     const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({})
+    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
 
     const toggleRow = (productId: string) => {
         setExpandedRows((prev) => ({
@@ -97,6 +100,21 @@ export const InventoryList = ({
             : (p.stock || 0)
         return total <= 5 ? acc + 1 : acc
     }, 0)
+
+    const handleViewProduct = (product: Product) => {
+        setSelectedProduct(product)
+    }
+
+    const handleEditProduct = (product: Product) => {
+        // Logic to navigate to edit page
+        router.push(`${pathname}/${product.id}/edit`)
+        // Or if modal, logic here. Assuming route based.
+    }
+
+    const handleManageVariants = (product: Product) => {
+        // Logic to navigate to variants management
+        router.push(`${pathname}/${product.id}/variants`)
+    }
 
     return (
         <div className="space-y-6">
@@ -184,14 +202,21 @@ export const InventoryList = ({
 
                                 return (
                                     <>
-                                        <TableRow key={product.id} className={cn(isExpanded && "bg-muted/50")}>
+                                        <TableRow
+                                            key={product.id}
+                                            className={cn("cursor-pointer hover:bg-muted/50", isExpanded && "bg-muted/50")}
+                                            onClick={() => handleViewProduct(product)}
+                                        >
                                             <TableCell>
                                                 {(product.has_variants || (product.variants && product.variants.length > 0)) && (
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
                                                         className="p-0 h-8 w-8"
-                                                        onClick={() => toggleRow(product.id)}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation()
+                                                            toggleRow(product.id)
+                                                        }}
                                                     >
                                                         {isExpanded ? (
                                                             <ChevronDown className="h-4 w-4" />
@@ -201,15 +226,26 @@ export const InventoryList = ({
                                                     </Button>
                                                 )}
                                             </TableCell>
-                                            <TableCell className="font-mono text-xs">{product.code}</TableCell>
+                                            <TableCell className="font-mono text-xs">
+                                                {product.code}
+                                            </TableCell>
                                             <TableCell>
-                                                <div className="flex flex-col">
-                                                    <span className="font-medium">{product.name}</span>
-                                                    {product.has_variants && (
-                                                        <span className="text-xs text-muted-foreground">
-                                                            {product.variants?.length} variantes
-                                                        </span>
-                                                    )}
+                                                <div className="flex items-center gap-2 group">
+                                                    <div className="flex flex-col">
+                                                        <span className="font-medium">{product.name}</span>
+                                                        {product.has_variants && (
+                                                            <span className="text-xs text-muted-foreground">
+                                                                {product.variants?.length} variantes
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    >
+                                                        <Eye className="h-3 w-3 text-blue-600" />
+                                                    </Button>
                                                 </div>
                                             </TableCell>
                                             <TableCell>
@@ -221,7 +257,7 @@ export const InventoryList = ({
                                                 {
                                                     product?.variants &&
                                                         product?.variants?.length > 0 ? <>
-                                                        --
+                                                        <span className="text-xs text-muted-foreground italic">Ver detalles</span>
                                                     </> : <span>
                                                         {totalStock} <span className="text-xs font-normal text-muted-foreground">{product.unit}</span>
                                                     </span>
@@ -231,7 +267,7 @@ export const InventoryList = ({
                                                 {
                                                     product?.variants &&
                                                         product?.variants?.length > 0 ? <>
-                                                        --
+                                                        <Badge variant="outline">Variantes</Badge>
                                                     </> : <div className={`flex items-center gap-1 ${status.textColor}`}>
                                                         <StatusIcon className="h-4 w-4" />
                                                         <span className="text-sm font-medium">{status.label}</span>
@@ -294,7 +330,7 @@ export const InventoryList = ({
                                 )
                             })
                         )}
-                    </TableBody>
+                    </TableBody >
                 </Table>
             </div>
 
@@ -322,6 +358,14 @@ export const InventoryList = ({
                     </Button>
                 </div>
             )}
+
+            <ProductDetailSheet
+                product={selectedProduct}
+                open={!!selectedProduct}
+                onOpenChange={(open) => !open && setSelectedProduct(null)}
+                onEdit={handleEditProduct}
+                onManageVariants={handleManageVariants}
+            />
         </div>
     )
 }
