@@ -28,16 +28,18 @@ import {
 } from '@/components/ui/table'
 
 import { Badge } from '@/components/ui/badge'
-import { ResApi, ProductDetails } from '@/types'
+import { ResApi } from '@/types'
 import { APP_URLS } from '@/config/app-urls'
 import { cn } from '@/lib/utils'
 import { DeleteProductDialog } from '../components/delete-product-dialog'
+import { ProductDetailSheet } from '@/modules/inventory/components/product-detail-sheet'
+import { Product } from '@/apis/app/product-stock'
 
 type SortField = 'name' | 'updated_at' | 'created_at' | 'price' | 'code'
 type SortDirection = 'asc' | 'desc'
 
 interface ProductsListProps {
-  dataProducts: ResApi<ProductDetails>
+  dataProducts: ResApi<Product>
   isLoading?: boolean
   searchQuery?: string
   bussinessId: string
@@ -63,6 +65,7 @@ export const ProductsList = ({
 
   const [productToDelete, setProductToDelete] = useState<{ id: string, name: string } | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('es-ES', {
@@ -111,9 +114,22 @@ export const ProductsList = ({
     )
   }
 
-  const confirmDelete = (product: ProductDetails) => {
+  const confirmDelete = (product: Product) => {
     setProductToDelete({ id: product.id, name: product.name })
     setIsDeleteDialogOpen(true)
+  }
+
+  const handleViewProduct = (product: Product) => {
+    setSelectedProduct(product)
+  }
+
+  const handleEditProduct = (product: Product) => {
+    router.push(APP_URLS.ORGANIZATION.PRODUCTS.EDIT(bussinessId, product.id))
+  }
+
+  const handleManageVariants = (product: Product) => {
+    // Using the same route as the existing "PlusSquare" button
+    router.push(APP_URLS.ORGANIZATION.PRODUCTS.CREATE_VARIANT(bussinessId, product.id))
   }
 
   return (
@@ -212,7 +228,11 @@ export const ProductsList = ({
             </TableRow>
           ) : (
             dataProducts?.data?.map((product) => (
-              <TableRow key={product.id}>
+              <TableRow
+                key={product.id}
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => handleViewProduct(product)}
+              >
                 <TableCell>
                   <Badge
                     variant="outline"
@@ -227,7 +247,7 @@ export const ProductsList = ({
                   </span>
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 group">
                     <div className="w-10 h-10 bg-muted rounded-md flex-shrink-0 overflow-hidden">
                       {product.images && product.images.length > 0 ? (
                         <img
@@ -244,9 +264,18 @@ export const ProductsList = ({
                       )}
                     </div>
                     <div className="flex-1 min-w-0 max-w-md">
-                      <h2 className="text-sm font-medium break-words whitespace-normal">
-                        {product.name}
-                      </h2>
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-sm font-medium break-words whitespace-normal group-hover:underline">
+                          {product.name}
+                        </h2>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <Eye className="h-3 w-3 text-blue-600" />
+                        </Button>
+                      </div>
                       <p className="text-xs text-muted-foreground break-words whitespace-normal line-clamp-2">
                         {product.description || 'Sin descripción'}
                       </p>
@@ -313,6 +342,7 @@ export const ProductsList = ({
                         size="icon"
                         className="h-8 w-8 text-green-500 hover:text-green-700 hover:bg-green-50"
                         asChild
+                        onClick={(e) => e.stopPropagation()}
                       >
                         <Link
                           href={APP_URLS.ORGANIZATION.PRODUCTS.EDIT(
@@ -329,6 +359,7 @@ export const ProductsList = ({
                         size="icon"
                         className="h-8 w-8 text-blue-500 hover:text-blue-700 hover:bg-blue-50"
                         asChild
+                        onClick={(e) => e.stopPropagation()}
                       >
                         <Link
                           href={APP_URLS.ORGANIZATION.PRODUCTS.CREATE_VARIANT(
@@ -344,7 +375,10 @@ export const ProductsList = ({
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
-                        onClick={() => confirmDelete(product)}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          confirmDelete(product)
+                        }}
                         title="Eliminar producto"
                       >
                         <Trash className="h-4 w-4" />
@@ -393,6 +427,14 @@ export const ProductsList = ({
           )}
         </div>
       )}
+
+      <ProductDetailSheet
+        product={selectedProduct}
+        open={!!selectedProduct}
+        onOpenChange={(open) => !open && setSelectedProduct(null)}
+        onEdit={handleEditProduct}
+        onManageVariants={handleManageVariants}
+      />
 
       <DeleteProductDialog
         isOpen={isDeleteDialogOpen}
