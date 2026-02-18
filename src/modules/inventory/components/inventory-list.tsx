@@ -365,6 +365,7 @@ export const InventoryList = ({
                 onOpenChange={(open) => !open && setSelectedProduct(null)}
                 onEdit={handleEditProduct}
                 onManageVariants={handleManageVariants}
+                showActions={false}
             />
         </div>
     )

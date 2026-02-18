@@ -40,6 +40,7 @@ interface ProductDetailSheetProps {
     onOpenChange: (open: boolean) => void
     onEdit?: (product: Product) => void
     onManageVariants?: (product: Product) => void
+    showActions?: boolean
 }
 
 export const ProductDetailSheet = ({
@@ -47,7 +48,8 @@ export const ProductDetailSheet = ({
     open,
     onOpenChange,
     onEdit,
-    onManageVariants
+    onManageVariants,
+    showActions = true
 }: ProductDetailSheetProps) => {
     if (!product) return null
 
@@ -68,7 +70,7 @@ export const ProductDetailSheet = ({
         <Sheet open={open} onOpenChange={onOpenChange}>
             <SheetContent className="w-full sm:max-w-xl p-0 flex flex-col h-full bg-background" side="right">
                 {/* Header */}
-                <div className="p-6 pb-2">
+                <div className="px-6">
                     <SheetHeader className="space-y-1">
                         <div className="flex items-start justify-between">
                             <div className="space-y-1">
@@ -205,26 +207,28 @@ export const ProductDetailSheet = ({
                 </ScrollArea>
 
                 {/* Sticky Footer Actions */}
-                <div className="p-4 border-t bg-background mt-auto sticky bottom-0 z-10">
-                    <div className="grid grid-cols-2 gap-3">
-                        <Button
-                            variant="outline"
-                            onClick={() => onManageVariants?.(product)}
-                            disabled={!product.has_variants}
-                            className="w-full"
-                        >
-                            <Layers className="mr-2 h-4 w-4" />
-                            Gest. Variantes
-                        </Button>
-                        <Button
-                            onClick={() => onEdit?.(product)}
-                            className="w-full"
-                        >
-                            <Edit className="mr-2 h-4 w-4" />
-                            Editar Producto
-                        </Button>
+                {showActions && (
+                    <div className="p-4 border-t bg-background mt-auto sticky bottom-0 z-10">
+                        <div className="grid grid-cols-2 gap-3">
+                            <Button
+                                variant="outline"
+                                onClick={() => onManageVariants?.(product)}
+                                disabled={!product.has_variants}
+                                className="w-full"
+                            >
+                                <Layers className="mr-2 h-4 w-4" />
+                                Gest. Variantes
+                            </Button>
+                            <Button
+                                onClick={() => onEdit?.(product)}
+                                className="w-full"
+                            >
+                                <Edit className="mr-2 h-4 w-4" />
+                                Editar Producto
+                            </Button>
+                        </div>
                     </div>
-                </div>
+                )}
             </SheetContent>
         </Sheet>
     )

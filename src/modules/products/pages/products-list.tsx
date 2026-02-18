@@ -135,58 +135,58 @@ export const ProductsList = ({
   return (
     <div className="rounded-md border w-full">
       <Table>
-        <TableHeader className="">
-          <TableRow>
-            <TableHead className="w-[100px]">
+        <TableHeader>
+          <TableRow className="hover:bg-transparent border-b">
+            <TableHead className="w-[100px] h-9">
               <Button
                 variant="ghost"
                 onClick={() => handleSort('code')}
-                className="h-auto p-0 font-medium hover:bg-transparent"
+                className="h-auto p-0 text-xs font-semibold hover:bg-transparent uppercase tracking-wider"
               >
                 Código
                 {getSortIcon('code')}
               </Button>
             </TableHead>
-            <TableHead>
-              <div className="font-medium">Marca</div>
+            <TableHead className="h-9 text-xs font-semibold uppercase tracking-wider">
+              Marca
             </TableHead>
-            <TableHead>
+            <TableHead className="h-9">
               <Button
                 variant="ghost"
                 onClick={() => handleSort('name')}
-                className="h-auto p-0 font-medium hover:bg-transparent"
+                className="h-auto p-0 text-xs font-semibold hover:bg-transparent uppercase tracking-wider"
               >
                 Producto
                 {getSortIcon('name')}
               </Button>
             </TableHead>
-            <TableHead>
-              <div className="font-medium">Unidad</div>
+            <TableHead className="h-9 text-xs font-semibold uppercase tracking-wider">
+              Unidad
             </TableHead>
-            <TableHead>
-              <div className="font-medium">Estado</div>
+            <TableHead className="h-9 text-xs font-semibold uppercase tracking-wider">
+              Estado
             </TableHead>
-            <TableHead>
+            <TableHead className="h-9">
               <Button
                 variant="ghost"
                 onClick={() => handleSort('created_at')}
-                className="h-auto p-0 font-medium hover:bg-transparent"
+                className="h-auto p-0 text-xs font-semibold hover:bg-transparent uppercase tracking-wider"
               >
                 Creado
                 {getSortIcon('created_at')}
               </Button>
             </TableHead>
-            <TableHead>
+            <TableHead className="h-9">
               <Button
                 variant="ghost"
                 onClick={() => handleSort('updated_at')}
-                className="h-auto p-0 font-medium hover:bg-transparent"
+                className="h-auto p-0 text-xs font-semibold hover:bg-transparent uppercase tracking-wider"
               >
                 Actualizado
                 {getSortIcon('updated_at')}
               </Button>
             </TableHead>
-            <TableHead className="w-[80px] text-right">Acciones</TableHead>
+            <TableHead className="w-[80px] h-9 text-right text-xs font-semibold uppercase tracking-wider">Acciones</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -195,7 +195,7 @@ export const ProductsList = ({
               <TableCell colSpan={8} className="h-24 text-center">
                 <div className="flex items-center justify-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Cargando productos...</span>
+                  <span className="text-sm">Cargando productos...</span>
                 </div>
               </TableCell>
             </TableRow>
@@ -205,18 +205,18 @@ export const ProductsList = ({
                 <div className="flex flex-col items-center justify-center gap-4">
                   <PackageSearch className="h-12 w-12 text-muted-foreground" />
                   <div className="space-y-1 text-center">
-                    <h3 className="text-lg font-medium">
+                    <h3 className="text-sm font-medium">
                       {searchQuery
                         ? 'No se encontraron coincidencias'
                         : 'No hay productos registrados'}
                     </h3>
-                    <p className="text-sm text-muted-foreground max-w-md">
+                    <p className="text-xs text-muted-foreground max-w-md">
                       {searchQuery
                         ? `No se encontraron productos que coincidan con "${searchQuery}". Intenta con otro término de búsqueda.`
                         : 'Parece que aún no has agregado ningún producto. Comienza agregando tu primer producto.'}
                     </p>
                   </div>
-                  <Button asChild>
+                  <Button asChild size="sm">
                     <Link
                       href={APP_URLS.ORGANIZATION.PRODUCTS.CREATE(bussinessId)}
                     >
@@ -233,22 +233,22 @@ export const ProductsList = ({
                 className="cursor-pointer hover:bg-muted/50"
                 onClick={() => handleViewProduct(product)}
               >
-                <TableCell>
+                <TableCell className="py-2">
                   <Badge
                     variant="outline"
-                    className="font-mono rounded-full text-xs"
+                    className="font-mono rounded-full text-[10px] px-2"
                   >
                     {product.code}
                   </Badge>
                 </TableCell>
-                <TableCell>
-                  <span className="text-sm text-muted-foreground">
-                    {product?.brand ? product?.brand?.name : 'Sin marca'}
+                <TableCell className="py-2">
+                  <span className="text-xs text-muted-foreground">
+                    {product?.brand ? product?.brand?.name : '-'}
                   </span>
                 </TableCell>
-                <TableCell>
+                <TableCell className="py-2">
                   <div className="flex items-center gap-3 group">
-                    <div className="w-10 h-10 bg-muted rounded-md flex-shrink-0 overflow-hidden">
+                    <div className="w-9 h-9 bg-muted rounded-md flex-shrink-0 overflow-hidden border">
                       {product.images && product.images.length > 0 ? (
                         <img
                           src={product.images[0] || '/placeholder.svg'}
@@ -256,36 +256,30 @@ export const ProductsList = ({
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                          <span className="text-muted-foreground text-xs">
-                            Sin imagen
+                        <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                          <span className="text-muted-foreground text-[10px]">
+                            N/A
                           </span>
                         </div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0 max-w-md">
-                      <div className="flex items-center gap-2">
-                        <h2 className="text-sm font-medium break-words whitespace-normal group-hover:underline">
+                      <div className="flex items-center gap-1.5">
+                        <h2 className="text-sm font-medium break-words whitespace-normal group-hover:underline line-clamp-1">
                           {product.name}
                         </h2>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <Eye className="h-3 w-3 text-blue-600" />
-                        </Button>
+                        <Eye className="h-3 w-3 text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                       </div>
-                      <p className="text-xs text-muted-foreground break-words whitespace-normal line-clamp-2">
+                      <p className="text-[10px] text-muted-foreground break-words whitespace-normal line-clamp-1">
                         {product.description || 'Sin descripción'}
                       </p>
                       {product.tags && product.tags.length > 0 && (
                         <div className="flex gap-1 mt-1 flex-wrap">
-                          {product.tags.map((tag) => (
+                          {product.tags.slice(0, 3).map((tag) => (
                             <Badge
                               key={tag}
                               variant="secondary"
-                              className="text-xs"
+                              className="text-[10px] px-1 h-4"
                             >
                               {tag}
                             </Badge>
@@ -295,95 +289,85 @@ export const ProductsList = ({
                     </div>
                   </div>
                 </TableCell>
-                <TableCell>
-                  <span className="text-sm text-muted-foreground uppercase">
-                    {product.unit || 'unidad'}
+                <TableCell className="py-2">
+                  <span className="text-xs text-muted-foreground uppercase">
+                    {product.unit || 'und'}
                   </span>
                 </TableCell>
-                <TableCell>
+                <TableCell className="py-2">
                   <Badge
-                    className={cn('text-xs rounded-full', {
-                      'bg-green-100 text-green-800': product.is_active,
-                      'bg-red-100 text-red-800': !product.is_active
+                    className={cn('text-[10px] rounded-full px-2', {
+                      'bg-green-100 text-green-800 hover:bg-green-100': product.is_active,
+                      'bg-red-100 text-red-800 hover:bg-red-100': !product.is_active
                     })}
                   >
                     {product.is_active ? 'Activo' : 'Inactivo'}
                   </Badge>
                 </TableCell>
-                <TableCell>
+                <TableCell className="py-2">
                   <div className="flex flex-col">
-                    <span className="text-sm" suppressHydrationWarning>
+                    <span className="text-xs" suppressHydrationWarning>
                       {formatDate(product.created_at)}
                     </span>
-                    <span className="text-xs text-muted-foreground" suppressHydrationWarning>
-                      {formatTime(product.created_at)}
-                    </span>
                   </div>
                 </TableCell>
-                <TableCell>
+                <TableCell className="py-2">
                   <div className="flex flex-col">
-                    <span className="text-sm" suppressHydrationWarning>
+                    <span className="text-xs" suppressHydrationWarning>
                       {product.updated_at
                         ? formatDate(product.updated_at)
-                        : 'N/A'}
+                        : '-'}
                     </span>
-                    {product.updated_at && (
-                      <span className="text-xs text-muted-foreground" suppressHydrationWarning>
-                        {formatTime(product.updated_at)}
-                      </span>
-                    )}
                   </div>
                 </TableCell>
-                <TableCell>
-                  <div className="flex justify-end items-center gap-2">
-                    <div className="flex justify-end items-center gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-green-500 hover:text-green-700 hover:bg-green-50"
-                        asChild
-                        onClick={(e) => e.stopPropagation()}
+                <TableCell className="py-2">
+                  <div className="flex justify-end items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-green-600 hover:text-green-700 hover:bg-green-50"
+                      asChild
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Link
+                        href={APP_URLS.ORGANIZATION.PRODUCTS.EDIT(
+                          bussinessId,
+                          product.id
+                        )}
+                        title="Editar"
                       >
-                        <Link
-                          href={APP_URLS.ORGANIZATION.PRODUCTS.EDIT(
-                            bussinessId,
-                            product.id
-                          )}
-                          title="Editar producto"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Link>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-blue-500 hover:text-blue-700 hover:bg-blue-50"
-                        asChild
-                        onClick={(e) => e.stopPropagation()}
+                        <Edit className="h-3.5 w-3.5" />
+                      </Link>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                      asChild
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Link
+                        href={APP_URLS.ORGANIZATION.PRODUCTS.CREATE_VARIANT(
+                          bussinessId,
+                          product.id
+                        )}
+                        title="Variantes"
                       >
-                        <Link
-                          href={APP_URLS.ORGANIZATION.PRODUCTS.CREATE_VARIANT(
-                            bussinessId,
-                            product.id
-                          )}
-                          title="Ver detalles"
-                        >
-                          <PlusSquare className="h-4 w-4" />
-                        </Link>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          confirmDelete(product)
-                        }}
-                        title="Eliminar producto"
-                      >
-                        <Trash className="h-4 w-4" />
-                      </Button>
-                    </div>
+                        <PlusSquare className="h-3.5 w-3.5" />
+                      </Link>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        confirmDelete(product)
+                      }}
+                      title="Eliminar"
+                    >
+                      <Trash className="h-3.5 w-3.5" />
+                    </Button>
                   </div>
                 </TableCell>
               </TableRow>
