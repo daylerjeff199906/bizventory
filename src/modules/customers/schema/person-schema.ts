@@ -8,7 +8,7 @@ export const personSchema = z.object({
     .string()
     .min(9, 'El número de WhatsApp debe tener al menos 9 caracteres'),
   secondary_phone: z.string(),
-  email: z.string().email('El email no es válido').optional().or(z.literal('')),
+  email: z.string().email('El email no es válido').optional(),
   address: z.string().min(5, 'La dirección debe tener al menos 5 caracteres'),
   country: z.string().min(2, 'El país es requerido'),
   created_at: z.string().optional(),
