@@ -1,7 +1,6 @@
-import { getProductById } from '@/apis/app'
+import { getProductByIdDetails } from '@/apis/app'
 import { EditProductPage } from '@/modules/products'
 import { Params } from '@/types'
-import React from 'react'
 
 interface Props {
   params: Params
@@ -13,7 +12,7 @@ export default async function Page(props: Props) {
   const uuid = await params.uuid
   const product = await params.product
 
-  const productData = await getProductById(product?.toString() || '')
+  const productData = await getProductByIdDetails(product?.toString() || '')
 
   if (!productData) {
     return <div>Product not found</div>

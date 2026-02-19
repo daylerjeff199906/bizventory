@@ -64,7 +64,9 @@ export default function PersonsCRUD(props: PersonCrudProps) {
       secondary_phone: personData?.secondary_phone || '',
       email: personData?.email || '',
       address: personData?.address || '',
-      country: personData?.country || 'Perú'
+      country: personData?.country || 'Perú',
+      document_type: personData?.document_type || 'DNI',
+      document_number: personData?.document_number || ''
     }
   })
 
@@ -85,6 +87,10 @@ export default function PersonsCRUD(props: PersonCrudProps) {
       if (mode === 'create') {
         const personResponse = await createPerson(data)
 
+        if (personResponse.error) {
+          throw personResponse.error
+        }
+
         if (isCustomer && personResponse?.data?.id) {
           await createCustomer({
             person_id: personResponse.data.id,
@@ -103,8 +109,25 @@ export default function PersonsCRUD(props: PersonCrudProps) {
       form.reset()
       // Recargar la página para ver los cambios
       window.location.reload()
-    } catch {
-      toast.error('Ocurrió un error al procesar la solicitud')
+    } catch (error: any) {
+      console.error('Error submitting form:', error)
+
+      let errorMessage = 'Ocurrió un error al procesar la solicitud'
+
+      // Check for Supabase error structure
+      if (error?.code === '23505') {
+        if (error?.message?.includes('persons_email_key')) {
+          errorMessage = 'El correo electrónico ya está registrado.'
+          form.setError('email', { type: 'manual', message: errorMessage })
+        } else if (error?.message?.includes('persons_document_number_key')) {
+          errorMessage = 'El número de documento ya está registrado.'
+          form.setError('document_number', { type: 'manual', message: errorMessage })
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message
+      }
+
+      toast.error(errorMessage)
     } finally {
       setIsLoading(false)
     }
@@ -190,9 +213,8 @@ export default function PersonsCRUD(props: PersonCrudProps) {
                       <FormLabel>Tipo de Doc. *</FormLabel>
                       <Select
                         onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
+                        value={field.value}
+                      >                   <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Seleccionar" />
                           </SelectTrigger>
