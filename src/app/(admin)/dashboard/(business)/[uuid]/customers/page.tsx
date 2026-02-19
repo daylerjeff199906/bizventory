@@ -40,7 +40,12 @@ export default async function CustomersPage(props: Props) {
                 </PersonsCRUD>
             </div>
             <Suspense fallback={<div>Cargando...</div>}>
-                <CustomersList customersList={customers.data} />
+                <CustomersList
+                    customersList={customers.data}
+                    totalItems={customers.total}
+                    page={customers.page}
+                    totalPages={customers.total_pages}
+                />
             </Suspense>
         </div>
     )

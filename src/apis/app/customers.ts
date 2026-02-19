@@ -63,6 +63,7 @@ export async function getCustomers({
       .from('customers')
       .select('*, person:person_id(*)', { count: 'exact' })
       .eq('business_id', businessId)
+      .eq('is_active', true)
       .order(sortColumn, { ascending: sortDirection === 'asc' })
       .range(from, to)
 
@@ -129,6 +130,7 @@ export async function getCustomers({
     .from('customers')
     .select('*, person:person_id(*)', { count: 'exact' })
     .eq('business_id', businessId)
+    .eq('is_active', true)
     .order(sortColumn, { ascending: sortDirection === 'asc' })
     .range(from, to)
 
@@ -196,7 +198,7 @@ export async function getPersonById(id: string) {
  */
 export async function createPerson(personData: PersonType): Promise<{
   data: Person | null
-  error: Error | null
+  error: any
 }> {
   const supabase = await getSupabase()
 
@@ -213,7 +215,7 @@ export async function createPerson(personData: PersonType): Promise<{
     console.error('Error al crear persona:', error)
     return {
       data: null,
-      error: new Error(`Error al crear persona: ${error.message}`)
+      error: error
     }
   }
 
@@ -318,6 +320,7 @@ export async function createCustomer(createCustomerData: CreateCustomerData) {
   if (personError) {
     throw new Error(`Error al verificar persona: ${personError.message}`)
   }
+  console.log('Existing Person:', existingPerson)
 
   if (!existingPerson) {
     throw new Error('La persona asociada no existe')
@@ -332,7 +335,8 @@ export async function createCustomer(createCustomerData: CreateCustomerData) {
     })
     .select('*, person:person_id(*)')
     .single()
-
+  console.log('Data:', data)
+  console.log('Error:', customerError)
   if (customerError) {
     throw new Error(`Error al crear cliente: ${customerError.message}`)
   }
@@ -344,15 +348,17 @@ export async function createCustomer(createCustomerData: CreateCustomerData) {
 export async function deleteCustomer(personId: string) {
   const supabase = await getSupabase()
 
-  // Eliminar cliente
+  // Soft delete cliente
   const { error: customerError } = await supabase
     .from('customers')
-    .delete()
+    .update({ is_active: false })
     .eq('person_id', personId)
 
   if (customerError) {
     throw new Error(`Error al eliminar cliente: ${customerError.message}`)
   }
+
+  revalidatePath(APP_URLS.CUSTOMERS.LIST)
 
   // Nota: No eliminamos la persona asociada ya que podría estar relacionada con otros registros
 }
