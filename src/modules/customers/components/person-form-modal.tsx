@@ -62,7 +62,7 @@ export default function PersonsCRUD(props: PersonCrudProps) {
       name: personData?.name || '',
       whatsapp: personData?.whatsapp || '',
       secondary_phone: personData?.secondary_phone || '',
-      email: personData?.email || '',
+      email: personData?.email || undefined,
       address: personData?.address || '',
       country: personData?.country || 'Perú',
       document_type: personData?.document_type || 'DNI',
