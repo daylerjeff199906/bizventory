@@ -1,9 +1,8 @@
 'use client'
 
-import { ChangeEvent, useState, useId } from 'react'
+import { ChangeEvent, useState, useId, useCallback, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { ImagePlus, Loader2, Trash2, X } from 'lucide-react'
-import Image from 'next/image'
+import { ImagePlus, Loader2, Trash2, GripVertical } from 'lucide-react'
 import { toast } from 'react-toastify'
 import { cn } from '@/lib/utils'
 
@@ -26,20 +25,41 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
 }) => {
     const [isUploading, setIsUploading] = useState(false)
     const [deletingUrl, setDeletingUrl] = useState<string | null>(null)
+    const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+    const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
     const uniqueId = useId()
+    const fileInputRef = useRef<HTMLInputElement>(null)
+
+    const handleDragStart = (index: number) => {
+        setDraggedIndex(index)
+    }
+
+    const handleDragOver = (e: React.DragEvent, index: number) => {
+        e.preventDefault()
+        setDragOverIndex(index)
+    }
+
+    const handleDragEnd = () => {
+        if (draggedIndex !== null && dragOverIndex !== null && draggedIndex !== dragOverIndex) {
+            const newOrder = [...value]
+            const [removed] = newOrder.splice(draggedIndex, 1)
+            newOrder.splice(dragOverIndex, 0, removed)
+            onChange(newOrder)
+        }
+        setDraggedIndex(null)
+        setDragOverIndex(null)
+    }
 
     const onUpload = async (e: ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files
         if (!files || files.length === 0) return
 
-        // Validación de cantidad
         if (value.length + files.length > maxFiles) {
             toast.error(`Máximo ${maxFiles} imágenes permitidas.`)
             e.target.value = ''
             return
         }
 
-        // Validación de tamaño (5MB)
         for (let i = 0; i < files.length; i++) {
             if (files[i].size > 5 * 1024 * 1024) {
                 toast.error(`El archivo ${files[i].name} excede el límite de 5MB.`)
@@ -81,11 +101,59 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         }
     }
 
+    const handleDrop = useCallback(async (e: React.DragEvent) => {
+        e.preventDefault()
+        const files = e.dataTransfer.files
+        if (!files || files.length === 0) return
+
+        if (value.length + files.length > maxFiles) {
+            toast.error(`Máximo ${maxFiles} imágenes permitidas.`)
+            return
+        }
+
+        for (let i = 0; i < files.length; i++) {
+            if (files[i].size > 5 * 1024 * 1024) {
+                toast.error(`El archivo ${files[i].name} excede el límite de 5MB.`)
+                return
+            }
+        }
+
+        setIsUploading(true)
+
+        try {
+            const uploadPromises = Array.from(files).map(async (file) => {
+                const formData = new FormData()
+                formData.append('file', file)
+                formData.append('folder', 'products')
+
+                const response = await fetch('/api/r2/upload', {
+                    method: 'POST',
+                    body: formData
+                })
+
+                if (!response.ok) {
+                    throw new Error('Error subiendo imagen')
+                }
+
+                const data = await response.json()
+                return data.url
+            })
+
+            const newUrls = await Promise.all(uploadPromises)
+            onChange([...value, ...newUrls])
+            toast.success('Imágenes actualizadas')
+        } catch (error) {
+            console.error('Error uploading images:', error)
+            toast.error('Error al subir imágenes')
+        } finally {
+            setIsUploading(false)
+        }
+    }, [value, maxFiles, onChange])
+
     const onFileRemove = async (url: string) => {
         try {
             setDeletingUrl(url)
 
-            // 1. Eliminar del bucket
             const response = await fetch('/api/r2/delete', {
                 method: 'POST',
                 headers: {
@@ -98,7 +166,6 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
                 console.warn('No se pudo eliminar del bucket, pero se quitará de la lista')
             }
 
-            // 2. Eliminar del estado (DB save requerirá submit del formulario)
             onRemove(url)
             toast.success('Imagen eliminada')
         } catch (error) {
@@ -111,20 +178,38 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
 
     return (
         <div className={cn("space-y-4", className)}>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {value.map((url) => (
+            <div 
+                className="grid grid-cols-2 md:grid-cols-4 gap-4"
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={handleDrop}
+            >
+                {value.map((url, index) => (
                     <div
                         key={url}
-                        className="group relative aspect-square rounded-xl overflow-hidden border bg-background"
+                        draggable
+                        onDragStart={() => handleDragStart(index)}
+                        onDragOver={(e) => handleDragOver(e, index)}
+                        onDragEnd={handleDragEnd}
+                        className={cn(
+                            "group relative aspect-square rounded-xl overflow-hidden border bg-background cursor-move transition-all",
+                            draggedIndex === index && "opacity-50 scale-95",
+                            dragOverIndex === index && "ring-2 ring-primary ring-offset-2"
+                        )}
                     >
-                        <Image
-                            fill
-                            className="object-cover transition-transform group-hover:scale-105"
+                        <div className="absolute top-2 left-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="bg-black/60 rounded-md p-1">
+                                <GripVertical className="w-4 h-4 text-white" />
+                            </div>
+                        </div>
+                        
+                        <img
+                            className="object-cover w-full h-full transition-transform group-hover:scale-105"
                             alt="Product Image"
                             src={url}
+                            draggable={false}
                         />
 
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                             <Button
                                 type="button"
                                 onClick={() => onFileRemove(url)}
@@ -140,6 +225,12 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
                                 )}
                             </Button>
                         </div>
+                        
+                        {index === 0 && (
+                            <div className="absolute bottom-2 left-2 bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded">
+                                Principal
+                            </div>
+                        )}
                     </div>
                 ))}
 
@@ -155,13 +246,16 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
                             {isUploading ? (
                                 <Loader2 className="h-8 w-8 animate-spin" />
                             ) : (
-                                <ImagePlus className="h-8 w-8" />
+                                <>
+                                    <ImagePlus className="h-8 w-8" />
+                                    <span className="text-xs font-medium">
+                                        {isUploading ? 'Subiendo...' : 'Subir'}
+                                    </span>
+                                </>
                             )}
-                            <span className="text-xs font-medium">
-                                {isUploading ? 'Subiendo...' : 'Subir'}
-                            </span>
                         </div>
                         <input
+                            ref={fileInputRef}
                             id={uniqueId}
                             type="file"
                             accept="image/*"
@@ -174,8 +268,13 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
                 )}
             </div>
             {value.length === 0 && (
-                <p className="text-xs text-muted-foreground">
-                    Sube hasta {maxFiles} imágenes (máx. 5MB c/u)
+                <p className="text-xs text-muted-foreground text-center">
+                    Arrastra imágenes aquí o haz clic para subir (máx. {maxFiles})
+                </p>
+            )}
+            {value.length > 0 && (
+                <p className="text-xs text-muted-foreground text-center">
+                    Arrastra las imágenes para reordernar. La primera será la principal.
                 </p>
             )}
         </div>
