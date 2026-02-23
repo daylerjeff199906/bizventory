@@ -1,6 +1,6 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const urlWeb = process.env.NEXT_PUBLIC_APP_URL || 'https://bizventory.vercel.app';
 
 interface WelcomeEmailProps {
@@ -10,6 +10,11 @@ interface WelcomeEmailProps {
 }
 
 export async function sendWelcomeEmail({ firstName, email, password }: WelcomeEmailProps) {
+  if (!resend) {
+    console.warn('Resend API key not configured. Email not sent.')
+    return { success: false, error: 'Email service not configured' }
+  }
+
   try {
     // Como ya tienes el dominio 'jorgeantonio.site' verificado, puedes enviar correos a cualquier destino.
     const { data, error } = await resend.emails.send({
@@ -54,6 +59,11 @@ interface PasswordResetEmailProps {
 }
 
 export async function sendPasswordResetEmail({ email, resetLink }: PasswordResetEmailProps) {
+  if (!resend) {
+    console.warn('Resend API key not configured. Email not sent.')
+    return { success: false, error: 'Email service not configured' }
+  }
+
   try {
     const { data, error } = await resend.emails.send({
       from: 'Bizventory <admin@asipe.site>',
