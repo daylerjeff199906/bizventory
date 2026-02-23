@@ -28,7 +28,7 @@ export default async function SettingsPage(props: Props) {
     }
 
     return (
-        <div className="max-w-4xl border rounded-lg p-6 bg-card text-card-foreground shadow-sm">
+        <div className="space-y-6">
             <Suspense fallback={<div>Cargando configuración...</div>}>
                 <SettingsForm initialData={businessData} businessId={businessId} />
             </Suspense>

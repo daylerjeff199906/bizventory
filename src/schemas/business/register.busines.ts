@@ -22,6 +22,9 @@ export const businessSchema = z.object({
   map_iframe_url: z.string().optional().nullable(),
   contact_phone: z.string().optional().nullable(),
   address: z.string().optional().nullable(),
+  slug: z.string().optional().nullable(),
+  is_public: z.boolean().optional().nullable(),
+  categories: z.array(z.string()).optional().nullable(),
   documents: z.any().optional().nullable(), // jsonb field
   validation_status: z.string().optional().nullable(),
   created_at: z.string().optional().nullable(),
@@ -101,3 +104,15 @@ export const businessTypes = [
   { value: 'dropshipping', label: 'Dropshipping' },
   { value: 'otro', label: 'Otro' }
 ] as const
+
+export function generateSlug(name: string): string {
+  if (!name) return ''
+  return name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+}
