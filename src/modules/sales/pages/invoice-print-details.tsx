@@ -160,7 +160,8 @@ const TicketStyles = StyleSheet.create({
     companyName: {
         fontSize: 9,
         fontWeight: 'bold',
-        marginBottom: 2
+        marginBottom: 2,
+        textTransform: 'uppercase'
     },
     companyInfo: {
         fontSize: 7,
@@ -568,8 +569,15 @@ export const InvoiceDetailPrint = ({ company: propCompany, sale }: InvoiceDetail
                                                 {item.name}
                                             </h4>
                                             <div className="text-right flex-shrink-0">
-                                                <p className="font-bold text-lg">{formatCurrency(item.unit_price ?? 0)}</p>
-                                                <p className="text-sm text-muted-foreground">x{item.quantity}</p>
+                                                <p className="font-bold text-lg">
+                                                    {formatCurrency((item.unit_price ?? 0) - (item.discount_amount ?? 0))}
+                                                </p>
+                                                {(item.discount_amount ?? 0) > 0 && (
+                                                    <p className="text-xs text-muted-foreground line-through opacity-70">
+                                                        {formatCurrency(item.unit_price ?? 0)}
+                                                    </p>
+                                                )}
+                                                <p className="text-sm text-muted-foreground font-medium">x{item.quantity}</p>
                                             </div>
                                         </div>
                                         <p className="text-xs text-muted-foreground italic flex items-center gap-1">
