@@ -26,6 +26,8 @@ import {
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { numberToWords } from '@/utils/number-to-words'
+import { Copy, Share2, ShieldCheck, ChevronRight, Truck, Clock, CreditCard, Lock, CheckCircle2 } from 'lucide-react'
+import { Separator } from '@/components/ui/separator'
 
 interface InvoiceDetailProps {
     company?: CompanyInfo | null
@@ -463,33 +465,31 @@ const PDFGenerators = ({
     )
 }
 
+const getStatusBadge = (status: string) => {
+    switch (status.toLowerCase()) {
+        case 'completed':
+            return { text: 'Completado', icon: <CheckCircle2 className="w-5 h-5 text-green-600" />, color: 'text-black' }
+        case 'pending':
+            return { text: 'Pendiente', icon: <Clock className="w-5 h-5 text-yellow-600" />, color: 'text-black' }
+        case 'cancelled':
+            return { text: 'Cancelado', icon: <Info className="w-5 h-5 text-red-600" />, color: 'text-black' }
+        default:
+            return { text: status, icon: <Info className="w-5 h-5" />, color: 'text-black' }
+    }
+}
+
 export const InvoiceDetailPrint = ({ company: propCompany, sale }: InvoiceDetailProps) => {
     const company = propCompany || sale.business
+    const saleDate = sale.date ? new Date(sale.date) : new Date()
 
-    const getStatusColor = (status: string) => {
-        switch (status.toLowerCase()) {
-            case 'completed':
-                return 'bg-green-100 text-green-800 border-green-200'
-            case 'pending':
-                return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-            case 'cancelled':
-                return 'bg-red-100 text-red-800 border-red-200'
-            default:
-                return 'bg-gray-100 text-gray-800 border-gray-200'
-        }
+    const formatDate = (date: Date) => {
+        return format(date, 'd MMM yyyy', { locale: es })
     }
 
-    const getStatusText = (status: string) => {
-        switch (status.toLowerCase()) {
-            case 'completed':
-                return 'Completado'
-            case 'pending':
-                return 'Pendiente'
-            case 'cancelled':
-                return 'Cancelado'
-            default:
-                return status
-        }
+    const { text: statusText } = getStatusBadge(sale.status)
+
+    const copyToClipboard = (text: string) => {
+        navigator.clipboard.writeText(text)
     }
 
     const formatCurrency = (amount: number) => {
@@ -499,175 +499,298 @@ export const InvoiceDetailPrint = ({ company: propCompany, sale }: InvoiceDetail
         }).format(amount)
     }
 
-    const saleDate = sale.date ? new Date(sale.date) : new Date()
+    // Cálculos de montos calculados
+    const totalDiscounts = sale.items.reduce((acc, item) => acc + (item.discount_amount || 0) * (item.quantity || 1), 0)
+    const subtotal = sale.total_amount - (sale.tax_amount || 0)
+    const itemsTotal = subtotal + totalDiscounts
 
     return (
-        <div className="p-4 space-y-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold flex items-center gap-2">
-                        <FileText className="h-6 w-6 text-primary" />
-                        Detalle de Venta
-                    </h1>
-                    <p className="text-muted-foreground">#{sale.reference_number}</p>
+        <div className="max-w-6xl mx-auto p-4 md:p-8 space-y-8 bg-background min-h-screen">
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row justify-between items-start gap-6">
+                <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                        <span className="text-2xl font-bold text-foreground">{statusText}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-green-600 font-medium text-sm">
+                        <Lock className="h-4 w-4" />
+                        <span>Todos los datos están protegidos</span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground mt-2">
+                        <span>Fecha del pedido: {formatDate(saleDate)}</span>
+                        <div className="flex items-center gap-2">
+                            <span>ID del pedido: {sale.reference_number || sale.id}</span>
+                            <button
+                                onClick={() => copyToClipboard(sale.reference_number || sale.id)}
+                                className="text-primary hover:underline flex items-center gap-1 border border-primary/20 bg-primary/5 px-2 py-0.5 rounded-full text-xs font-semibold"
+                            >
+                                Copiar
+                            </button>
+                        </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                        La confirmación del pedido se envió a <span className="text-foreground font-medium">{sale.customer?.person?.email || 'N/A'}</span>
+                    </p>
                 </div>
-                <PDFGenerators company={company} sale={sale} />
+
+                <div className="flex gap-2 w-full md:w-auto">
+                    <Button variant="outline" className="flex-1 md:flex-none border-primary/20 text-primary hover:bg-primary/5 rounded-full px-6">
+                        <Share2 className="h-4 w-4 mr-2" />
+                        Compartir
+                    </Button>
+                    <div className="hidden md:block">
+                        <PDFGenerators company={company} sale={sale} />
+                    </div>
+                </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <Card className="lg:col-span-2">
-                    <CardHeader>
-                        <CardTitle className="text-lg">Información General</CardTitle>
-                    </CardHeader>
-                    <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div>
-                            <p className="text-sm text-muted-foreground">Fecha</p>
-                            <p className="font-medium">{format(saleDate, 'dd/MM/yyyy')}</p>
+            {/* Delivery Info Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-border border rounded-xl overflow-hidden shadow-sm">
+                <div className="bg-card p-6 flex flex-col justify-between">
+                    <div>
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="font-bold text-lg">Se envía a</h3>
+                            <button disabled className="text-primary text-sm font-medium hover:underline flex items-center">
+                                Cambiar dirección <ChevronRight className="h-4 w-4" />
+                            </button>
                         </div>
-                        <div>
-                            <p className="text-sm text-muted-foreground">Estado</p>
-                            <Badge className={getStatusColor(sale.status)} variant="outline">
-                                {getStatusText(sale.status)}
-                            </Badge>
-                        </div>
-                        <div>
-                            <p className="text-sm text-muted-foreground">Método de Pago</p>
-                            <p className="font-medium capitalize">{sale.payment_method || 'No especificado'}</p>
-                        </div>
-                        <div>
-                            <p className="text-sm text-muted-foreground">Total Items</p>
-                            <p className="font-medium">{sale.total_items}</p>
-                        </div>
-                    </CardContent>
-                </Card>
+                        <p className="font-bold uppercase mb-1">{sale.customer?.person?.name || 'Cliente Varios'}</p>
+                        <p className="text-muted-foreground leading-relaxed uppercase">
+                            {sale.shipping_address || 'Sin dirección registrada'}
+                        </p>
+                    </div>
+                </div>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-lg flex items-center gap-2">
-                            <User className="h-4 w-4" />
-                            Cliente
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                        <p className="font-bold">{sale.customer?.person?.name || 'Cliente Varios'}</p>
-                        <div className="text-sm space-y-1">
-                            <p className="flex items-center gap-1.5 text-muted-foreground">
-                                <span className="font-medium text-foreground">DNI/RUC:</span> {sale.customer?.person?.document_number || 'N/A'}
-                            </p>
-                            <p className="flex items-center gap-1.5 text-muted-foreground">
-                                <span className="font-medium text-foreground">Teléfono:</span> {sale.customer?.person?.whatsapp || 'N/A'}
-                            </p>
-                            <p className="flex items-center gap-1.5 text-muted-foreground">
-                                <span className="font-medium text-foreground">Email:</span> {sale.customer?.person?.email || 'N/A'}
-                            </p>
+                <div className="bg-card p-6">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="font-bold text-lg">Horario de entrega</h3>
+                        <button className="text-primary text-sm font-medium hover:underline flex items-center">
+                            Obtén actualizaciones <ChevronRight className="h-4 w-4" />
+                        </button>
+                    </div>
+                    <div className="space-y-4">
+                        <div>
+                            <p className="text-primary font-bold">Llegada rápida en un plazo de {Math.floor(Math.random() * 5) + 3} días hábiles</p>
+                            <p className="text-sm text-muted-foreground mt-1">Estimada: {formatDate(new Date(saleDate.getTime() + 7 * 24 * 60 * 60 * 1000))}</p>
                         </div>
-                        {sale.shipping_address && (
-                            <div className="mt-2 text-sm flex items-start gap-1">
-                                <MapPin className="h-3 w-3 mt-1" />
-                                <span>{sale.shipping_address}</span>
+                        <div className="flex items-center gap-2 text-green-600 font-semibold">
+                            <Truck className="h-5 w-5" />
+                            <span>Entrega garantizada</span>
+                        </div>
+                        <ul className="space-y-2">
+                            {[
+                                'Reembolso por 30 días sin actualizaciones',
+                                'Devolución si el artículo está dañado',
+                                'Reembolso por 70 días sin entrega'
+                            ].map((text, i) => (
+                                <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                                    <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5" />
+                                    <span>{text}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            {/* Products List & Sidebar Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Product Items */}
+                <div className="lg:col-span-2 space-y-6">
+                    <div className="border rounded-xl bg-card overflow-hidden shadow-sm">
+                        <div className="p-1 sm:p-4 divide-y divide-border">
+                            {sale.items.map((item, index) => (
+                                <div key={index} className="py-6 flex flex-col sm:flex-row gap-6 first:pt-2 last:pb-2">
+                                    <div className="w-full sm:w-32 h-32 flex-shrink-0 bg-muted rounded-lg overflow-hidden border">
+                                        {item.images && item.images.length > 0 ? (
+                                            <img
+                                                src={item.images[0]}
+                                                alt={item.name}
+                                                className="w-full h-full object-cover transition-transform hover:scale-105"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                                                <FileText className="h-10 w-10 opacity-30" />
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="flex-1 space-y-2">
+                                        <div className="flex justify-between items-start gap-4">
+                                            <h4 className="font-medium text-sm sm:text-base leading-tight hover:text-primary transition-colors cursor-pointer line-clamp-2">
+                                                {item.name}
+                                            </h4>
+                                            <div className="text-right flex-shrink-0">
+                                                <p className="font-bold text-lg">{formatCurrency(item.unit_price ?? 0)}</p>
+                                                <p className="text-sm text-muted-foreground">x{item.quantity}</p>
+                                            </div>
+                                        </div>
+                                        <p className="text-xs text-muted-foreground italic flex items-center gap-1">
+                                            {item.brand?.name ? item.brand.name : 'Vendido por Negocio'}
+                                        </p>
+                                        {item.attributes && item.attributes.length > 0 && (
+                                            <div className="flex flex-wrap gap-2 mt-2">
+                                                {item.attributes.map((attr, idx) => (
+                                                    <Badge key={idx} variant="secondary" className="font-normal text-[10px] sm:text-xs">
+                                                        {attr.attribute_type}: {attr.attribute_value}
+                                                    </Badge>
+                                                ))}
+                                            </div>
+                                        )}
+                                        <div className="mt-4 flex items-center gap-2 text-xs border rounded-md p-2 bg-muted/20 sm:w-fit">
+                                            <Info className="h-3 w-3 text-muted-foreground" />
+                                            <span className="text-muted-foreground font-medium">Qué incluye</span>
+                                            <ChevronRight className="h-3 w-3 text-muted-foreground ml-auto sm:ml-2" />
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Sidebar Actions (Desktop) / Status Card (Mobile) */}
+                <div className="space-y-6">
+                    <div className="bg-primary p-6 rounded-2xl text-primary-foreground shadow-lg shadow-primary/20 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                        <div className="relative space-y-4">
+                            <div className="flex items-center justify-between">
+                                <span className="font-bold text-lg">Estado de envío</span>
+                                <Badge variant="secondary" className="bg-white/20 text-white hover:bg-white/30 border-none">
+                                    {statusText}
+                                </Badge>
+                            </div>
+                            <div className="p-3 bg-black/20 rounded-xl backdrop-blur-sm border border-white/10">
+                                <p className="text-xs opacity-70 mb-1">Última actualización:</p>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                                    <p className="font-bold text-sm">Pedido procesado con éxito</p>
+                                </div>
+                            </div>
+                            <Button className="w-full bg-white text-primary hover:bg-white/90 font-bold rounded-full py-6">
+                                Rastrear pedido
+                            </Button>
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        {[
+                            'Comprar de nuevo',
+                            'Ver recibo',
+                            'Devolución/Reembolso',
+                            'Ajuste de precios',
+                            'Cambiar dirección'
+                        ].map((action, i) => (
+                            <Button key={i} variant="outline" className="w-full justify-center rounded-full border-muted-foreground/20 text-foreground font-medium hover:bg-muted/50 transition-all active:scale-95 py-6">
+                                {action}
+                            </Button>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* Payment & Summary Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-px bg-border border rounded-xl overflow-hidden shadow-sm">
+                <div className="bg-card p-6 md:p-8 space-y-6">
+                    <div className="space-y-4">
+                        <h3 className="font-bold text-xl">Detalles del pago</h3>
+                        <div className="flex items-center gap-2 text-green-600 font-medium text-sm">
+                            <Lock className="h-4 w-4" />
+                            <span>Todos los datos están protegidos</span>
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <p className="text-sm text-muted-foreground">Total del pedido:</p>
+                        <p className="text-4xl font-black text-foreground">{formatCurrency(sale.total_amount)}</p>
+                    </div>
+
+                    <div className="space-y-3 pt-4 border-t border-dashed">
+                        <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Total de artículos:</span>
+                            <span className="font-medium">{formatCurrency(itemsTotal)}</span>
+                        </div>
+                        {totalDiscounts > 0 && (
+                            <div className="flex justify-between text-sm text-destructive">
+                                <span className="text-muted-foreground">Descuento de artículo(s):</span>
+                                <span className="font-medium">-{formatCurrency(totalDiscounts)}</span>
                             </div>
                         )}
-                    </CardContent>
-                </Card>
+                        <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Subtotal:</span>
+                            <span className="font-medium font-bold">{formatCurrency(subtotal)}</span>
+                        </div>
+                        <Separator className="my-1 opacity-50" />
+                        <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Envío:</span>
+                            <span className="text-green-600 font-bold">GRATIS</span>
+                        </div>
+                        {sale.discount_amount > 0 && (
+                            <div className="flex justify-between text-sm text-destructive font-semibold">
+                                <span className="text-muted-foreground">Crédito/Descuento Especial:</span>
+                                <span>-{formatCurrency(sale.discount_amount)}</span>
+                            </div>
+                        )}
+                        <div className="flex justify-between text-lg font-bold pt-4 border-t">
+                            <span>Total del pedido:</span>
+                            <span>{formatCurrency(sale.total_amount)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm font-bold text-primary italic">
+                            <span>Ahorraste:</span>
+                            <span>-{formatCurrency(totalDiscounts + (sale.discount_amount || 0))}</span>
+                        </div>
+                    </div>
+                </div>
 
-                <Card className="lg:col-span-3">
-                    <CardHeader>
-                        <CardTitle className="text-lg">Productos</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Cod.</TableHead>
-                                    <TableHead>Producto</TableHead>
-                                    <TableHead className="text-center">Cant.</TableHead>
-                                    <TableHead className="text-right">Precio</TableHead>
-                                    <TableHead className="text-right">Descuento</TableHead>
-                                    <TableHead className="text-right font-bold">Total</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {sale.items.map((item, index) => (
-                                    <TableRow key={index}>
-                                        <TableCell>{item.code}</TableCell>
-                                        <TableCell>
-                                            <p className="font-medium">{item.name}</p>
-                                            {item.variant_name && (
-                                                <p className="text-xs text-muted-foreground italic">{item.variant_name}</p>
-                                            )}
-                                            {item.attributes && item.attributes.length > 0 && (
-                                                <div className="flex flex-wrap gap-1 mt-1">
-                                                    {item.attributes.map((attr, idx) => (
-                                                        <span key={idx} className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground">
-                                                            {attr.attribute_type}: {attr.attribute_value}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </TableCell>
-                                        <TableCell className="text-center">{item.quantity}</TableCell>
-                                        <TableCell className="text-right">{formatCurrency(item.unit_price ?? 0)}</TableCell>
-                                        <TableCell className="text-right text-red-600">
-                                            {item.discount_amount ? `-${formatCurrency(item.discount_amount)}` : '-'}
-                                        </TableCell>
-                                        <TableCell className="text-right font-bold">{formatCurrency(item.total_price ?? 0)}</TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-
-                        <div className="mt-6 flex justify-end">
-                            <div className="w-full md:w-64 space-y-2">
-                                <div className="flex justify-between text-sm">
-                                    <span>Subtotal</span>
-                                    <span>{formatCurrency(sale.total_amount - (sale.tax_amount || 0))}</span>
-                                </div>
-                                {sale.tax_amount > 0 && (
-                                    <div className="flex justify-between text-sm">
-                                        <span>Impuestos (IGV)</span>
-                                        <span>{formatCurrency(sale.tax_amount)}</span>
-                                    </div>
-                                )}
-                                <div className="flex justify-between text-xl font-bold border-t pt-2">
-                                    <span>Total</span>
-                                    <span className="text-primary">{formatCurrency(sale.total_amount)}</span>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-xs text-muted-foreground italic mt-2">
-                                        {numberToWords(sale.total_amount)}
-                                    </p>
-                                </div>
+                <div className="bg-muted/10 p-6 md:p-8 space-y-8">
+                    <div className="space-y-4">
+                        <h3 className="font-bold text-xl border-b pb-2">Método de pago</h3>
+                        <div className="flex items-start gap-4 p-4 bg-card border rounded-xl shadow-sm">
+                            <div className="w-12 h-8 bg-muted rounded flex items-center justify-center border">
+                                <CreditCard className="h-6 w-6 text-muted-foreground" />
+                            </div>
+                            <div className="space-y-1 flex-1">
+                                <p className="font-bold capitalize text-sm">{sale.payment_method || 'Tarjeta bancaria'}</p>
+                                <p className="text-xs text-muted-foreground">Pagado el {formatDate(saleDate)}</p>
+                            </div>
+                            <div className="text-right">
+                                <p className="font-bold text-sm">{formatCurrency(sale.total_amount)}</p>
                             </div>
                         </div>
-                    </CardContent>
-                </Card>
+                    </div>
 
-                <Card className="lg:col-span-3 bg-muted/30">
-                    <CardHeader>
-                        <CardTitle className="text-lg flex items-center gap-2">
-                            <Building2 className="h-4 w-4" />
-                            Datos del Negocio
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <p className="font-bold">{company?.business_name || company?.name}</p>
-                            <p className="text-sm text-muted-foreground">Documento: {company?.document_number || company?.tax_number}</p>
+                    <div className="space-y-4">
+                        <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Dirección de facturación:</h4>
+                        <div className="text-sm space-y-1">
+                            <p className="font-bold text-foreground">{sale.customer?.person?.name || 'Cliente Varios'}</p>
+                            <p className="text-muted-foreground">{sale.customer?.person?.document_number ? `DOC: ${sale.customer.person.document_number}` : ''}</p>
+                            <p className="text-muted-foreground">{sale.shipping_address || 'Sin dirección registrada'}</p>
                         </div>
-                        <div className="text-sm">
-                            <p>{company?.address}</p>
-                            <p>Telf: {company?.contact_phone || company?.phone}</p>
+                    </div>
+
+                    <div className="space-y-6 pt-6 border-t border-dashed">
+                        <div className="flex items-center gap-2 text-green-600 font-bold mb-4">
+                            <CheckCircle2 className="h-5 w-5" />
+                            <span>Certificación de seguridad</span>
                         </div>
-                    </CardContent>
-                </Card>
+                        <p className="text-xs text-muted-foreground leading-relaxed italic">
+                            {company?.name || 'Bizventory'} se compromete a proteger tu información de pago. Seguimos los estándares PCI DSS, utilizamos un encriptado sólido y realizamos revisiones periódicas del sistema para proteger tu privacidad.
+                        </p>
+                        <div className="flex flex-wrap gap-3 opacity-60 grayscale hover:grayscale-0 transition-all duration-300">
+                            {/* Simulated Security Logos */}
+                            <div className="px-3 py-1 bg-white border rounded font-black text-[10px] text-blue-900 shadow-sm">VISA</div>
+                            <div className="px-3 py-1 bg-white border rounded font-black text-[10px] text-orange-600 shadow-sm">MasterCard</div>
+                            <div className="px-3 py-1 bg-white border rounded font-black text-[10px] text-blue-600 shadow-sm flex items-center gap-1">
+                                <ShieldCheck className="h-3 w-3" /> PCI DSS
+                            </div>
+                            <div className="px-2 py-1 bg-white border rounded font-black text-[10px] text-green-700 shadow-sm">SSL SECURE</div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <Alert>
-                <Info className="h-4 w-4" />
-                <AlertDescription>
-                    Este comprobante es para uso informativo. Puede descargar la versión en PDF para impresión profesional.
-                </AlertDescription>
-            </Alert>
+            <div className="flex md:hidden justify-center pb-8 pt-4 border-t">
+                <PDFGenerators company={company} sale={sale} />
+            </div>
         </div>
     )
 }
