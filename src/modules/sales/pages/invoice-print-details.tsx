@@ -427,43 +427,6 @@ const TicketPDF = ({
     )
 }
 
-const PDFGenerators = ({
-    company,
-    sale
-}: {
-    company: any
-    sale: SaleWithItems
-}) => {
-    const fileName = `venta-${sale.reference_number || sale.id}`
-
-    return (
-        <div className="flex flex-wrap gap-2">
-            <PDFDownloadLink
-                document={<TicketPDF company={company} sale={sale} />}
-                fileName={`${fileName}-ticket.pdf`}
-            >
-                {({ loading }: { loading: boolean }) => (
-                    <Button variant="outline" size="sm" disabled={loading}>
-                        <Download className="h-4 w-4 mr-2" />
-                        {loading ? 'Generando...' : 'Ticket (80mm)'}
-                    </Button>
-                )}
-            </PDFDownloadLink>
-
-            <PDFDownloadLink
-                document={<InvoicePDF company={company} sale={sale} />}
-                fileName={`${fileName}-comprobante.pdf`}
-            >
-                {({ loading }: { loading: boolean }) => (
-                    <Button size="sm" disabled={loading}>
-                        <FileText className="h-4 w-4 mr-2" />
-                        {loading ? 'Generando...' : 'Comprobante A4'}
-                    </Button>
-                )}
-            </PDFDownloadLink>
-        </div>
-    )
-}
 
 const getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
@@ -538,9 +501,6 @@ export const InvoiceDetailPrint = ({ company: propCompany, sale }: InvoiceDetail
                         <Share2 className="h-4 w-4 mr-2" />
                         Compartir
                     </Button>
-                    <div className="hidden md:block">
-                        <PDFGenerators company={company} sale={sale} />
-                    </div>
                 </div>
             </div>
 
@@ -548,12 +508,6 @@ export const InvoiceDetailPrint = ({ company: propCompany, sale }: InvoiceDetail
             <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-border border rounded-xl overflow-hidden shadow-sm">
                 <div className="bg-card p-6 flex flex-col justify-between">
                     <div>
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="font-bold text-lg">Se envía a</h3>
-                            <button disabled className="text-primary text-sm font-medium hover:underline flex items-center">
-                                Cambiar dirección <ChevronRight className="h-4 w-4" />
-                            </button>
-                        </div>
                         <p className="font-bold uppercase mb-1">{sale.customer?.person?.name || 'Cliente Varios'}</p>
                         <p className="text-muted-foreground leading-relaxed uppercase">
                             {sale.shipping_address || 'Sin dirección registrada'}
@@ -562,12 +516,6 @@ export const InvoiceDetailPrint = ({ company: propCompany, sale }: InvoiceDetail
                 </div>
 
                 <div className="bg-card p-6">
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="font-bold text-lg">Horario de entrega</h3>
-                        <button className="text-primary text-sm font-medium hover:underline flex items-center">
-                            Obtén actualizaciones <ChevronRight className="h-4 w-4" />
-                        </button>
-                    </div>
                     <div className="space-y-4">
                         <div>
                             <p className="text-primary font-bold">Llegada rápida en un plazo de {Math.floor(Math.random() * 5) + 3} días hábiles</p>
@@ -636,11 +584,6 @@ export const InvoiceDetailPrint = ({ company: propCompany, sale }: InvoiceDetail
                                                 ))}
                                             </div>
                                         )}
-                                        <div className="mt-4 flex items-center gap-2 text-xs border rounded-md p-2 bg-muted/20 sm:w-fit">
-                                            <Info className="h-3 w-3 text-muted-foreground" />
-                                            <span className="text-muted-foreground font-medium">Qué incluye</span>
-                                            <ChevronRight className="h-3 w-3 text-muted-foreground ml-auto sm:ml-2" />
-                                        </div>
                                     </div>
                                 </div>
                             ))}
@@ -673,14 +616,34 @@ export const InvoiceDetailPrint = ({ company: propCompany, sale }: InvoiceDetail
                     </div>
 
                     <div className="space-y-2">
+                        <PDFDownloadLink
+                            document={<TicketPDF company={company} sale={sale} />}
+                            fileName={`venta-${sale.reference_number || sale.id}-ticket.pdf`}
+                        >
+                            {({ loading }) => (
+                                <Button variant="outline" disabled={loading} className="w-full justify-center rounded-full border-muted-foreground/20 text-foreground font-medium hover:bg-muted/50 transition-all active:scale-95 py-6 mb-2">
+                                    <Download className="h-4 w-4 mr-2" />
+                                    {loading ? 'Generando...' : 'Ticket (80mm)'}
+                                </Button>
+                            )}
+                        </PDFDownloadLink>
+
+                        <PDFDownloadLink
+                            document={<InvoicePDF company={company} sale={sale} />}
+                            fileName={`venta-${sale.reference_number || sale.id}-comprobante.pdf`}
+                        >
+                            {({ loading }) => (
+                                <Button variant="outline" disabled={loading} className="w-full justify-center rounded-full border-muted-foreground/20 text-foreground font-medium hover:bg-muted/50 transition-all active:scale-95 py-6 mb-2">
+                                    <FileText className="h-4 w-4 mr-2" />
+                                    {loading ? 'Generando...' : 'Comprobante A4'}
+                                </Button>
+                            )}
+                        </PDFDownloadLink>
                         {[
-                            'Comprar de nuevo',
                             'Ver recibo',
                             'Devolución/Reembolso',
-                            'Ajuste de precios',
-                            'Cambiar dirección'
                         ].map((action, i) => (
-                            <Button key={i} variant="outline" className="w-full justify-center rounded-full border-muted-foreground/20 text-foreground font-medium hover:bg-muted/50 transition-all active:scale-95 py-6">
+                            <Button key={i} variant="outline" className="w-full justify-center rounded-full border-muted-foreground/20 text-foreground font-medium hover:bg-muted/50 transition-all active:scale-95 py-6 mb-2">
                                 {action}
                             </Button>
                         ))}
@@ -788,9 +751,6 @@ export const InvoiceDetailPrint = ({ company: propCompany, sale }: InvoiceDetail
                 </div>
             </div>
 
-            <div className="flex md:hidden justify-center pb-8 pt-4 border-t">
-                <PDFGenerators company={company} sale={sale} />
-            </div>
         </div>
     )
 }
