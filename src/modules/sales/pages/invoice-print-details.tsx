@@ -716,8 +716,14 @@ export const InvoiceDetailPrint = ({ company: propCompany, sale }: InvoiceDetail
                     <div className="space-y-4">
                         <h3 className="font-bold text-xl border-b pb-2">Método de pago</h3>
                         <div className="flex items-start gap-4 p-4 bg-card border rounded-xl shadow-sm">
-                            <div className="w-12 h-8 bg-muted rounded flex items-center justify-center border">
-                                <CreditCard className="h-6 w-6 text-muted-foreground" />
+                            <div className="w-12 h-8 bg-white rounded flex items-center justify-center border overflow-hidden p-1">
+                                {sale.payment_method?.toLowerCase() === 'plin' ? (
+                                    <img src="/images/payment/logo_plin.webp" alt="Plin" className="h-full w-full object-contain" />
+                                ) : sale.payment_method?.toLowerCase() === 'yape' ? (
+                                    <img src="/images/payment/logo_yape.png" alt="Yape" className="h-full w-full object-contain" />
+                                ) : (
+                                    <CreditCard className="h-6 w-6 text-muted-foreground" />
+                                )}
                             </div>
                             <div className="space-y-1 flex-1">
                                 <p className="font-bold capitalize text-sm">{sale.payment_method || 'Tarjeta bancaria'}</p>
@@ -746,14 +752,15 @@ export const InvoiceDetailPrint = ({ company: propCompany, sale }: InvoiceDetail
                         <p className="text-xs text-muted-foreground leading-relaxed italic">
                             {company?.name || 'Bizventory'} se compromete a proteger tu información de pago. Seguimos los estándares PCI DSS, utilizamos un encriptado sólido y realizamos revisiones periódicas del sistema para proteger tu privacidad.
                         </p>
-                        <div className="flex flex-wrap gap-3 opacity-60 grayscale hover:grayscale-0 transition-all duration-300">
+                        <div className="flex flex-wrap gap-3">
                             {/* Simulated Security Logos */}
-                            <div className="px-3 py-1 bg-white border rounded font-black text-[10px] text-blue-900 shadow-sm">VISA</div>
-                            <div className="px-3 py-1 bg-white border rounded font-black text-[10px] text-orange-600 shadow-sm">MasterCard</div>
-                            <div className="px-3 py-1 bg-white border rounded font-black text-[10px] text-blue-600 shadow-sm flex items-center gap-1">
-                                <ShieldCheck className="h-3 w-3" /> PCI DSS
-                            </div>
-                            <div className="px-2 py-1 bg-white border rounded font-black text-[10px] text-green-700 shadow-sm">SSL SECURE</div>
+                            <img src="/images/secure/visa.webp" alt="Visa" className="h-12 w-auto object-contain" />
+                            <img src="/images/secure/visa_secure.webp" alt="Visa Secure" className="h-12 w-auto object-contain" />
+                            <img src="/images/secure/pci.webp" alt="PCI DSS" className="h-12 w-auto object-contain" />
+                            <img src="/images/secure/id_check.webp" alt="Mastercard ID Check" className="h-12 w-auto object-contain" />
+                            <img src="/images/secure/safekey.webp" alt="American Express SafeKey" className="h-12 w-auto object-contain" />
+                            <img src="/images/secure/apwg.webp" alt="APWG" className="h-12 w-auto object-contain" />
+                            <img src="/images/secure/jcb.webp" alt="JCB J/Secure" className="h-12 w-auto object-contain" />
                         </div>
                     </div>
                 </div>
