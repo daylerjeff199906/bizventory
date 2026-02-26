@@ -197,6 +197,7 @@ export async function getSaleById(id: string): Promise<SaleWithItems | null> {
         name,
         description,
         code,
+        images,
         attributes:product_variant_attributes(*)
       )
     `
@@ -225,7 +226,8 @@ export async function getSaleById(id: string): Promise<SaleWithItems | null> {
           variant_name: item.variant.name,
           variant_description: item.variant.description,
           variant_code: item.variant.code,
-          attributes: item.variant.attributes
+          attributes: item.variant.attributes,
+          images: item.product.images && item.variant.images.length > 0 ? item.variant.images : item.product.images || null
         }
         : {}
 
