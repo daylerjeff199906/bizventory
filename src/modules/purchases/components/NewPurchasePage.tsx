@@ -1,18 +1,26 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import {
-  Save,
-  Plus,
   Trash2,
-  RefreshCw,
-  Edit
+  Search,
+  Plus,
+  Minus,
+  ArrowLeft,
+  CheckCircle2,
+  Package,
+  ShoppingCart,
+  User,
+  Calendar,
+  FileText,
+  BadgeInfo,
+  Clock,
+  Pencil
 } from 'lucide-react'
-import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -25,255 +33,39 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from '@/components/ui/table'
-import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
+  FormMessage,
+  FormDescription
 } from '@/components/ui/form'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from '@/components/ui/dialog'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle
-} from '@/components/ui/alert-dialog'
+import { Card } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 import { useSuppliers } from '@/hooks/use-suppliers'
+import { useProductsPrices } from '@/hooks/use-products-price'
 import {
   PurchaseFormSchema,
-  PurchaseSchema,
   type PurchaseFormData,
   type CreatePurchaseData,
   type PurchaseItem
 } from '@/modules/purchases/schemas'
-import { ProductSelectorModal } from './product-selector-modal'
+import { createPurchaseWithItems } from '@/apis/app'
 import { toast } from 'react-toastify'
 import { ToastCustom } from '@/components/app/toast-custom'
 import { APP_URLS } from '@/config/app-urls'
-import { createPurchaseWithItems } from '@/apis/app'
-import type { CombinedResult } from '@/apis/app/productc.variants.list'
 import { formatCurrencySoles } from '@/utils'
-
-interface EditItemDialogProps {
-  item: PurchaseItem | null
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onSave: (updatedItem: PurchaseItem) => void
-}
-
-const EditItemDialog = ({
-  item,
-  open,
-  onOpenChange,
-  onSave
-}: EditItemDialogProps) => {
-  const [editData, setEditData] = useState<Partial<PurchaseItem>>({})
-  const [includeBarCode, setIncludeBarCode] = useState(false)
-
-  useEffect(() => {
-    if (item) {
-      setEditData({
-        quantity: item.quantity,
-        price: item.price,
-        discount: item.discount || 0,
-        bar_code: item.bar_code || ''
-      })
-      setIncludeBarCode(!!item.bar_code)
-    }
-  }, [item])
-
-  const handleSave = () => {
-    if (!item) return
-
-    const updatedItem: PurchaseItem = {
-      ...item,
-      quantity: editData.quantity || item.quantity,
-      price: editData.price || item.price,
-      discount: editData.discount || 0,
-      bar_code: includeBarCode ? editData.bar_code : undefined
-    }
-
-    onSave(updatedItem)
-    onOpenChange(false)
-  }
-
-  if (!item) return null
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Editar Producto</DialogTitle>
-          <DialogDescription>
-            Modifica los detalles del producto en la compra
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Producto</label>
-            <p className="text-sm text-gray-600">
-              {item.product?.brand} {item.product?.description}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Cantidad</label>
-              <Input
-                type="number"
-                min="1"
-                value={editData.quantity || ''}
-                onChange={(e) =>
-                  setEditData((prev) => ({
-                    ...prev,
-                    quantity: Number(e.target.value)
-                  }))
-                }
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Precio Unitario</label>
-              <Input
-                type="number"
-                min="0"
-                step="0.01"
-                value={editData.price || ''}
-                onChange={(e) =>
-                  setEditData((prev) => ({
-                    ...prev,
-                    price: Number(e.target.value)
-                  }))
-                }
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Descuento (S/)</label>
-            <Input
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="0.00"
-              value={editData.discount || ''}
-              onChange={(e) =>
-                setEditData((prev) => ({
-                  ...prev,
-                  discount: Number(e.target.value) || 0
-                }))
-              }
-            />
-          </div>
-
-          <div className="space-y-3">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="include-barcode"
-                checked={includeBarCode}
-                onCheckedChange={(checked) => setIncludeBarCode(!!checked)}
-              />
-              <label htmlFor="include-barcode" className="text-sm font-medium">
-                Incluir código
-              </label>
-            </div>
-
-            {includeBarCode && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Código de item</label>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Se generará automáticamente si está vacío"
-                    value={editData.bar_code || ''}
-                    onChange={(e) =>
-                      setEditData((prev) => ({
-                        ...prev,
-                        bar_code: e.target.value
-                      }))
-                    }
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() =>
-                      setEditData((prev) => ({
-                        ...prev
-                      }))
-                    }
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {typeof editData.quantity === 'number' &&
-            editData.quantity > 0 &&
-            typeof editData.price === 'number' && (
-              <div className="p-3 rounded-lg space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Subtotal:</span>
-                  <span>
-                    {formatCurrencySoles(
-                      Number(editData.quantity) * Number(editData.price)
-                    )}
-                  </span>
-                </div>
-                {(editData.discount || 0) > 0 && (
-                  <div className="flex justify-between text-sm text-red-600">
-                    <span>Descuento:</span>
-                    <span>
-                      -{formatCurrencySoles(Number(editData.discount) || 0)}
-                    </span>
-                  </div>
-                )}
-                <div className="flex justify-between text-sm font-medium border-t pt-2">
-                  <span>Total:</span>
-                  <span>
-                    {formatCurrencySoles(
-                      Number(editData.quantity) * Number(editData.price) -
-                      (Number(editData.discount) || 0)
-                    )}
-                  </span>
-                </div>
-              </div>
-            )}
-        </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancelar
-          </Button>
-          <Button onClick={handleSave}>Guardar Cambios</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  )
-}
+import { useDebouncedCallback } from 'use-debounce'
+import {
+  transformProductsToCombinedSelection,
+  ProductItem
+} from '@/modules/sales/components/product-selection-modal'
+import { ProductCombinedSelection } from '@/modules/sales/components/types'
+import EditPurchaseItemModal from './EditPurchaseItemModal'
 
 interface NewPurchasePageProps {
   businessId?: string
@@ -281,21 +73,22 @@ interface NewPurchasePageProps {
 
 export const NewPurchasePage = (props: NewPurchasePageProps) => {
   const { businessId } = props
+  const [isReviewing, setIsReviewing] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [purchaseItems, setPurchaseItems] = useState<PurchaseItem[]>([])
-  const [productModalOpen, setProductModalOpen] = useState(false)
-  const [editDialogOpen, setEditDialogOpen] = useState(false)
-  const [editingItem, setEditingItem] = useState<PurchaseItem | null>(null)
-  const [applyTax, setApplyTax] = useState(false)
-  const [searchSupplier, setSearchSupplier] = useState<string>('')
-  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [productSearchTerm, setProductSearchTerm] = useState('')
+  const [searchInput, setSearchInput] = useState('')
+  const [searchSupplier, setSearchSupplier] = useState('')
+  const [editingItem, setEditingItem] = useState<{ item: PurchaseItem | null, index: number | null }>({ item: null, index: null })
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
 
   const router = useRouter()
   const { suppliers } = useSuppliers({ businessId })
 
-  const filteredSuppliers = suppliers.filter((supplier) =>
-    supplier.name.toLowerCase().includes(searchSupplier.toLowerCase())
-  )
+  const debouncedSearch = useDebouncedCallback((value: string) => {
+    setProductSearchTerm(value)
+  }, 300)
+
+  const { items: productsResponse, loading: productsLoading, fetchItems } = useProductsPrices()
 
   const form = useForm<PurchaseFormData>({
     resolver: zodResolver(PurchaseFormSchema),
@@ -310,7 +103,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
       tax_rate: 0,
       tax_amount: 0,
       total_amount: 0,
-      status: 'draft',
+      status: 'completed',
       payment_status: 'pending',
       notes: '',
       inventory_updated: false,
@@ -318,264 +111,156 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
     }
   })
 
-  // Update form tax_rate when checkbox changes
+  // Fetch products
   useEffect(() => {
-    const rate = applyTax ? 18 : 0
-    form.setValue('tax_rate', rate)
-    calculateTotals()
-  }, [applyTax])
+    if (businessId) {
+      fetchItems({ searchQuery: productSearchTerm, page: 1, pageSize: 40, businessId })
+    }
+  }, [productSearchTerm, businessId])
 
-  useEffect(() => {
-    calculateTotals()
-  }, [purchaseItems, form.watch('discount'), form.watch('tax_rate')])
+  const listGeneralProducts = transformProductsToCombinedSelection(
+    productsResponse?.data || []
+  )
 
-  const calculateTotals = () => {
-    const subtotal = purchaseItems.reduce((sum, item) => {
-      const itemTotal = item.quantity * item.price - (item.discount || 0)
-      return sum + itemTotal
-    }, 0)
-    const discount = form.getValues('discount') || 0
-    const taxRate = form.getValues('tax_rate') || 0
+  const watchedItems = form.watch('items') as PurchaseItem[]
+  const watchedDiscount = form.watch('discount') || 0
+  const watchedTaxRate = form.watch('tax_rate') || 0
 
-    const subtotalAfterDiscount = subtotal - discount
-    const taxAmount = (subtotalAfterDiscount * taxRate) / 100
+  // Totals calculations
+  const { subtotal, taxAmount, total } = useMemo(() => {
+    const subtotal = watchedItems?.reduce((sum, item) => {
+      return sum + (item.price * item.quantity) - (item.discount || 0)
+    }, 0) || 0
+
+    const subtotalAfterDiscount = subtotal - watchedDiscount
+    const taxAmount = (subtotalAfterDiscount * watchedTaxRate) / 100
     const total = subtotalAfterDiscount + taxAmount
 
+    return { subtotal, taxAmount, total }
+  }, [watchedItems, watchedDiscount, watchedTaxRate])
+
+  useEffect(() => {
     form.setValue('subtotal', subtotal)
     form.setValue('tax_amount', taxAmount)
     form.setValue('total_amount', total)
-    form.setValue('items', purchaseItems)
-  }
+  }, [subtotal, taxAmount, total])
 
+  const handleProductSelect = (product: ProductCombinedSelection) => {
+    const currentItems = [...(form.getValues('items') || [])]
+    const existingIndex = currentItems.findIndex(item => item._temp_id === product._temp_id)
 
-
-  const handleAddProduct = (product: CombinedResult) => {
-    // Si ya seleccionamos una variante específica desde el modal
-    if (product.variant_id) {
-
-
-      // Crear nombre completo para la variante: marca + producto + nombre variante + atributos
-      const brandName = product.brand?.name || 'Sin marca'
-      const productName = product.name || ''
-      const variantName = product.name || ''
-      const attributesText = product.attributes
-        ?.map((attr) => attr.attribute_value)
-        .filter(Boolean)
-        .join(', ')
-
-      const fullVariantName = `${brandName} ${productName} ${variantName}${attributesText ? ` (${attributesText})` : ''}`
-
-      // Agregar directamente la variante sin cabecera
-      const variantTempId = `${product.variant_id}-var-${Date.now()}`
-      const newVariantItem: PurchaseItem = {
-        product_id: product.id,
-        product_variant_id: product.variant_id,
-        quantity: 1,
-        price: 0,
-        discount: 0,
-        purchase_id: null,
-        _temp_id: variantTempId,
-        product: {
-          id: product.id,
-          name: fullVariantName, // Usar el nombre completo
-          unit: product.unit,
-          brand: product.brand?.name || 'Sin marca',
-          description: product.description || null
-        },
-        variant: {
-          id: product.variant_id,
-          name: product.name,
-          attributes: product.attributes || []
-        },
-        variant_attributes: product.attributes,
-        original_product_name: product.description,
-        has_variants: true
-      }
-
-      setPurchaseItems((prev) => [...prev, newVariantItem])
-    } else if (
-      product.has_variants &&
-      product.variants &&
-      product.variants.length > 0
-    ) {
-      // Si el producto tiene variantes pero no se seleccionó una (ej. se agregó desde la lista base)
-      // agregamos solo la cabecera
-      const existingProductHeader = purchaseItems.find(
-        (item) => item.product_id === product.id && item.is_product_header
-      )
-
-      if (!existingProductHeader) {
-        const tempId = `${product.id}-header-${Date.now()}`
-
-        const productHeader: PurchaseItem = {
-          product_id: product.id,
-          product_variant_id: null,
-          quantity: 0,
-          price: 0,
-          discount: 0,
-          purchase_id: null,
-          _temp_id: tempId,
-          product: {
-            id: product.id,
-            name: product.name,
-            unit: product.unit,
-            brand: product.brand?.name || 'Sin marca',
-            description: product.description || null
-          },
-          original_product_name: product.description,
-          is_product_header: true,
-          has_variants: true
-        }
-
-        setPurchaseItems((prev) => [...prev, productHeader])
-      }
+    if (existingIndex >= 0) {
+      // Toggle: Remove if already selected
+      const newItems = currentItems.filter((_, i) => i !== existingIndex)
+      form.setValue('items', newItems, { shouldValidate: true })
     } else {
-      // Producto sin variantes - agregar directamente
-      const tempId = `${product.id}-no-variant-${Date.now()}`
-
+      // Add new item
       const newItem: PurchaseItem = {
-        product_id: product.id,
-        product_variant_id: null,
+        product_id: product.product_id,
+        product_variant_id: product.variant_id || null,
         quantity: 1,
-        price: 0,
+        price: product.price_unit || 0,
         discount: 0,
-        purchase_id: null,
-        _temp_id: tempId,
-        product: {
-          id: product.id,
-          name: product.name,
-          unit: product.unit,
-          brand: product.brand?.name || 'Sin marca',
-          description: product.description || null
-        },
-        original_product_name: product.description,
-        has_variants: false
+        _temp_id: product._temp_id,
+        original_product_name: product.product_name,
+        original_variant_name: product.variant_name,
+        // UI Helpers
+        name: product.product_name,
+        brand: product.brand,
+        unit: product.unit,
+        description: product.product_description,
+        attributes: product.attributes,
+        images: product.image_url ? [product.image_url] : []
       }
-
-      setPurchaseItems((prev) => [...prev, newItem])
+      form.setValue('items', [...currentItems, newItem], { shouldValidate: true })
     }
   }
 
-  const handleEditItem = (item: PurchaseItem, index: number) => {
-    // No permitir editar cabeceras de productos
-    if (item.is_product_header) return
+  const updateQuantity = (tempId: string, delta: number) => {
+    const currentItems = [...form.getValues('items')]
+    const index = currentItems.findIndex(item => item._temp_id === tempId)
+    if (index === -1) return
 
-    setEditingItem({ ...item, _index: index })
-    setEditDialogOpen(true)
-  }
+    const newQuantity = (currentItems[index].quantity || 0) + delta
 
-  const handleSaveEditedItem = (updatedItem: PurchaseItem) => {
-    const updatedItems = purchaseItems.map((item) => {
-      return item._temp_id === editingItem?._temp_id ? updatedItem : item
-    })
-    setPurchaseItems(updatedItems)
-  }
-
-  const handleRemoveItem = (itemToRemove: PurchaseItem, index: number) => {
-    // Si es una cabecera, eliminar también todas sus variantes
-    if (itemToRemove.is_product_header) {
-      const updatedItems = purchaseItems.filter(
-        (item) =>
-          item.product_id !== itemToRemove.product_id || item.is_product_header
-      )
-      setPurchaseItems(updatedItems)
-
+    if (newQuantity <= 0) {
+      removeItem(tempId)
     } else {
-      // Eliminar item individual
-      const updatedItems = purchaseItems.filter(
-        (item, i) => !(i === index && item._temp_id === itemToRemove._temp_id)
-      )
-      setPurchaseItems(updatedItems)
+      currentItems[index].quantity = newQuantity
+      form.setValue('items', currentItems, { shouldValidate: true })
     }
   }
 
-  const handleSubmitForm = () => {
-    // Filtrar solo los items que no son cabeceras y tienen cantidad > 0
-    const validItems = purchaseItems.filter(
-      (item) => !item.is_product_header && item.quantity > 0
-    )
+  const updateItemField = (index: number, field: keyof PurchaseItem, value: any) => {
+    const currentItems = [...form.getValues('items')]
+    currentItems[index] = { ...currentItems[index], [field]: value }
+    form.setValue('items', currentItems, { shouldValidate: true })
+  }
 
-    if (validItems.length === 0) {
-      toast.error(
-        <ToastCustom
-          title="No hay productos"
-          message="Debe agregar al menos un producto a la compra."
-        />
-      )
+  const handleEditItem = (index: number) => {
+    setEditingItem({ item: watchedItems[index], index })
+    setIsEditModalOpen(true)
+  }
+
+  const handleUpdateItem = (updatedItem: PurchaseItem) => {
+    if (editingItem.index !== null) {
+      updateItemField(editingItem.index, 'price', updatedItem.price)
+      updateItemField(editingItem.index, 'quantity', updatedItem.quantity)
+      updateItemField(editingItem.index, 'discount', updatedItem.discount)
+      updateItemField(editingItem.index, 'bar_code', updatedItem.bar_code)
+    }
+  }
+
+  const removeItem = (tempId: string) => {
+    const newItems = (form.getValues('items') || []).filter((item) => item._temp_id !== tempId)
+    form.setValue('items', newItems, { shouldValidate: true })
+  }
+
+  const onSubmitReview = async () => {
+    const isValid = await form.trigger(['supplier_id', 'date', 'items'])
+    if (!isValid) {
+      toast.error('Por favor completa los campos obligatorios.')
       return
     }
-
-    const formData = form.getValues()
-    const dataWithItems = { ...formData, items: validItems }
-
-    const validation = PurchaseSchema.safeParse(dataWithItems)
-    if (!validation.success) {
-      toast.error(
-        <ToastCustom
-          title="Error de validación"
-          message="Por favor revisa los datos del formulario."
-        />
-      )
+    if (watchedItems.length === 0) {
+      toast.error('Agrega al menos un producto a la compra.')
       return
     }
-
-    setConfirmOpen(true)
+    setIsReviewing(true)
   }
 
   const confirmPurchase = async () => {
-    const data = form.getValues()
     setIsLoading(true)
-    setConfirmOpen(false)
-
     try {
-      // Filtrar solo los items que no son cabeceras
-      const validItems = purchaseItems.filter((item) => !item.is_product_header)
-
+      const data = form.getValues()
       const purchaseData: CreatePurchaseData = {
         ...data,
-        items: validItems,
+        items: watchedItems,
         business_id: String(businessId),
         date: new Date(data.date).toISOString(),
-        subtotal: form.getValues('subtotal')
       }
 
       const response = await createPurchaseWithItems({
-        itemsData: validItems,
+        itemsData: watchedItems,
         purchaseData
       })
 
-      if (response.status === 'error') {
-        toast.error(
-          <ToastCustom
-            title="Error al registrar la compra"
-            message={
-              response.error || 'Ocurrió un error al procesar la compra.'
-            }
-          />
-        )
-      } else {
+      if (response.status === 'success' && response.data) {
         toast.success(
           <ToastCustom
             title="Compra registrada"
-            message="La compra se ha registrado exitosamente."
+            message="La compra se ha procesado correctamente."
           />
         )
-        if (response.data) {
-          router.push(
-            APP_URLS.ORGANIZATION.PURCHASES.VIEW(
-              businessId || '',
-              response.data.id
-            )
-          )
-        }
+        router.push(APP_URLS.ORGANIZATION.PURCHASES.VIEW(businessId || '', response.data.id))
+      } else {
+        throw new Error(response.error || 'Error al guardar la compra')
       }
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Error al registrar la compra'
       toast.error(
         <ToastCustom
-          title="Error al registrar la compra"
-          message={errorMessage}
+          title="Error"
+          message={error instanceof Error ? error.message : 'No se pudo completar la compra'}
         />
       )
     } finally {
@@ -583,555 +268,530 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
     }
   }
 
-  const selectedProductIds = purchaseItems.map((item) => ({
-    productId: typeof item.product_id === 'string' ? item.product_id : null,
-    variantId:
-      typeof item.product_variant_id === 'string'
-        ? item.product_variant_id
-        : null
-  }))
-
-
+  const filteredSuppliers = suppliers.filter(s =>
+    s.name.toLowerCase().includes(searchSupplier.toLowerCase())
+  )
 
   return (
-    <div className="min-h-screen">
-      <div>
-        {/* Indicaciones para el registro de compras */}
-        <div className="border border-blue-200 rounded-lg p-4">
-          <h3 className="font-semibold text-blue-800 dark:text-blue-400 mb-2">
-            Indicaciones para registrar una compra
-          </h3>
-          <ul className="list-disc pl-6 text-blue-900 dark:text-blue-400 space-y-1 text-sm">
-            <li>
-              El <span className="font-medium">número de guía</span> debe
-              corresponder al documento de la compra (guía, boleta, factura,
-              etc).
-            </li>
-            <li>
-              El <span className="font-medium">estado de la compra</span>{' '}
-              controla si afecta el inventario: solo en estado{' '}
-              <span className="font-medium text-green-700">completada</span> se
-              actualiza el stock.
-            </li>
-            <li>
-              Los <span className="font-medium">productos con variantes</span>{' '}
-              aparecen como cabeceras. Haz clic para expandir y agregar
-              variantes específicas.
-            </li>
-          </ul>
-        </div>
-      </div>
-      <div className="w-full max-w-6xl mx-auto p-6">
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(handleSubmitForm)}
-            className="w-full space-y-12"
-          >
-            {/* Información básica */}
-            <section className="space-y-6">
-              <div className="border-b border-gray-200 pb-4">
-                <h2 className="text-xl font-semibold">
-                  Información básica
+    <div className="flex flex-col lg:flex-row gap-6 p-4 bg-muted/10 lg:h-[calc(100vh-80px)] lg:overflow-hidden relative">
+      <Form {...form}>
+        <form onSubmit={(e) => e.preventDefault()} className="contents">
+
+          {/* COLUMNA IZQUIERDA: Selección de Productos o Revisión */}
+          <div className="flex-1 flex flex-col bg-background rounded-xl border shadow-sm lg:overflow-hidden min-w-0">
+            {!isReviewing ? (
+              <>
+                {/* Cabecera de búsqueda */}
+                <div className="p-4 border-b flex items-center justify-between gap-4 bg-muted/20">
+                  <div className="flex-1 max-w-md relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar por nombre, código o marca..."
+                      value={searchInput}
+                      onChange={(e) => {
+                        setSearchInput(e.target.value)
+                        debouncedSearch(e.target.value)
+                      }}
+                      className="pl-9 w-full bg-background border-muted-foreground/20 focus-visible:ring-primary/20"
+                    />
+                  </div>
+                  <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
+                    <Clock className="h-4 w-4" /> {listGeneralProducts.length} productos
+                  </div>
+                </div>
+
+                <div className="flex-1 relative min-h-0">
+                  <ScrollArea className="lg:h-[calc(100vh-250px)]" type="always">
+                    {productsLoading ? (
+                      <div className="flex items-center justify-center py-20 h-full">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                      </div>
+                    ) : listGeneralProducts.length > 0 ? (
+                      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-12 mr-4">
+                        {listGeneralProducts.map((product, index) => {
+                          const isSelected = watchedItems?.some(i => i._temp_id === product._temp_id)
+                          const addedItem = watchedItems?.find(i => i._temp_id === product._temp_id)
+
+                          return (
+                            <div key={`${product._temp_id}-${index}`} className="relative group">
+                              <ProductItem
+                                product={product}
+                                onSelect={handleProductSelect}
+                                isSelected={isSelected}
+                                isConfiguring={false}
+                                currency="PEN"
+                                allowSelectionWhenOutOfStock={true}
+                              />
+                              {isSelected && addedItem && (
+                                <div className="absolute top-2 left-2 bg-primary/90 text-primary-foreground text-xs font-bold px-2 py-1 rounded-md shadow-md">
+                                  {addedItem.quantity} en lista
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-[50vh] text-center opacity-70 py-6">
+                        <Package className="h-16 w-16 text-muted-foreground mb-4 opacity-20" />
+                        <h3 className="text-lg font-medium">No se encontraron productos</h3>
+                        <p className="text-muted-foreground text-sm">Prueba ajustando tu búsqueda</p>
+                      </div>
+                    )}
+                  </ScrollArea>
+                </div>
+              </>
+            ) : (
+              /* MODO REVISIÓN */
+              <div className="flex-1 flex flex-col h-full overflow-hidden">
+                <div className="p-4 border-b bg-muted/40 flex items-center justify-between">
+                  <div>
+                    <h2 className="text-lg font-bold flex items-center gap-2">
+                      <CheckCircle2 className="h-5 w-5 text-primary" />
+                      Revisión de Compra
+                    </h2>
+                    <p className="text-xs text-muted-foreground">Ajusta los precios y cantidades finales.</p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsReviewing(false)}
+                    className="gap-2 hover:bg-background h-8"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    Regresar a editar
+                  </Button>
+                </div>
+
+                <div className="flex-1 flex flex-col min-h-0">
+                  <ScrollArea className="lg:h-[calc(100vh-250px)]">
+                    <div className="p-6 space-y-4 text-left">
+                      {watchedItems.map((item, index) => (
+                        <Card key={`${item._temp_id}-${index}`} className="p-4 shadow-none border-muted-foreground/10 hover:border-primary/30 transition-all group text-left">
+                          <div className="flex gap-6 items-start">
+                            <div className="h-20 w-20 bg-muted rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden border shadow-sm">
+                              {item.images && item.images[0] ? (
+                                <img src={item.images[0]} alt={item.name || ''} className="w-full h-full object-cover" />
+                              ) : (
+                                <Package className="h-8 w-8 text-muted-foreground/20" />
+                              )}
+                            </div>
+
+                            <div className="flex-1 min-w-0">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h3 className="font-bold text-lg leading-tight uppercase truncate">{item.name}</h3>
+                                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">{item.brand?.name} · {item.unit}</p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-lg font-black text-primary">
+                                    {formatCurrencySoles(item.price * item.quantity - (item.discount || 0))}
+                                  </p>
+                                  <p className="text-[10px] text-muted-foreground font-bold uppercase">Total Item</p>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center justify-between mt-4">
+                                <div className="flex items-center gap-6">
+                                  <div className="flex items-center gap-3 bg-muted/40 p-1 rounded-full border px-2">
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 rounded-full hover:bg-background shadow-sm"
+                                      onClick={() => updateQuantity(item._temp_id || '', -1)}
+                                    >
+                                      <Minus className="h-3 w-3" />
+                                    </Button>
+                                    <span className="text-sm font-black w-6 text-center">{item.quantity}</span>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 rounded-full hover:bg-background shadow-sm"
+                                      onClick={() => updateQuantity(item._temp_id || '', 1)}
+                                    >
+                                      <Plus className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+
+                                  <div className="flex flex-col">
+                                    <span className="text-[10px] font-black uppercase text-muted-foreground">Costo</span>
+                                    <span className="text-sm font-bold">{formatCurrencySoles(item.price)}</span>
+                                  </div>
+
+                                  {item?.discount && item?.discount?.toString() !== "0" && (
+                                    <div className="flex flex-col">
+                                      <span className="text-[10px] font-black uppercase text-destructive">Descuento</span>
+                                      <span className="text-sm font-bold text-destructive">-{formatCurrencySoles(item.discount)}</span>
+                                    </div>
+                                  )}
+
+                                  {item.bar_code && (
+                                    <div className="flex flex-col">
+                                      <span className="text-[10px] font-black uppercase text-muted-foreground">EAN/UPC</span>
+                                      <span className="text-sm font-mono">{item.bar_code}</span>
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-9 gap-2 rounded-lg border-muted-foreground/20 hover:bg-primary/5 hover:text-primary hover:border-primary/30"
+                                    onClick={() => handleEditItem(index)}
+                                  >
+                                    <Pencil className="h-3.5 w-3.5" />
+                                    <span>Editar detalles</span>
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-9 w-9 text-muted-foreground/40 hover:text-destructive hover:bg-destructive/5 rounded-full"
+                                    onClick={() => removeItem(item._temp_id || '')}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+
+                    </div>
+                  </ScrollArea>
+
+                  {/* Resumen de costos visual (FUERA del ScrollArea para que sea fijo) */}
+                  <div className="bg-primary/5 border-t border-primary/10 p-5 shrink-0">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="p-3 bg-background rounded-lg border shadow-sm">
+                        <span className="text-[10px] font-black uppercase text-muted-foreground block mb-1">Subtotal</span>
+                        <span className="text-base font-bold">{formatCurrencySoles(subtotal)}</span>
+                      </div>
+                      <div className="p-3 bg-background rounded-lg border shadow-sm">
+                        <span className="text-[10px] font-black uppercase text-destructive block mb-1">Dcto. Global</span>
+                        <span className="text-base font-bold text-destructive">-{formatCurrencySoles(watchedDiscount)}</span>
+                      </div>
+                      <div className="p-3 bg-primary text-primary-foreground rounded-lg border shadow-sm flex flex-col justify-center">
+                        <span className="text-[10px] font-black uppercase opacity-80 block mb-1">Total Compra</span>
+                        <span className="text-xl font-black">{formatCurrencySoles(total)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* COLUMNA DERECHA: Datos del Proveedor y Resumen */}
+          <div className="w-full lg:w-96 flex flex-col gap-4 lg:h-full">
+            <Card className="shadow-lg border-primary/20 flex flex-col py-0 rounded-xl">
+              <div className="bg-primary p-4 text-primary-foreground rounded-t-xl">
+                <h2 className="text-sm font-bold flex items-center gap-2">
+                  <ShoppingCart className="h-5 w-5" />
+                  Resumen de Compra
                 </h2>
-                <p className="text-foreground mt-1">
-                  Datos principales de la compra
-                </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="px-5 py-5 space-y-4 flex-1 flex flex-col min-h-0">
                 <FormField
                   control={form.control}
                   name="supplier_id"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-base font-medium">
-                        Proveedor
-                        <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
+                    <FormItem className="space-y-1">
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger className="w-full">
-                            <SelectValue
-                              placeholder="Seleccionar proveedor"
-                              className="w-full"
-                            />
+                          <SelectTrigger className="h-10 bg-muted/30 border-muted-foreground/10 rounded-lg text-sm w-full">
+                            <SelectValue placeholder="Seleccionar un proveedor" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
                           <div className="p-2">
                             <Input
-                              placeholder="Buscar proveedor..."
+                              placeholder="Buscar..."
                               value={searchSupplier}
-                              onChange={(e) =>
-                                setSearchSupplier(e.target.value)
-                              }
-                              className="mb-2"
-                              autoFocus
+                              onChange={(e) => setSearchSupplier(e.target.value)}
+                              className="h-8 text-xs mb-2"
+                              onKeyDown={(e) => e.stopPropagation()}
                             />
+                            <Separator className="my-1" />
                           </div>
-                          {filteredSuppliers.length > 0 ? (
-                            filteredSuppliers.map((supplier) => (
-                              <SelectItem key={supplier.id} value={supplier.id}>
-                                {supplier.name} ({supplier.document_type}{' '}
-                                {supplier.document_number ||
-                                  'Sin # de documento'}
-                                )
-                              </SelectItem>
-                            ))
-                          ) : (
-                            <div className="px-4 py-2 text-gray-500 text-sm">
-                              No se encontraron proveedores
-                            </div>
-                          )}
+                          {filteredSuppliers.map(s => (
+                            <SelectItem key={s.id} value={s.id} className="text-xs">
+                              {s.name} ({s.document_number})
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
-                      <FormDescription>
-                        Selecciona el proveedor de la compra
-                      </FormDescription>
-                      <FormMessage />
+                      <FormMessage className="text-[10px]" />
                     </FormItem>
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="date"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-base font-medium">
-                        Fecha de compra *
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="date"
-                          value={field.value}
-                          onChange={(e) => field.onChange(e.target.value)}
-                          max={new Date().toISOString().split('T')[0]}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Fecha en la que se realizó la compra
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="guide_number"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-base font-medium">
-                        Número de guía
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="Ej: 001-001-000123" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        Número de guía de remisión (O boleta de compras)
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-base font-medium">
-                        Estado de la compra
-                      </FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
+                <div className="grid grid-cols-2 gap-3">
+                  <FormField
+                    control={form.control}
+                    name="date"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1">
                         <FormControl>
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Seleccionar estado" />
-                          </SelectTrigger>
+                          <Input type="date"
+                            placeholder='Fecha'
+                            {...field} className="h-10 text-xs bg-muted/30" />
                         </FormControl>
-                        <SelectContent>
-                          <SelectItem value="draft">Borrador</SelectItem>
-                          <SelectItem value="pending">Pendiente</SelectItem>
-                          <SelectItem value="completed">Completada</SelectItem>
-                          <SelectItem value="cancelled">Cancelada</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>
-                        Estado actual de la compra
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="payment_status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-base font-medium">
-                        Estado del pago
-                      </FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
+                  <FormField
+                    control={form.control}
+                    name="guide_number"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1">
                         <FormControl>
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Seleccionar estado de pago" />
-                          </SelectTrigger>
+                          <Input placeholder="N° Guía" {...field} className="h-10 text-xs bg-muted/30 uppercase" />
                         </FormControl>
-                        <SelectContent>
-                          <SelectItem value="pending">Pendiente</SelectItem>
-                          <SelectItem value="partial">Parcial</SelectItem>
-                          <SelectItem value="paid">Pagado</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>
-                        Estado del pago de la compra
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
-                <div className="flex flex-col space-y-2">
-                  <FormLabel className="text-base font-medium">
-                    Impuestos
-                  </FormLabel>
-                  <div className="flex items-center space-x-2 border rounded-md p-3 h-10">
-                    <Checkbox
-                      id="apply-tax"
-                      checked={applyTax}
-                      onCheckedChange={(checked) => setApplyTax(!!checked)}
-                    />
-                    <label
-                      htmlFor="apply-tax"
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      Aplicar IGV (18%)
-                    </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1">
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="h-10 text-xs bg-muted/30 w-full">
+                              <SelectValue placeholder='Estado' />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="completed" className="text-xs">Completada</SelectItem>
+                            <SelectItem value="pending" className="text-xs">Pendiente</SelectItem>
+                            <SelectItem value="draft" className="text-xs">Borrador</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="payment_status"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1">
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="h-10 text-xs bg-muted/30 w-full">
+                              <SelectValue placeholder='Pago' />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="pending" className="text-xs">Pendiente</SelectItem>
+                            <SelectItem value="paid" className="text-xs">Pagado</SelectItem>
+                            <SelectItem value="partial" className="text-xs">Parcial</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="flex-1 flex flex-col min-h-0 min-w-0">
+                  <Separator className="my-2 shrink-0" />
+
+                  {/* LISTA DE ITEMS (CART) - SOLO EN MODO SELECCION */}
+                  {!isReviewing && (
+                    <div className="flex-1 flex flex-col min-h-[150px] bg-muted/5 rounded-xl border border-dashed border-primary/20 overflow-hidden">
+                      <div className="p-2.5 border-b bg-background/50 backdrop-blur-sm flex items-center justify-between shrink-0">
+                        <div className="flex items-center gap-2 flex-1 justify-start">
+                          <ShoppingCart className="h-3.5 w-3.5 text-primary" />
+                          <span className="text-[10px] font-black uppercase text-muted-foreground">Carrito</span>
+                        </div>
+                        <Badge variant="secondary" className="text-[9px] font-bold px-1.5 h-4 bg-primary/10 text-primary border-none">{watchedItems.length} ítems</Badge>
+                      </div>
+
+                      <ScrollArea className="h-[300px]" type="always">
+                        {watchedItems.length > 0 ? (
+                          <div className="divide-y divide-muted/10">
+                            {watchedItems.map((item, index) => (
+                              <div key={`${item._temp_id}-${index}`} className="p-3 bg-background/30 hover:bg-muted/10 transition-colors mr-4">
+                                <div className="flex gap-3">
+                                  {/* Product Image */}
+                                  <div className="h-10 w-10 rounded-lg border bg-background flex-shrink-0 flex items-center justify-center overflow-hidden shadow-sm">
+                                    {item.images && item.images[0] ? (
+                                      <img src={item.images[0]} alt="img" className="w-full h-full object-cover" />
+                                    ) : (
+                                      <Package className="h-5 w-5 text-muted-foreground/20" />
+                                    )}
+                                  </div>
+                                  {/* Details */}
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-[11px] font-bold line-clamp-2 whitespace-normal break-words uppercase mb-0.5" title={item.name}>
+                                      {item.name}
+                                    </p>
+                                    <div className="flex justify-between items-center">
+                                      <p className="text-[9px] text-muted-foreground uppercase font-medium">
+                                        {item.quantity} {item.unit} · {formatCurrencySoles(item.price)}
+                                      </p>
+                                      <span className="text-[11px] font-black text-primary">
+                                        {formatCurrencySoles(item.price * item.quantity - (item.discount || 0))}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Actions Row */}
+                                <div className="flex items-center justify-between mt-2.5 pt-2.5 border-t border-dashed border-muted/20">
+                                  <div className="flex items-center bg-background rounded-md border h-7 shadow-sm">
+                                    <button
+                                      type="button"
+                                      className="w-7 h-full flex items-center justify-center hover:bg-muted/50 text-muted-foreground transition-colors"
+                                      onClick={() => updateQuantity(item._temp_id || '', -1)}
+                                    >
+                                      <Minus className="h-3 w-3" />
+                                    </button>
+                                    <span className="text-[11px] font-bold w-6 text-center border-x h-full flex items-center justify-center">
+                                      {item.quantity}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      className="w-7 h-full flex items-center justify-center hover:bg-muted/50 text-muted-foreground transition-colors"
+                                      onClick={() => updateQuantity(item._temp_id || '', 1)}
+                                    >
+                                      <Plus className="h-3 w-3" />
+                                    </button>
+                                  </div>
+
+                                  <div className="flex items-center gap-1">
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7 rounded-md hover:bg-primary/10 hover:text-primary transition-all border border-transparent hover:border-primary/20"
+                                      onClick={() => handleEditItem(index)}
+                                    >
+                                      <Pencil className="h-3 w-3" />
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7 rounded-md hover:bg-destructive/10 hover:text-destructive transition-all border border-transparent hover:border-destructive/20"
+                                      onClick={() => removeItem(item._temp_id || '')}
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center h-[180px] text-center text-muted-foreground/40 p-6">
+                            <ShoppingCart className="h-10 w-10 mb-2 opacity-10" />
+                            <p className="text-[10px] font-black uppercase tracking-widest">Carrito vacío</p>
+                          </div>
+                        )}
+                      </ScrollArea>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2 shrink-0 border-t pt-4">
+                  <div className="flex justify-between items-center text-xs font-medium">
+                    <span className="text-muted-foreground uppercase text-[9px] font-black">Subtotal Base</span>
+                    <span className="font-bold">{formatCurrencySoles(subtotal)}</span>
+                  </div>
+
+                  <div className="flex justify-between items-center gap-4">
+                    <span className="text-[9px] font-black uppercase text-destructive whitespace-nowrap">Dcto. Global</span>
+                    <div className="relative">
+                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] text-destructive/50">S/</span>
+                      <Input
+                        type="number"
+                        value={watchedDiscount}
+                        onChange={(e) => form.setValue('discount', Number(e.target.value))}
+                        className="h-7 py-0 text-right font-bold text-destructive w-20 bg-destructive/5 text-xs pl-5 border-destructive/20"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="tax-toggle"
+                        checked={watchedTaxRate > 0}
+                        onCheckedChange={(checked) => form.setValue('tax_rate', checked ? 18 : 0)}
+                        className="h-3.5 w-3.5"
+                      />
+                      <label htmlFor="tax-toggle" className="text-[10px] font-black uppercase text-muted-foreground cursor-pointer">IGV 18%</label>
+                    </div>
+                    {watchedTaxRate > 0 && <span className="text-xs font-bold text-primary">{formatCurrencySoles(taxAmount)}</span>}
+                  </div>
+
+                  <div className="pt-3 mt-1 border-t border-primary/10 flex justify-between items-center">
+                    <span className="text-xs font-black uppercase">Total Neto</span>
+                    <span className="text-2xl font-black text-primary tracking-tighter">{formatCurrencySoles(total)}</span>
                   </div>
                 </div>
-              </div>
-            </section>
 
-            {/* Productos */}
-            <section className="space-y-6">
-              <div className="flex items-center justify-between border-b border-gray-200 pb-4">
-                <div>
-                  <h2 className="text-xl font-semibold">
-                    Productos
-                  </h2>
-                  <p className="mt-1">
-                    Agrega los productos de esta compra
-                  </p>
-                </div>
-                <Button type="button" onClick={() => setProductModalOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Agregar Producto
-                </Button>
-              </div>
-
-              {purchaseItems.length > 0 ? (
-                <div className="border rounded-lg overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-8"></TableHead>
-                        <TableHead>Producto</TableHead>
-                        <TableHead>Unidad</TableHead>
-                        <TableHead>Cantidad</TableHead>
-                        <TableHead>Precio Unit.</TableHead>
-                        <TableHead>Descuento</TableHead>
-                        <TableHead>Subtotal</TableHead>
-                        {purchaseItems.some((item) => item.bar_code) && (
-                          <TableHead>Código Barras</TableHead>
-                        )}
-                        <TableHead className="w-20">Acciones</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {purchaseItems.map((item, index) => {
-                        // No mostrar cabeceras de productos con variantes
-                        if (item.is_product_header) {
-                          return null
-                        }
-
-                        // Mostrar todos los items (variantes y productos sin variantes) directamente
-                        return (
-                          <TableRow key={item._temp_id}>
-                            <TableCell></TableCell>
-                            <TableCell>
-                              <p className="text-sm break-words whitespace-normal line-clamp-3 uppercase">
-                                {item.product?.brand || ''}{' '}
-                                {item.product?.name && (
-                                  <> {item.product.name}</>
-                                )}
-                              </p>
-                              {item.product?.description && (
-                                <p className="text-xs text-gray-500 break-words whitespace-normal line-clamp-2">
-                                  {item.product.description}
-                                </p>
-                              )}
-                              {item.has_variants && item.variant_attributes && (
-                                <div className="mt-1">
-                                  <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                                    {item.variant_attributes
-                                      .map((attr) => attr.attribute_value)
-                                      .join(', ')}
-                                  </span>
-                                </div>
-                              )}
-                            </TableCell>
-                            <TableCell>{item.product?.unit}</TableCell>
-                            <TableCell className="font-medium">
-                              {item.quantity}
-                            </TableCell>
-                            <TableCell className="font-medium text-right">
-                              {formatCurrencySoles(item.price)}
-                            </TableCell>
-                            <TableCell className="text-red-600 text-right">
-                              {item.discount
-                                ? formatCurrencySoles(item.discount)
-                                : '-'}
-                            </TableCell>
-                            <TableCell className="font-medium text-right">
-                              {formatCurrencySoles(
-                                item.quantity * item.price -
-                                (item.discount || 0)
-                              )}
-                            </TableCell>
-                            {purchaseItems.some((item) => item.bar_code) && (
-                              <TableCell className="text-xs text-gray-500">
-                                {item.bar_code ? (
-                                  <span className="bg-gray-100 px-2 py-1 rounded">
-                                    {item.bar_code}
-                                  </span>
-                                ) : (
-                                  '-'
-                                )}
-                              </TableCell>
-                            )}
-                            <TableCell>
-                              <div className="flex gap-1">
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleEditItem(item, index)}
-                                  className="cursor-pointer"
-                                >
-                                  <Edit className="h-4 w-4 text-blue-500" />
-                                </Button>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleRemoveItem(item, index)}
-                                  className="cursor-pointer"
-                                >
-                                  <Trash2 className="h-4 w-4 text-red-500" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        )
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
-              ) : (
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                  <p className="text-gray-500 mb-4">
-                    No hay productos agregados
-                  </p>
+                <div className="pt-4 mt-2">
                   <Button
+                    key={isReviewing ? "confirm" : "review"}
                     type="button"
-                    onClick={() => setProductModalOpen(true)}
+                    onClick={isReviewing ? confirmPurchase : onSubmitReview}
+                    disabled={isLoading || watchedItems.length === 0}
+                    className={`w-full h-14 text-base font-black shadow-xl rounded-xl transition-all active:scale-[0.98] ${isReviewing
+                      ? 'bg-green-600 hover:bg-green-700 text-white'
+                      : 'bg-primary hover:bg-primary/90'
+                      }`}
                   >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Agregar primer producto
+                    {isLoading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        Guardando...
+                      </div>
+                    ) : isReviewing ? (
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="h-5 w-5" />
+                        Confirmar Compra
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        Revisar Detalle
+                        <ArrowLeft className="h-5 w-5 rotate-180" />
+                      </div>
+                    )}
                   </Button>
                 </div>
-              )}
-            </section>
-
-            {/* Totales */}
-            <section className="space-y-6">
-              <div className="border-b border-gray-200 pb-4">
-                <h2 className="text-xl font-semibold">Totales</h2>
-                <p className="mt-1">
-                  Cálculo de descuentos e impuestos
-                </p>
               </div>
+            </Card>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="discount"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-base font-medium">
-                          Descuento General
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            placeholder="0.00"
-                            value={field.value || ''}
-                            onChange={(e) =>
-                              field.onChange(Number(e.target.value) || 0)
-                            }
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Descuento general en soles (adicional a descuentos por
-                          producto)
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="tax_rate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-base font-medium">
-                          IGV (%)
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            min="0"
-                            max="100"
-                            step="0.01"
-                            value={field.value || ''}
-                            onChange={(e) =>
-                              field.onChange(Number(e.target.value) || 0)
-                            }
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Porcentaje de IGV (opcional)
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="p-6 rounded-lg space-y-3">
-                  <div className="flex justify-between">
-                    <span>Subtotal (con descuentos por producto):</span>
-                    <span className="font-medium">
-                      {formatCurrencySoles(form.watch('subtotal') || 0)}
-                    </span>
-                  </div>
-                  {(form.watch('discount') || 0) > 0 && (
-                    <div className="flex justify-between text-red-600">
-                      <span>Descuento general:</span>
-                      <span>
-                        -{formatCurrencySoles(form.watch('discount') || 0)}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span>IGV ({form.watch('tax_rate') || 0}%):</span>
-                    <span>
-                      {formatCurrencySoles(form.watch('tax_amount') || 0)}
-                    </span>
-                  </div>
-                  <div className="border-t pt-3">
-                    <div className="flex justify-between text-lg font-bold">
-                      <span>Total:</span>
-                      <span>
-                        {formatCurrencySoles(form.watch('total_amount') || 0)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Botones de acción */}
-            <div className="flex justify-end gap-4 pt-8 border-t border-gray-200">
-              <Link href={APP_URLS.PURCHASES.LIST}>
-                <Button type="button" variant="outline" size="lg">
-                  Cancelar
-                </Button>
-              </Link>
-              <Button
-                type="submit"
-                disabled={
-                  isLoading ||
-                  purchaseItems.filter(
-                    (item) => !item.is_product_header && item.quantity > 0
-                  ).length === 0
-                }
-                size="lg"
-              >
-                {isLoading ? (
-                  <>
-                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                    Registrando compra...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    Registrar Compra
-                  </>
-                )}
-              </Button>
+            <div className="bg-primary/5 rounded-xl border border-primary/10 p-4">
+              <h3 className="text-[10px] font-black uppercase text-primary mb-2 flex items-center gap-1">
+                <BadgeInfo className="h-3 w-3" /> Info
+              </h3>
+              <p className="text-[10px] text-muted-foreground leading-relaxed">
+                Las compras en estado <b>Completada</b> aumentarán automáticamente el stock de los productos. Asegúrate de que los costos sean correctos.
+              </p>
             </div>
-          </form>
-        </Form>
+          </div>
+        </form>
+      </Form>
 
-        <ProductSelectorModal
-          businessId={businessId || null}
-          open={productModalOpen}
-          onOpenChange={setProductModalOpen}
-          onSelectProduct={handleAddProduct}
-          selectedProductIds={selectedProductIds}
-        />
-
-        <EditItemDialog
-          item={editingItem}
-          open={editDialogOpen}
-          onOpenChange={setEditDialogOpen}
-          onSave={handleSaveEditedItem}
-        />
-
-        <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Confirmar compra</AlertDialogTitle>
-              <AlertDialogDescription>
-                ¿Estás seguro que deseas registrar esta compra por un total de
-                S/ {(form.watch('total_amount') || 0).toFixed(2)}?
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={confirmPurchase}>
-                Confirmar
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
+      <EditPurchaseItemModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        item={editingItem.item}
+        onUpdate={handleUpdateItem}
+      />
     </div>
   )
 }

@@ -98,6 +98,7 @@ export type PurchaseItem = z.infer<typeof PurchaseItemSchema> & {
   description?: string | null
   variant_name?: string | null
   attributes?: any[] | null
+  images?: string[]
   // Información del producto/variante
   is_product_header?: boolean
   has_variants?: boolean

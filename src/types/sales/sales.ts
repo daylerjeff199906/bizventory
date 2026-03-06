@@ -1,1 +1,1 @@
-export type Currency = 'PEN' | 'USD'
+export type Currency = 'PEN' | 'USD' | 'S/' | '$'
