@@ -5,6 +5,15 @@ import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter
+} from '@/components/ui/dialog'
+import { toast } from 'react-toastify'
+import {
   Table,
   TableBody,
   TableCell,
@@ -29,11 +38,13 @@ import {
   PackageSearch,
   Filter,
   X,
-  Calendar
+  Calendar,
+  Trash2
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import type { SaleList, ResApi } from '@/apis/app/sales'
+import { deleteSale } from '@/apis/app/sales'
 import { APP_URLS } from '@/config/app-urls'
 import { StatusBadge } from '../components/status-badge'
 
@@ -78,6 +89,26 @@ export const SalesList = ({
   const [codeFilter, setCodeFilter] = useState(searchQuery)
   const [dateFrom, setDateFrom] = useState(filters?.from || '')
   const [dateTo, setDateTo] = useState(filters?.to || '')
+
+  const [deletingSaleId, setDeletingSaleId] = useState<string | null>(null)
+  const [deleteInput, setDeleteInput] = useState('')
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  const handleDelete = async () => {
+    if (deletingSaleId) {
+      setIsDeleting(true)
+      try {
+        await deleteSale(deletingSaleId)
+        toast.success('Venta eliminada exitosamente')
+        setDeletingSaleId(null)
+        setDeleteInput('')
+      } catch (error) {
+        toast.error('Error al eliminar la venta')
+      } finally {
+        setIsDeleting(false)
+      }
+    }
+  }
 
   const applyFilters = () => {
     const params = new URLSearchParams(searchParams.toString())
@@ -452,6 +483,18 @@ export const SalesList = ({
                           <Eye className="h-4 w-4" />
                         </Link>
                       </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        title="Eliminar"
+                        onClick={() => {
+                          setDeletingSaleId(sale.id)
+                          setDeleteInput('')
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -529,6 +572,32 @@ export const SalesList = ({
           </div>
         )
       }
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={!!deletingSaleId} onOpenChange={(open) => !open && setDeletingSaleId(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Eliminar Venta</DialogTitle>
+            <DialogDescription>
+              Esta acción no se puede deshacer. Por favor ingresa la palabra <strong className="font-bold text-destructive">DELETE</strong> para confirmar.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Input
+              value={deleteInput}
+              onChange={(e) => setDeleteInput(e.target.value)}
+              placeholder="Escribe DELETE"
+              className="mt-2"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeletingSaleId(null)} disabled={isDeleting}>Cancelar</Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={deleteInput !== 'DELETE' || isDeleting}>
+              {isDeleting ? 'Eliminando...' : 'Eliminar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div >
   )
 }
