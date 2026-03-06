@@ -147,9 +147,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
 
   const handleProductSelect = (product: ProductCombinedSelection) => {
     const currentItems = [...(form.getValues('items') || [])]
-    const existingIndex = currentItems.findIndex(item =>
-      item.product_id === product.product_id && item.product_variant_id === product.variant_id
-    )
+    const existingIndex = currentItems.findIndex(item => item._temp_id === product._temp_id)
 
     if (existingIndex >= 0) {
       // Toggle: Remove if already selected
@@ -309,12 +307,12 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                       </div>
                     ) : listGeneralProducts.length > 0 ? (
                       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-12">
-                        {listGeneralProducts.map((product) => {
+                        {listGeneralProducts.map((product, index) => {
                           const isSelected = watchedItems?.some(i => i._temp_id === product._temp_id)
                           const addedItem = watchedItems?.find(i => i._temp_id === product._temp_id)
 
                           return (
-                            <div key={product._temp_id} className="relative group">
+                            <div key={`${product._temp_id}-${index}`} className="relative group">
                               <ProductItem
                                 product={product}
                                 onSelect={handleProductSelect}
@@ -367,7 +365,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                   <ScrollArea className="lg:h-[calc(100vh-250px)]">
                     <div className="p-6 space-y-4">
                       {watchedItems.map((item, index) => (
-                        <Card key={item._temp_id} className="p-4 shadow-none border-muted-foreground/10 hover:border-primary/30 transition-all group">
+                        <Card key={`${item._temp_id}-${index}`} className="p-4 shadow-none border-muted-foreground/10 hover:border-primary/30 transition-all group">
                           <div className="flex gap-6 items-center">
                             <div className="h-20 w-20 bg-muted rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden border shadow-sm">
                               {item.images && item.images[0] ? (
@@ -420,7 +418,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                                     <span className="text-sm font-bold">{formatCurrencySoles(item.price)}</span>
                                   </div>
 
-                                  {item.discount > 0 && (
+                                  {item?.discount && item?.discount?.toString() !== "0" && (
                                     <div className="flex flex-col">
                                       <span className="text-[10px] font-black uppercase text-destructive">Descuento</span>
                                       <span className="text-sm font-bold text-destructive">-{formatCurrencySoles(item.discount)}</span>
@@ -621,7 +619,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                         {watchedItems.length > 0 ? (
                           <div className="divide-y divide-muted/10">
                             {watchedItems.map((item, index) => (
-                              <div key={item._temp_id} className="p-3 bg-background/30 hover:bg-muted/10 transition-colors">
+                              <div key={`${item._temp_id}-${index}`} className="p-3 bg-background/30 hover:bg-muted/10 transition-colors">
                                 <div className="flex gap-3">
                                   {/* Product Image */}
                                   <div className="h-10 w-10 rounded-lg border bg-background flex-shrink-0 flex items-center justify-center overflow-hidden shadow-sm">
