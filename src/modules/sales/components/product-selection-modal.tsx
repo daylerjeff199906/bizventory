@@ -36,7 +36,7 @@ interface ProductSelectionModalProps {
 }
 
 // Componente de configuración del producto (panel lateral)
-function ProductConfigPanel({
+export function ProductConfigPanel({
   product,
   currency,
   onConfirm,
@@ -266,7 +266,7 @@ function ProductConfigPanel({
 }
 
 // Componente de item de producto (Card Syle)
-function ProductItem({
+export function ProductItem({
   product,
   onSelect,
   isSelected,
