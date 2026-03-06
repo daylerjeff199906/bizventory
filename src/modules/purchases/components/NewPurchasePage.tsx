@@ -276,43 +276,45 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                 </div>
 
                 {/* Lista de productos */}
-                <ScrollArea className="flex-1 p-4">
-                  {productsLoading ? (
-                    <div className="flex items-center justify-center py-20 h-full">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                    </div>
-                  ) : listGeneralProducts.length > 0 ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-12">
-                      {listGeneralProducts.map((product) => {
-                        const isSelected = watchedItems?.some(i => i._temp_id === product._temp_id)
-                        const addedItem = watchedItems?.find(i => i._temp_id === product._temp_id)
+                <div className="flex-1 relative min-h-0">
+                  <ScrollArea className="absolute inset-0 p-4">
+                    {productsLoading ? (
+                      <div className="flex items-center justify-center py-20 h-full">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                      </div>
+                    ) : listGeneralProducts.length > 0 ? (
+                      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-12">
+                        {listGeneralProducts.map((product) => {
+                          const isSelected = watchedItems?.some(i => i._temp_id === product._temp_id)
+                          const addedItem = watchedItems?.find(i => i._temp_id === product._temp_id)
 
-                        return (
-                          <div key={product._temp_id} className="relative group">
-                            <ProductItem
-                              product={product}
-                              onSelect={handleProductSelect}
-                              isSelected={isSelected}
-                              isConfiguring={false}
-                              currency="PEN"
-                            />
-                            {isSelected && addedItem && (
-                              <div className="absolute top-2 left-2 bg-primary/90 text-primary-foreground text-xs font-bold px-2 py-1 rounded-md shadow-md">
-                                {addedItem.quantity} en lista
-                              </div>
-                            )}
-                          </div>
-                        )
-                      })}
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center h-[50vh] text-center opacity-70">
-                      <Package className="h-16 w-16 text-muted-foreground mb-4 opacity-20" />
-                      <h3 className="text-lg font-medium">No se encontraron productos</h3>
-                      <p className="text-muted-foreground text-sm">Prueba ajustando tu búsqueda</p>
-                    </div>
-                  )}
-                </ScrollArea>
+                          return (
+                            <div key={product._temp_id} className="relative group">
+                              <ProductItem
+                                product={product}
+                                onSelect={handleProductSelect}
+                                isSelected={isSelected}
+                                isConfiguring={false}
+                                currency="PEN"
+                              />
+                              {isSelected && addedItem && (
+                                <div className="absolute top-2 left-2 bg-primary/90 text-primary-foreground text-xs font-bold px-2 py-1 rounded-md shadow-md">
+                                  {addedItem.quantity} en lista
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-[50vh] text-center opacity-70">
+                        <Package className="h-16 w-16 text-muted-foreground mb-4 opacity-20" />
+                        <h3 className="text-lg font-medium">No se encontraron productos</h3>
+                        <p className="text-muted-foreground text-sm">Prueba ajustando tu búsqueda</p>
+                      </div>
+                    )}
+                  </ScrollArea>
+                </div>
               </>
             ) : (
               /* MODO REVISIÓN */
@@ -336,121 +338,122 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                   </Button>
                 </div>
 
-                <ScrollArea className="flex-1">
-                  <div className="p-6 space-y-4">
-                    {watchedItems.map((item, index) => (
-                      <Card key={item._temp_id} className="p-4 shadow-none border-muted-foreground/10 hover:border-primary/30 transition-all">
-                        <div className="flex gap-4">
-                          <div className="h-16 w-16 bg-muted rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden border">
-                            {item.images && item.images[0] ? (
-                              <img src={item.images[0]} alt={item.name || ''} className="w-full h-full object-cover" />
-                            ) : (
-                              <Package className="h-6 w-6 text-muted-foreground/30" />
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex flex-col md:flex-row md:items-start justify-between gap-2">
-                              <div>
-                                <h3 className="font-bold text-sm line-clamp-1 uppercase">{item.name}</h3>
-                                <p className="text-[10px] text-muted-foreground font-medium uppercase">{item.brand?.name} · {item.unit}</p>
-                              </div>
-                              <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-lg border">
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-7 w-7 rounded hover:bg-background"
-                                  onClick={() => updateQuantity(index, -1)}
-                                >
-                                  <Minus className="h-3 w-3" />
-                                </Button>
-                                <span className="text-xs font-bold w-5 text-center">{item.quantity}</span>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-7 w-7 rounded hover:bg-background"
-                                  onClick={() => updateQuantity(index, 1)}
-                                >
-                                  <Plus className="h-3 w-3" />
-                                </Button>
-                              </div>
+                <div className="flex-1 relative min-h-0">
+                  <ScrollArea className="absolute inset-0">
+                    <div className="p-6 space-y-4">
+                      {watchedItems.map((item, index) => (
+                        <Card key={item._temp_id} className="p-4 shadow-none border-muted-foreground/10 hover:border-primary/30 transition-all">
+                          <div className="flex gap-4">
+                            <div className="h-16 w-16 bg-muted rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden border">
+                              {item.images && item.images[0] ? (
+                                <img src={item.images[0]} alt={item.name || ''} className="w-full h-full object-cover" />
+                              ) : (
+                                <Package className="h-6 w-6 text-muted-foreground/30" />
+                              )}
                             </div>
-
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 items-end pt-3 border-t border-dashed">
-                              <div className="space-y-1">
-                                <label className="text-[9px] font-black uppercase text-muted-foreground">Costo Unit.</label>
-                                <div className="relative">
-                                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">S/</span>
-                                  <Input
-                                    type="number"
-                                    value={item.price}
-                                    onChange={(e) => updateItemField(index, 'price', Number(e.target.value))}
-                                    className="h-8 pl-6 text-xs font-bold"
-                                  />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex flex-col md:flex-row md:items-start justify-between gap-2">
+                                <div>
+                                  <h3 className="font-bold text-sm line-clamp-1 uppercase">{item.name}</h3>
+                                  <p className="text-[10px] text-muted-foreground font-medium uppercase">{item.brand?.name} · {item.unit}</p>
+                                </div>
+                                <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-lg border">
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7 rounded hover:bg-background"
+                                    onClick={() => updateQuantity(index, -1)}
+                                  >
+                                    <Minus className="h-3 w-3" />
+                                  </Button>
+                                  <span className="text-xs font-bold w-5 text-center">{item.quantity}</span>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7 rounded hover:bg-background"
+                                    onClick={() => updateQuantity(index, 1)}
+                                  >
+                                    <Plus className="h-3 w-3" />
+                                  </Button>
                                 </div>
                               </div>
-                              <div className="space-y-1">
-                                <label className="text-[9px] font-black uppercase text-muted-foreground text-destructive">Dscto Total</label>
-                                <Input
-                                  type="number"
-                                  value={item.discount || 0}
-                                  onChange={(e) => updateItemField(index, 'discount', Number(e.target.value))}
-                                  className="h-8 text-xs font-bold text-destructive bg-destructive/5"
-                                />
-                              </div>
-                              <div className="space-y-1">
-                                <label className="text-[9px] font-black uppercase text-muted-foreground">Cod. Barras</label>
-                                <Input
-                                  value={item.bar_code || ''}
-                                  onChange={(e) => updateItemField(index, 'bar_code', e.target.value)}
-                                  className="h-8 text-xs"
-                                  placeholder="Opcional"
-                                />
-                              </div>
-                              <div className="text-right">
-                                <p className="text-[9px] font-black uppercase text-muted-foreground">Total Item</p>
-                                <p className="text-sm font-black text-primary">
-                                  {formatCurrencySoles(item.price * item.quantity - (item.discount || 0))}
-                                </p>
+
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 items-end pt-3 border-t border-dashed">
+                                <div className="space-y-1">
+                                  <label className="text-[9px] font-black uppercase text-muted-foreground">Costo Unit.</label>
+                                  <div className="relative">
+                                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">S/</span>
+                                    <Input
+                                      type="number"
+                                      value={item.price}
+                                      onChange={(e) => updateItemField(index, 'price', Number(e.target.value))}
+                                      className="h-8 pl-6 text-xs font-bold"
+                                    />
+                                  </div>
+                                </div>
+                                <div className="space-y-1">
+                                  <label className="text-[9px] font-black uppercase text-muted-foreground text-destructive">Dscto Total</label>
+                                  <Input
+                                    type="number"
+                                    value={item.discount || 0}
+                                    onChange={(e) => updateItemField(index, 'discount', Number(e.target.value))}
+                                    className="h-8 text-xs font-bold text-destructive bg-destructive/5"
+                                  />
+                                </div>
+                                <div className="space-y-1">
+                                  <label className="text-[9px] font-black uppercase text-muted-foreground">Cod. Barras</label>
+                                  <Input
+                                    value={item.bar_code || ''}
+                                    onChange={(e) => updateItemField(index, 'bar_code', e.target.value)}
+                                    className="h-8 text-xs"
+                                    placeholder="Opcional"
+                                  />
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-[9px] font-black uppercase text-muted-foreground">Total Item</p>
+                                  <p className="text-sm font-black text-primary">
+                                    {formatCurrencySoles(item.price * item.quantity - (item.discount || 0))}
+                                  </p>
+                                </div>
                               </div>
                             </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="text-muted-foreground/30 hover:text-destructive self-start h-8 w-8"
+                              onClick={() => {
+                                const newItems = watchedItems.filter((_, i) => i !== index)
+                                form.setValue('items', newItems)
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="text-muted-foreground/30 hover:text-destructive self-start h-8 w-8"
-                            onClick={() => {
-                              const newItems = watchedItems.filter((_, i) => i !== index)
-                              form.setValue('items', newItems)
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </Card>
-                    ))}
+                        </Card>
+                      ))}
 
-                    {/* Resumen de costos visual */}
-                    <div className="bg-primary/5 rounded-xl border border-primary/10 p-5 mt-4">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="p-3 bg-background rounded-lg border shadow-sm">
-                          <span className="text-[10px] font-black uppercase text-muted-foreground block mb-1">Subtotal</span>
-                          <span className="text-base font-bold">{formatCurrencySoles(subtotal)}</span>
-                        </div>
-                        <div className="p-3 bg-background rounded-lg border shadow-sm">
-                          <span className="text-[10px] font-black uppercase text-destructive block mb-1">Dcto. Global</span>
-                          <span className="text-base font-bold text-destructive">-{formatCurrencySoles(watchedDiscount)}</span>
-                        </div>
-                        <div className="p-3 bg-primary text-primary-foreground rounded-lg border shadow-sm flex flex-col justify-center">
-                          <span className="text-[10px] font-black uppercase opacity-80 block mb-1">Total Compra</span>
-                          <span className="text-xl font-black">{formatCurrencySoles(total)}</span>
+                      {/* Resumen de costos visual */}
+                      <div className="bg-primary/5 rounded-xl border border-primary/10 p-5 mt-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="p-3 bg-background rounded-lg border shadow-sm">
+                            <span className="text-[10px] font-black uppercase text-muted-foreground block mb-1">Subtotal</span>
+                            <span className="text-base font-bold">{formatCurrencySoles(subtotal)}</span>
+                          </div>
+                          <div className="p-3 bg-background rounded-lg border shadow-sm">
+                            <span className="text-[10px] font-black uppercase text-destructive block mb-1">Dcto. Global</span>
+                            <span className="text-base font-bold text-destructive">-{formatCurrencySoles(watchedDiscount)}</span>
+                          </div>
+                          <div className="p-3 bg-primary text-primary-foreground rounded-lg border shadow-sm flex flex-col justify-center">
+                            <span className="text-[10px] font-black uppercase opacity-80 block mb-1">Total Compra</span>
+                            <span className="text-xl font-black">{formatCurrencySoles(total)}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                </ScrollArea>
+                  </ScrollArea>
+                </div>
               </div>
             )}
           </div>
