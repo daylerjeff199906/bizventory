@@ -51,6 +51,7 @@ export function ProductConfigPanel({
   const [basePrice, setBasePrice] = useState(product.price_unit || 0)
   const [discountAmount, setDiscountAmount] = useState(0)
 
+  const currencySymbol = currency === 'PEN' ? 'S/' : currency === 'USD' ? '$' : currency
   const maxDiscount = basePrice * quantity
   const finalPrice = basePrice * quantity - discountAmount
 
@@ -154,7 +155,7 @@ export function ProductConfigPanel({
                 <span className='font-medium text-emerald-600 text-lg'>
                   {product.price_unit} {' '}
                 </span>
-                {currency}
+                {currencySymbol}
               </p>
             </div>
           </div>
@@ -205,7 +206,7 @@ export function ProductConfigPanel({
                 className="mt-1"
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Máximo: {currency}
+                Máximo: {currencySymbol}
                 {maxDiscount.toFixed(2)}
               </p>
             </div>
@@ -215,7 +216,7 @@ export function ProductConfigPanel({
             <div className="flex justify-between items-center">
               <span className="font-medium">Total:</span>
               <span className="text-sm  font-bold">
-                {currency}
+                {currencySymbol}
                 {finalPrice.toFixed(2)}
               </span>
             </div>
@@ -223,7 +224,7 @@ export function ProductConfigPanel({
               <div className="flex justify-between items-center text-xs mt-1 text-red-600">
                 <span>Descuento aplicado:</span>
                 <span>
-                  -{currency}
+                  -{currencySymbol}
                   {discountAmount.toFixed(2)}
                 </span>
               </div>
@@ -271,15 +272,18 @@ export function ProductItem({
   onSelect,
   isSelected,
   isConfiguring,
-  currency
+  currency,
+  allowSelectionWhenOutOfStock
 }: {
   product: ProductCombinedSelection
   onSelect: (product: ProductCombinedSelection) => void
   isSelected: boolean
   isConfiguring: boolean
   currency: Currency
+  allowSelectionWhenOutOfStock?: boolean
 }) {
   const isOutOfStock = !product.stock || product.stock <= 0
+  const currencySymbol = currency === 'PEN' ? 'S/' : currency === 'USD' ? '$' : currency
 
   return (
     <Card
@@ -289,7 +293,7 @@ export function ProductItem({
       ${isSelected ? 'ring-2 ring-primary border-primary' : ''}
       ${isConfiguring ? 'ring-2 ring-primary border-primary' : ''}
     `}
-      onClick={() => !isOutOfStock && onSelect(product)}
+      onClick={() => (allowSelectionWhenOutOfStock || !isOutOfStock) && onSelect(product)}
     >
       <div className="h-32 w-full bg-muted flex items-center justify-center relative">
         {/* Imagen del producto o placeholder */}
@@ -342,7 +346,7 @@ export function ProductItem({
           <div className="flex flex-col">
             <span className="text-xs text-muted-foreground">Precio</span>
             <span className="font-bold text-base">
-              {currency} {product.price_unit?.toFixed(2)}
+              {currencySymbol} {product.price_unit?.toFixed(2)}
             </span>
           </div>
           <div className="text-right">

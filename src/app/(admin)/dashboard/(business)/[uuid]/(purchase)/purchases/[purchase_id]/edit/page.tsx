@@ -60,7 +60,8 @@ export default async function Page(props: Props) {
               description: item.description ?? '',
               name: item.name ?? '',
               original_product_name: item?.original_product_name,
-              original_variant_name: item?.original_variant_name
+              original_variant_name: item?.original_variant_name,
+              images: item?.images || []
             })) || []
         }}
       />
