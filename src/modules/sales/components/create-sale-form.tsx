@@ -20,6 +20,7 @@ import {
   FormItem,
   FormMessage
 } from '@/components/ui/form'
+import { useDebouncedCallback } from 'use-debounce'
 import {
   Trash2,
   Pencil,
@@ -39,10 +40,8 @@ import QuickCustomerModal from './quick-customer-modal'
 import { getCustomers } from '@/apis/app/customers'
 import { CustomerList } from '@/types'
 import { useProductsPrices } from '@/hooks/use-products-price'
-import { SearchInput } from '@/components/app/search-input'
 import { transformProductsToCombinedSelection, ProductItem } from './product-selection-modal'
 import { ProductCombinedSelection } from './types'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 
 export default function CreateSaleForm() {
@@ -64,6 +63,11 @@ export default function CreateSaleForm() {
   // Product fetching state
   const { items: productsResponse, loading: productsLoading, fetchItems } = useProductsPrices()
   const [productSearchTerm, setProductSearchTerm] = useState('')
+  const [searchInput, setSearchInput] = useState('')
+
+  const debouncedSearch = useDebouncedCallback((value: string) => {
+    setProductSearchTerm(value)
+  }, 300)
 
   const form = useForm<SaleFormValues>({
     resolver: zodResolver(saleFormSchema),
@@ -148,24 +152,45 @@ export default function CreateSaleForm() {
     )
   }
 
+  const updateQuantity = (tempId: string, delta: number) => {
+    const currentItems = getValues('items') || []
+    const existingIndex = currentItems.findIndex(item => item._temp_id === tempId)
+
+    if (existingIndex >= 0) {
+      const existing = currentItems[existingIndex]
+      const currentQuantity = existing.quantity || 0
+      const newQuantity = currentQuantity + delta
+
+      if (newQuantity <= 0) {
+        removeItem(tempId)
+        return
+      }
+
+      const productInfo = listGeneralProducts.find(p => p._temp_id === tempId)
+      if (productInfo && newQuantity > (productInfo.stock || 0)) {
+        toast.error(`Stock máximo alcanzado para ${existing.product_name}`)
+        return
+      }
+
+      const updated = {
+        ...existing,
+        quantity: newQuantity,
+        subtotal: newQuantity * (existing.price_unit || 0) - (existing.discount || 0)
+      }
+      const newItems = [...currentItems]
+      newItems[existingIndex] = updated
+      setValue('items', newItems, { shouldValidate: true })
+    }
+  }
+
   // Auto-add 1 unit when clicking product
   const handleProductSelect = (product: ProductCombinedSelection) => {
     const currentItems = getValues('items') || []
     const existingIndex = currentItems.findIndex(item => item._temp_id === product._temp_id)
 
     if (existingIndex >= 0) {
-      const existing = currentItems[existingIndex]
-      if (existing.quantity >= (product.stock || 0)) {
-        toast.error(`Stock máximo alcanzado para ${product.product_name}`)
-        return
-      }
-      const updated = {
-        ...existing,
-        quantity: existing.quantity + 1,
-        subtotal: (existing.quantity + 1) * existing.price_unit - (existing.discount || 0)
-      }
-      const newItems = [...currentItems]
-      newItems[existingIndex] = updated
+      // Toggle selection: remove it
+      const newItems = currentItems.filter(item => item._temp_id !== product._temp_id)
       setValue('items', newItems, { shouldValidate: true })
     } else {
       if ((product.stock || 0) < 1) {
@@ -264,8 +289,11 @@ export default function CreateSaleForm() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Buscar por nombre, código o marca..."
-              value={productSearchTerm}
-              onChange={(e) => setProductSearchTerm(e.target.value)}
+              value={searchInput}
+              onChange={(e) => {
+                setSearchInput(e.target.value)
+                debouncedSearch(e.target.value)
+              }}
               className="pl-9 w-full bg-muted/50 border-muted-foreground/20 focus-visible:ring-primary/20"
             />
           </div>
@@ -274,7 +302,7 @@ export default function CreateSaleForm() {
           </div>
         </div>
 
-        <ScrollArea className="flex-1 p-4">
+        <div className="flex-1 overflow-y-auto p-4">
           {productsLoading ? (
             <div className="flex items-center justify-center py-20 h-full">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -309,7 +337,7 @@ export default function CreateSaleForm() {
               <p className="text-muted-foreground text-sm">Intenta con otro término de búsqueda</p>
             </div>
           )}
-        </ScrollArea>
+        </div>
       </div>
 
       {/* RIGHT COLUMN: Sale Form / Cart Details (Aside) */}
@@ -423,7 +451,7 @@ export default function CreateSaleForm() {
             </div>
 
             {/* Middle: Cart Items */}
-            <ScrollArea className="flex-1 bg-background relative">
+            <div className="flex-1 overflow-y-auto bg-background relative">
               {watchedItems && watchedItems.length > 0 ? (
                 <div className="flex flex-col">
                   {watchedItems.map((item, index) => (
@@ -463,7 +491,24 @@ export default function CreateSaleForm() {
                           {currencySymbol}{item.subtotal?.toFixed(2)}
                         </span>
 
-                        <div className="flex items-center gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity mt-2">
+                          <div className="flex items-center bg-muted/50 rounded-full border border-muted/80 h-7 mr-1">
+                            <button
+                              type="button"
+                              className="h-full px-2.5 text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-l-full flex items-center justify-center transition-colors"
+                              onClick={() => updateQuantity(item._temp_id || '', -1)}
+                            >
+                              -
+                            </button>
+                            <span className="text-xs font-medium w-4 text-center">{item.quantity}</span>
+                            <button
+                              type="button"
+                              className="h-full px-2.5 text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-r-full flex items-center justify-center transition-colors"
+                              onClick={() => updateQuantity(item._temp_id || '', 1)}
+                            >
+                              +
+                            </button>
+                          </div>
                           <Button
                             type="button"
                             variant="secondary"
@@ -497,7 +542,7 @@ export default function CreateSaleForm() {
                   <p className="text-xs">Selecciona productos a la izquierda para empezar.</p>
                 </div>
               )}
-            </ScrollArea>
+            </div>
 
             {/* Footer Summary Container */}
             <div className="p-4 border-t bg-muted/20 flex flex-col gap-4 mt-auto shrink-0 z-10 shadow-[0_-4px_10px_-4px_rgba(0,0,0,0.05)]">
