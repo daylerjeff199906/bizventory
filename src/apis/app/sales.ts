@@ -437,7 +437,6 @@ export async function deleteSale(id: string): Promise<void> {
     .select('status')
     .eq('id', id)
     .single()
-
   if (fetchError) {
     throw new Error('Error finding sale to delete')
   }
@@ -458,7 +457,8 @@ export async function deleteSale(id: string): Promise<void> {
         const { error: manualError } = await supabase
           .from('inventory_movements')
           .delete()
-          .eq('sale_id', id)
+          .eq('reference_id', id)
+          .eq('reference_type', 'sale')
 
         if (manualError) throw manualError
       }
@@ -468,7 +468,8 @@ export async function deleteSale(id: string): Promise<void> {
       const { error: manualError } = await supabase
         .from('inventory_movements')
         .delete()
-        .eq('sale_id', id)
+        .eq('reference_id', id)
+        .eq('reference_type', 'sale')
 
       if (manualError) {
         throw new Error('No se pudo revertir el stock. La venta no ha sido eliminada.')

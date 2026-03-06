@@ -716,6 +716,7 @@ export default function CreateSaleForm() {
               {
                 !isReviewing ? (
                   <Button
+                    key="review-button"
                     type="button"
                     onClick={() => {
                       if (!watchedItems || watchedItems.length === 0) {
@@ -724,7 +725,7 @@ export default function CreateSaleForm() {
                       }
                       setIsReviewing(true)
                     }}
-                    className={`w-full h-12 text-sm md:text-base font-bold shadow-md rounded-xl transition-all ${isReviewing ? 'bg-primary hover:bg-primary/90 scale-100' : 'bg-foreground hover:bg-foreground/90'}`}
+                    className={`w-full h-12 text-sm md:text-base font-bold rounded-full transition-all`}
                     disabled={(!watchedItems || watchedItems.length === 0) || form.formState.isSubmitting}
                   >
                     {form.formState.isSubmitting
@@ -733,8 +734,10 @@ export default function CreateSaleForm() {
                   </Button>
                 ) : (
                   <Button
-                    type="submit"
-                    className={`w-full h-12 text-sm md:text-base font-bold shadow-md rounded-xl transition-all ${isReviewing ? 'bg-primary hover:bg-primary/90 scale-100' : 'bg-foreground hover:bg-foreground/90'}`}
+                    key="submit-button"
+                    type="button"
+                    onClick={() => confirmSale()}
+                    className={`w-full h-12 text-sm md:text-base font-bold shadow-md rounded-full transition-all bg-primary hover:bg-primary/90 scale-100`}
                     disabled={(!watchedItems || watchedItems.length === 0) || form.formState.isSubmitting}
                   >
                     {form.formState.isSubmitting
