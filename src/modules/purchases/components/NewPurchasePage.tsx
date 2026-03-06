@@ -176,13 +176,15 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
     }
   }
 
-  const updateQuantity = (index: number, delta: number) => {
+  const updateQuantity = (tempId: string, delta: number) => {
     const currentItems = [...form.getValues('items')]
+    const index = currentItems.findIndex(item => item._temp_id === tempId)
+    if (index === -1) return
+
     const newQuantity = (currentItems[index].quantity || 0) + delta
 
     if (newQuantity <= 0) {
-      const newItems = currentItems.filter((_, i) => i !== index)
-      form.setValue('items', newItems, { shouldValidate: true })
+      removeItem(tempId)
     } else {
       currentItems[index].quantity = newQuantity
       form.setValue('items', currentItems, { shouldValidate: true })
@@ -209,9 +211,8 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
     }
   }
 
-  const removeItem = (index: number) => {
-    const currentItems = [...form.getValues('items')]
-    const newItems = currentItems.filter((_, i) => i !== index)
+  const removeItem = (tempId: string) => {
+    const newItems = (form.getValues('items') || []).filter((item) => item._temp_id !== tempId)
     form.setValue('items', newItems, { shouldValidate: true })
   }
 
@@ -272,7 +273,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
   )
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 p-4 -m-4 bg-muted/10 lg:h-[calc(100vh-80px)] lg:overflow-hidden relative">
+    <div className="flex flex-col lg:flex-row gap-6 p-4 bg-muted/10 lg:h-[calc(100vh-80px)] lg:overflow-hidden relative">
       <Form {...form}>
         <form onSubmit={(e) => e.preventDefault()} className="contents">
 
@@ -306,7 +307,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                       </div>
                     ) : listGeneralProducts.length > 0 ? (
-                      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-12">
+                      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-12 mr-4">
                         {listGeneralProducts.map((product, index) => {
                           const isSelected = watchedItems?.some(i => i._temp_id === product._temp_id)
                           const addedItem = watchedItems?.find(i => i._temp_id === product._temp_id)
@@ -319,6 +320,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                                 isSelected={isSelected}
                                 isConfiguring={false}
                                 currency="PEN"
+                                allowSelectionWhenOutOfStock={true}
                               />
                               {isSelected && addedItem && (
                                 <div className="absolute top-2 left-2 bg-primary/90 text-primary-foreground text-xs font-bold px-2 py-1 rounded-md shadow-md">
@@ -363,10 +365,10 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
 
                 <div className="flex-1 flex flex-col min-h-0">
                   <ScrollArea className="lg:h-[calc(100vh-250px)]">
-                    <div className="p-6 space-y-4">
+                    <div className="p-6 space-y-4 text-left">
                       {watchedItems.map((item, index) => (
-                        <Card key={`${item._temp_id}-${index}`} className="p-4 shadow-none border-muted-foreground/10 hover:border-primary/30 transition-all group">
-                          <div className="flex gap-6 items-center">
+                        <Card key={`${item._temp_id}-${index}`} className="p-4 shadow-none border-muted-foreground/10 hover:border-primary/30 transition-all group text-left">
+                          <div className="flex gap-6 items-start">
                             <div className="h-20 w-20 bg-muted rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden border shadow-sm">
                               {item.images && item.images[0] ? (
                                 <img src={item.images[0]} alt={item.name || ''} className="w-full h-full object-cover" />
@@ -397,7 +399,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                                       variant="ghost"
                                       size="icon"
                                       className="h-8 w-8 rounded-full hover:bg-background shadow-sm"
-                                      onClick={() => updateQuantity(index, -1)}
+                                      onClick={() => updateQuantity(item._temp_id || '', -1)}
                                     >
                                       <Minus className="h-3 w-3" />
                                     </Button>
@@ -407,7 +409,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                                       variant="ghost"
                                       size="icon"
                                       className="h-8 w-8 rounded-full hover:bg-background shadow-sm"
-                                      onClick={() => updateQuantity(index, 1)}
+                                      onClick={() => updateQuantity(item._temp_id || '', 1)}
                                     >
                                       <Plus className="h-3 w-3" />
                                     </Button>
@@ -449,7 +451,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                                     variant="ghost"
                                     size="icon"
                                     className="h-9 w-9 text-muted-foreground/40 hover:text-destructive hover:bg-destructive/5 rounded-full"
-                                    onClick={() => removeItem(index)}
+                                    onClick={() => removeItem(item._temp_id || '')}
                                   >
                                     <Trash2 className="h-4 w-4" />
                                   </Button>
@@ -495,7 +497,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                 </h2>
               </div>
 
-              <div className="px-5 space-y-4 flex-1 flex flex-col min-h-0">
+              <div className="px-5 py-5 space-y-4 flex-1 flex flex-col min-h-0">
                 <FormField
                   control={form.control}
                   name="supplier_id"
@@ -608,7 +610,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                   {!isReviewing && (
                     <div className="flex-1 flex flex-col min-h-[150px] bg-muted/5 rounded-xl border border-dashed border-primary/20 overflow-hidden">
                       <div className="p-2.5 border-b bg-background/50 backdrop-blur-sm flex items-center justify-between shrink-0">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-1 justify-start">
                           <ShoppingCart className="h-3.5 w-3.5 text-primary" />
                           <span className="text-[10px] font-black uppercase text-muted-foreground">Carrito</span>
                         </div>
@@ -619,7 +621,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                         {watchedItems.length > 0 ? (
                           <div className="divide-y divide-muted/10">
                             {watchedItems.map((item, index) => (
-                              <div key={`${item._temp_id}-${index}`} className="p-3 bg-background/30 hover:bg-muted/10 transition-colors">
+                              <div key={`${item._temp_id}-${index}`} className="p-3 bg-background/30 hover:bg-muted/10 transition-colors mr-4">
                                 <div className="flex gap-3">
                                   {/* Product Image */}
                                   <div className="h-10 w-10 rounded-lg border bg-background flex-shrink-0 flex items-center justify-center overflow-hidden shadow-sm">
@@ -631,7 +633,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                                   </div>
                                   {/* Details */}
                                   <div className="flex-1 min-w-0">
-                                    <p className="text-[11px] font-bold truncate uppercase mb-0.5">
+                                    <p className="text-[11px] font-bold line-clamp-2 whitespace-normal break-words uppercase mb-0.5" title={item.name}>
                                       {item.name}
                                     </p>
                                     <div className="flex justify-between items-center">
@@ -651,7 +653,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                                     <button
                                       type="button"
                                       className="w-7 h-full flex items-center justify-center hover:bg-muted/50 text-muted-foreground transition-colors"
-                                      onClick={() => updateQuantity(index, -1)}
+                                      onClick={() => updateQuantity(item._temp_id || '', -1)}
                                     >
                                       <Minus className="h-3 w-3" />
                                     </button>
@@ -661,7 +663,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                                     <button
                                       type="button"
                                       className="w-7 h-full flex items-center justify-center hover:bg-muted/50 text-muted-foreground transition-colors"
-                                      onClick={() => updateQuantity(index, 1)}
+                                      onClick={() => updateQuantity(item._temp_id || '', 1)}
                                     >
                                       <Plus className="h-3 w-3" />
                                     </button>
@@ -682,7 +684,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                                       variant="ghost"
                                       size="icon"
                                       className="h-7 w-7 rounded-md hover:bg-destructive/10 hover:text-destructive transition-all border border-transparent hover:border-destructive/20"
-                                      onClick={() => removeItem(index)}
+                                      onClick={() => removeItem(item._temp_id || '')}
                                     >
                                       <Trash2 className="h-3 w-3" />
                                     </Button>

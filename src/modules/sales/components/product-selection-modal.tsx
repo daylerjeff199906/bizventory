@@ -272,13 +272,15 @@ export function ProductItem({
   onSelect,
   isSelected,
   isConfiguring,
-  currency
+  currency,
+  allowSelectionWhenOutOfStock
 }: {
   product: ProductCombinedSelection
   onSelect: (product: ProductCombinedSelection) => void
   isSelected: boolean
   isConfiguring: boolean
   currency: Currency
+  allowSelectionWhenOutOfStock?: boolean
 }) {
   const isOutOfStock = !product.stock || product.stock <= 0
   const currencySymbol = currency === 'PEN' ? 'S/' : currency === 'USD' ? '$' : currency
@@ -291,7 +293,7 @@ export function ProductItem({
       ${isSelected ? 'ring-2 ring-primary border-primary' : ''}
       ${isConfiguring ? 'ring-2 ring-primary border-primary' : ''}
     `}
-      onClick={() => !isOutOfStock && onSelect(product)}
+      onClick={() => (allowSelectionWhenOutOfStock || !isOutOfStock) && onSelect(product)}
     >
       <div className="h-32 w-full bg-muted flex items-center justify-center relative">
         {/* Imagen del producto o placeholder */}
