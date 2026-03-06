@@ -452,6 +452,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                           </div>
                         </div>
                       </div>
+                    </div>
                   </ScrollArea>
                 </div>
               </div>
