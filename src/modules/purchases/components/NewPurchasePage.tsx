@@ -248,12 +248,12 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
   )
 
   return (
-    <div className="h-[calc(100vh-80px)] flex flex-col lg:flex-row gap-6 p-4 -m-4 bg-muted/10 overflow-hidden relative">
+    <div className="flex flex-col lg:flex-row gap-6 p-4 -m-4 bg-muted/10 lg:h-[calc(100vh-80px)] lg:overflow-hidden relative">
       <Form {...form}>
         <form onSubmit={(e) => e.preventDefault()} className="contents">
 
           {/* COLUMNA IZQUIERDA: Selección de Productos o Revisión */}
-          <div className="flex-1 flex flex-col bg-background rounded-xl border shadow-sm overflow-hidden min-w-0">
+          <div className="flex-1 flex flex-col bg-background rounded-xl border shadow-sm lg:overflow-hidden min-w-0">
             {!isReviewing ? (
               <>
                 {/* Cabecera de búsqueda */}
@@ -275,9 +275,8 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                   </div>
                 </div>
 
-                {/* Lista de productos */}
                 <div className="flex-1 relative min-h-0">
-                  <ScrollArea className="absolute inset-0 p-4">
+                  <ScrollArea className="lg:h-[calc(100vh-250px)]" type="always">
                     {productsLoading ? (
                       <div className="flex items-center justify-center py-20 h-full">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -338,8 +337,8 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                   </Button>
                 </div>
 
-                <div className="flex-1 relative min-h-0">
-                  <ScrollArea className="absolute inset-0">
+                <div className="flex-1 flex flex-col min-h-0">
+                  <ScrollArea className="lg:h-[calc(100vh-250px)]">
                     <div className="p-6 space-y-4">
                       {watchedItems.map((item, index) => (
                         <Card key={item._temp_id} className="p-4 shadow-none border-muted-foreground/10 hover:border-primary/30 transition-all">
@@ -435,35 +434,36 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                         </Card>
                       ))}
 
-                      {/* Resumen de costos visual */}
-                      <div className="bg-primary/5 rounded-xl border border-primary/10 p-5 mt-4">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div className="p-3 bg-background rounded-lg border shadow-sm">
-                            <span className="text-[10px] font-black uppercase text-muted-foreground block mb-1">Subtotal</span>
-                            <span className="text-base font-bold">{formatCurrencySoles(subtotal)}</span>
-                          </div>
-                          <div className="p-3 bg-background rounded-lg border shadow-sm">
-                            <span className="text-[10px] font-black uppercase text-destructive block mb-1">Dcto. Global</span>
-                            <span className="text-base font-bold text-destructive">-{formatCurrencySoles(watchedDiscount)}</span>
-                          </div>
-                          <div className="p-3 bg-primary text-primary-foreground rounded-lg border shadow-sm flex flex-col justify-center">
-                            <span className="text-[10px] font-black uppercase opacity-80 block mb-1">Total Compra</span>
-                            <span className="text-xl font-black">{formatCurrencySoles(total)}</span>
-                          </div>
-                        </div>
-                      </div>
                     </div>
                   </ScrollArea>
+
+                  {/* Resumen de costos visual (FUERA del ScrollArea para que sea fijo) */}
+                  <div className="bg-primary/5 border-t border-primary/10 p-5 shrink-0">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="p-3 bg-background rounded-lg border shadow-sm">
+                        <span className="text-[10px] font-black uppercase text-muted-foreground block mb-1">Subtotal</span>
+                        <span className="text-base font-bold">{formatCurrencySoles(subtotal)}</span>
+                      </div>
+                      <div className="p-3 bg-background rounded-lg border shadow-sm">
+                        <span className="text-[10px] font-black uppercase text-destructive block mb-1">Dcto. Global</span>
+                        <span className="text-base font-bold text-destructive">-{formatCurrencySoles(watchedDiscount)}</span>
+                      </div>
+                      <div className="p-3 bg-primary text-primary-foreground rounded-lg border shadow-sm flex flex-col justify-center">
+                        <span className="text-[10px] font-black uppercase opacity-80 block mb-1">Total Compra</span>
+                        <span className="text-xl font-black">{formatCurrencySoles(total)}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
           </div>
 
           {/* COLUMNA DERECHA: Datos del Proveedor y Resumen */}
-          <div className="w-full lg:w-96 flex flex-col gap-4">
-            <Card className="shadow-lg border-primary/20 overflow-hidden flex flex-col">
+          <div className="w-full lg:w-96 flex flex-col gap-4 lg:overflow-y-auto pr-1">
+            <Card className="shadow-lg border-primary/20 lg:overflow-hidden flex flex-col py-0">
               <div className="bg-primary p-4 text-primary-foreground">
-                <h2 className="text-lg font-bold flex items-center gap-2">
+                <h2 className="text-sm font-bold flex items-center gap-2">
                   <ShoppingCart className="h-5 w-5" />
                   Resumen de Compra
                 </h2>
@@ -480,7 +480,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                       </FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger className="h-10 bg-muted/30 border-muted-foreground/10 rounded-lg text-sm">
+                          <SelectTrigger className="h-10 bg-muted/30 border-muted-foreground/10 rounded-lg text-sm w-full">
                             <SelectValue placeholder="Seleccionar proveedor" />
                           </SelectTrigger>
                         </FormControl>
