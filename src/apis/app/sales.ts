@@ -431,7 +431,52 @@ export async function patchSaleField(
 export async function deleteSale(id: string): Promise<void> {
   const supabase = await getSupabase()
 
-  // First delete associated items
+  // 1. Get the sale to check status
+  const { data: sale, error: fetchError } = await supabase
+    .from('sales')
+    .select('status')
+    .eq('id', id)
+    .single()
+
+  if (fetchError) {
+    throw new Error('Error finding sale to delete')
+  }
+
+  // 2. If it was completed, revert stock (delete inventory movements)
+  if (sale.status === 'completed') {
+    try {
+      const { error: rpcError } = await supabase.rpc(
+        'delete_sale_inventory_movements',
+        {
+          p_sale_id: id
+        }
+      )
+
+      if (rpcError) {
+        console.warn('RPC delete_sale_inventory_movements failed, trying manual deletion:', rpcError)
+        // Fallback: Manually delete from inventory_movements table
+        const { error: manualError } = await supabase
+          .from('inventory_movements')
+          .delete()
+          .eq('sale_id', id)
+
+        if (manualError) throw manualError
+      }
+    } catch (err) {
+      console.error('Error reverting stock:', err)
+      // Fallback: try manual deletion if RPC fails or doesn't exist
+      const { error: manualError } = await supabase
+        .from('inventory_movements')
+        .delete()
+        .eq('sale_id', id)
+
+      if (manualError) {
+        throw new Error('No se pudo revertir el stock. La venta no ha sido eliminada.')
+      }
+    }
+  }
+
+  // 3. Delete associated items
   const { error: itemsError } = await supabase
     .from('sale_items')
     .delete()
@@ -439,7 +484,7 @@ export async function deleteSale(id: string): Promise<void> {
 
   if (itemsError) throw itemsError
 
-  // Then delete the sale
+  // 4. Then delete the sale
   const { error } = await supabase.from('sales').delete().eq('id', id)
 
   if (error) throw error
