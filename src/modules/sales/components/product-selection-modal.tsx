@@ -289,7 +289,7 @@ export function ProductItem({
       ${isSelected ? 'ring-2 ring-primary border-primary' : ''}
       ${isConfiguring ? 'ring-2 ring-primary border-primary' : ''}
     `}
-      onClick={() => !isOutOfStock && !isSelected && onSelect(product)}
+      onClick={() => !isOutOfStock && onSelect(product)}
     >
       <div className="h-32 w-full bg-muted flex items-center justify-center relative">
         {/* Imagen del producto o placeholder */}
