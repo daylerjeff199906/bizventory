@@ -18,7 +18,8 @@ import {
   Calendar,
   FileText,
   BadgeInfo,
-  Clock
+  Clock,
+  Pencil
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -59,9 +60,12 @@ import { ToastCustom } from '@/components/app/toast-custom'
 import { APP_URLS } from '@/config/app-urls'
 import { formatCurrencySoles } from '@/utils'
 import { useDebouncedCallback } from 'use-debounce'
-import { transformProductsToCombinedSelection } from '@/modules/sales/components/product-selection-modal'
-import { ProductItem } from '@/modules/sales/components/product-selection-modal'
+import {
+  transformProductsToCombinedSelection,
+  ProductItem
+} from '@/modules/sales/components/product-selection-modal'
 import { ProductCombinedSelection } from '@/modules/sales/components/types'
+import EditPurchaseItemModal from './EditPurchaseItemModal'
 
 interface NewPurchasePageProps {
   businessId?: string
@@ -74,6 +78,8 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
   const [productSearchTerm, setProductSearchTerm] = useState('')
   const [searchInput, setSearchInput] = useState('')
   const [searchSupplier, setSearchSupplier] = useState('')
+  const [editingItem, setEditingItem] = useState<{ item: PurchaseItem | null, index: number | null }>({ item: null, index: null })
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
 
   const router = useRouter()
   const { suppliers } = useSuppliers({ businessId })
@@ -191,6 +197,26 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
     form.setValue('items', currentItems, { shouldValidate: true })
   }
 
+  const handleEditItem = (index: number) => {
+    setEditingItem({ item: watchedItems[index], index })
+    setIsEditModalOpen(true)
+  }
+
+  const handleUpdateItem = (updatedItem: PurchaseItem) => {
+    if (editingItem.index !== null) {
+      updateItemField(editingItem.index, 'price', updatedItem.price)
+      updateItemField(editingItem.index, 'quantity', updatedItem.quantity)
+      updateItemField(editingItem.index, 'discount', updatedItem.discount)
+      updateItemField(editingItem.index, 'bar_code', updatedItem.bar_code)
+    }
+  }
+
+  const removeItem = (index: number) => {
+    const currentItems = [...form.getValues('items')]
+    const newItems = currentItems.filter((_, i) => i !== index)
+    form.setValue('items', newItems, { shouldValidate: true })
+  }
+
   const onSubmitReview = async () => {
     const isValid = await form.trigger(['supplier_id', 'date', 'items'])
     if (!isValid) {
@@ -306,7 +332,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                         })}
                       </div>
                     ) : (
-                      <div className="flex flex-col items-center justify-center h-[50vh] text-center opacity-70">
+                      <div className="flex flex-col items-center justify-center h-[50vh] text-center opacity-70 py-6">
                         <Package className="h-16 w-16 text-muted-foreground mb-4 opacity-20" />
                         <h3 className="text-lg font-medium">No se encontraron productos</h3>
                         <p className="text-muted-foreground text-sm">Prueba ajustando tu búsqueda</p>
@@ -341,95 +367,97 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                   <ScrollArea className="lg:h-[calc(100vh-250px)]">
                     <div className="p-6 space-y-4">
                       {watchedItems.map((item, index) => (
-                        <Card key={item._temp_id} className="p-4 shadow-none border-muted-foreground/10 hover:border-primary/30 transition-all">
-                          <div className="flex gap-4">
-                            <div className="h-16 w-16 bg-muted rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden border">
+                        <Card key={item._temp_id} className="p-4 shadow-none border-muted-foreground/10 hover:border-primary/30 transition-all group">
+                          <div className="flex gap-6 items-center">
+                            <div className="h-20 w-20 bg-muted rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden border shadow-sm">
                               {item.images && item.images[0] ? (
                                 <img src={item.images[0]} alt={item.name || ''} className="w-full h-full object-cover" />
                               ) : (
-                                <Package className="h-6 w-6 text-muted-foreground/30" />
+                                <Package className="h-8 w-8 text-muted-foreground/20" />
                               )}
                             </div>
+
                             <div className="flex-1 min-w-0">
-                              <div className="flex flex-col md:flex-row md:items-start justify-between gap-2">
+                              <div className="flex justify-between items-start">
                                 <div>
-                                  <h3 className="font-bold text-sm line-clamp-1 uppercase">{item.name}</h3>
-                                  <p className="text-[10px] text-muted-foreground font-medium uppercase">{item.brand?.name} · {item.unit}</p>
+                                  <h3 className="font-bold text-lg leading-tight uppercase truncate">{item.name}</h3>
+                                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">{item.brand?.name} · {item.unit}</p>
                                 </div>
-                                <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-lg border">
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-7 w-7 rounded hover:bg-background"
-                                    onClick={() => updateQuantity(index, -1)}
-                                  >
-                                    <Minus className="h-3 w-3" />
-                                  </Button>
-                                  <span className="text-xs font-bold w-5 text-center">{item.quantity}</span>
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-7 w-7 rounded hover:bg-background"
-                                    onClick={() => updateQuantity(index, 1)}
-                                  >
-                                    <Plus className="h-3 w-3" />
-                                  </Button>
+                                <div className="text-right">
+                                  <p className="text-lg font-black text-primary">
+                                    {formatCurrencySoles(item.price * item.quantity - (item.discount || 0))}
+                                  </p>
+                                  <p className="text-[10px] text-muted-foreground font-bold uppercase">Total Item</p>
                                 </div>
                               </div>
 
-                              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 items-end pt-3 border-t border-dashed">
-                                <div className="space-y-1">
-                                  <label className="text-[9px] font-black uppercase text-muted-foreground">Costo Unit.</label>
-                                  <div className="relative">
-                                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">S/</span>
-                                    <Input
-                                      type="number"
-                                      value={item.price}
-                                      onChange={(e) => updateItemField(index, 'price', Number(e.target.value))}
-                                      className="h-8 pl-6 text-xs font-bold"
-                                    />
+                              <div className="flex items-center justify-between mt-4">
+                                <div className="flex items-center gap-6">
+                                  <div className="flex items-center gap-3 bg-muted/40 p-1 rounded-full border px-2">
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 rounded-full hover:bg-background shadow-sm"
+                                      onClick={() => updateQuantity(index, -1)}
+                                    >
+                                      <Minus className="h-3 w-3" />
+                                    </Button>
+                                    <span className="text-sm font-black w-6 text-center">{item.quantity}</span>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 rounded-full hover:bg-background shadow-sm"
+                                      onClick={() => updateQuantity(index, 1)}
+                                    >
+                                      <Plus className="h-3 w-3" />
+                                    </Button>
                                   </div>
+
+                                  <div className="flex flex-col">
+                                    <span className="text-[10px] font-black uppercase text-muted-foreground">Costo</span>
+                                    <span className="text-sm font-bold">{formatCurrencySoles(item.price)}</span>
+                                  </div>
+
+                                  {item.discount > 0 && (
+                                    <div className="flex flex-col">
+                                      <span className="text-[10px] font-black uppercase text-destructive">Descuento</span>
+                                      <span className="text-sm font-bold text-destructive">-{formatCurrencySoles(item.discount)}</span>
+                                    </div>
+                                  )}
+
+                                  {item.bar_code && (
+                                    <div className="flex flex-col">
+                                      <span className="text-[10px] font-black uppercase text-muted-foreground">EAN/UPC</span>
+                                      <span className="text-sm font-mono">{item.bar_code}</span>
+                                    </div>
+                                  )}
                                 </div>
-                                <div className="space-y-1">
-                                  <label className="text-[9px] font-black uppercase text-muted-foreground text-destructive">Dscto Total</label>
-                                  <Input
-                                    type="number"
-                                    value={item.discount || 0}
-                                    onChange={(e) => updateItemField(index, 'discount', Number(e.target.value))}
-                                    className="h-8 text-xs font-bold text-destructive bg-destructive/5"
-                                  />
-                                </div>
-                                <div className="space-y-1">
-                                  <label className="text-[9px] font-black uppercase text-muted-foreground">Cod. Barras</label>
-                                  <Input
-                                    value={item.bar_code || ''}
-                                    onChange={(e) => updateItemField(index, 'bar_code', e.target.value)}
-                                    className="h-8 text-xs"
-                                    placeholder="Opcional"
-                                  />
-                                </div>
-                                <div className="text-right">
-                                  <p className="text-[9px] font-black uppercase text-muted-foreground">Total Item</p>
-                                  <p className="text-sm font-black text-primary">
-                                    {formatCurrencySoles(item.price * item.quantity - (item.discount || 0))}
-                                  </p>
+
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-9 gap-2 rounded-lg border-muted-foreground/20 hover:bg-primary/5 hover:text-primary hover:border-primary/30"
+                                    onClick={() => handleEditItem(index)}
+                                  >
+                                    <Pencil className="h-3.5 w-3.5" />
+                                    <span>Editar detalles</span>
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-9 w-9 text-muted-foreground/40 hover:text-destructive hover:bg-destructive/5 rounded-full"
+                                    onClick={() => removeItem(index)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
                                 </div>
                               </div>
                             </div>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="text-muted-foreground/30 hover:text-destructive self-start h-8 w-8"
-                              onClick={() => {
-                                const newItems = watchedItems.filter((_, i) => i !== index)
-                                form.setValue('items', newItems)
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
                           </div>
                         </Card>
                       ))}
@@ -460,28 +488,25 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
           </div>
 
           {/* COLUMNA DERECHA: Datos del Proveedor y Resumen */}
-          <div className="w-full lg:w-96 flex flex-col gap-4 lg:overflow-y-auto pr-1">
-            <Card className="shadow-lg border-primary/20 lg:overflow-hidden flex flex-col py-0">
-              <div className="bg-primary p-4 text-primary-foreground">
+          <div className="w-full lg:w-96 flex flex-col gap-4 lg:h-full">
+            <Card className="shadow-lg border-primary/20 flex flex-col py-0 rounded-xl">
+              <div className="bg-primary p-4 text-primary-foreground rounded-t-xl">
                 <h2 className="text-sm font-bold flex items-center gap-2">
                   <ShoppingCart className="h-5 w-5" />
                   Resumen de Compra
                 </h2>
               </div>
 
-              <div className="p-5 space-y-4">
+              <div className="px-5 space-y-4 flex-1 flex flex-col min-h-0">
                 <FormField
                   control={form.control}
                   name="supplier_id"
                   render={({ field }) => (
                     <FormItem className="space-y-1">
-                      <FormLabel className="text-[10px] font-black uppercase text-muted-foreground flex items-center gap-1">
-                        <User className="h-3 w-3" /> Proveedor *
-                      </FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger className="h-10 bg-muted/30 border-muted-foreground/10 rounded-lg text-sm w-full">
-                            <SelectValue placeholder="Seleccionar proveedor" />
+                            <SelectValue placeholder="Seleccionar un proveedor" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -513,11 +538,10 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                     name="date"
                     render={({ field }) => (
                       <FormItem className="space-y-1">
-                        <FormLabel className="text-[10px] font-black uppercase text-muted-foreground flex items-center gap-1">
-                          <Calendar className="h-3 w-3" /> Fecha
-                        </FormLabel>
                         <FormControl>
-                          <Input type="date" {...field} className="h-10 text-xs bg-muted/30" />
+                          <Input type="date"
+                            placeholder='Fecha'
+                            {...field} className="h-10 text-xs bg-muted/30" />
                         </FormControl>
                       </FormItem>
                     )}
@@ -528,11 +552,8 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                     name="guide_number"
                     render={({ field }) => (
                       <FormItem className="space-y-1">
-                        <FormLabel className="text-[10px] font-black uppercase text-muted-foreground flex items-center gap-1">
-                          <FileText className="h-3 w-3" /> N° Documento
-                        </FormLabel>
                         <FormControl>
-                          <Input placeholder="F001-..." {...field} className="h-10 text-xs bg-muted/30 uppercase" />
+                          <Input placeholder="N° Guía" {...field} className="h-10 text-xs bg-muted/30 uppercase" />
                         </FormControl>
                       </FormItem>
                     )}
@@ -545,11 +566,10 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                     name="status"
                     render={({ field }) => (
                       <FormItem className="space-y-1">
-                        <FormLabel className="text-[10px] font-black uppercase text-muted-foreground">Estado</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
-                            <SelectTrigger className="h-10 text-xs bg-muted/30">
-                              <SelectValue />
+                            <SelectTrigger className="h-10 text-xs bg-muted/30 w-full">
+                              <SelectValue placeholder='Estado' />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -566,11 +586,10 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                     name="payment_status"
                     render={({ field }) => (
                       <FormItem className="space-y-1">
-                        <FormLabel className="text-[10px] font-black uppercase text-muted-foreground">Pago</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
-                            <SelectTrigger className="h-10 text-xs bg-muted/30">
-                              <SelectValue />
+                            <SelectTrigger className="h-10 text-xs bg-muted/30 w-full">
+                              <SelectValue placeholder='Pago' />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -584,22 +603,124 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                   />
                 </div>
 
-                <Separator className="my-2" />
+                <div className="flex-1 flex flex-col min-h-0 min-w-0">
+                  <Separator className="my-2 shrink-0" />
 
-                <div className="space-y-2">
+                  {/* LISTA DE ITEMS (CART) - SOLO EN MODO SELECCION */}
+                  {!isReviewing && (
+                    <div className="flex-1 flex flex-col min-h-[150px] bg-muted/5 rounded-xl border border-dashed border-primary/20 overflow-hidden">
+                      <div className="p-2.5 border-b bg-background/50 backdrop-blur-sm flex items-center justify-between shrink-0">
+                        <div className="flex items-center gap-2">
+                          <ShoppingCart className="h-3.5 w-3.5 text-primary" />
+                          <span className="text-[10px] font-black uppercase text-muted-foreground">Carrito</span>
+                        </div>
+                        <Badge variant="secondary" className="text-[9px] font-bold px-1.5 h-4 bg-primary/10 text-primary border-none">{watchedItems.length} ítems</Badge>
+                      </div>
+
+                      <ScrollArea className="h-[300px]" type="always">
+                        {watchedItems.length > 0 ? (
+                          <div className="divide-y divide-muted/10">
+                            {watchedItems.map((item, index) => (
+                              <div key={item._temp_id} className="p-3 bg-background/30 hover:bg-muted/10 transition-colors">
+                                <div className="flex gap-3">
+                                  {/* Product Image */}
+                                  <div className="h-10 w-10 rounded-lg border bg-background flex-shrink-0 flex items-center justify-center overflow-hidden shadow-sm">
+                                    {item.images && item.images[0] ? (
+                                      <img src={item.images[0]} alt="img" className="w-full h-full object-cover" />
+                                    ) : (
+                                      <Package className="h-5 w-5 text-muted-foreground/20" />
+                                    )}
+                                  </div>
+                                  {/* Details */}
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-[11px] font-bold truncate uppercase mb-0.5">
+                                      {item.name}
+                                    </p>
+                                    <div className="flex justify-between items-center">
+                                      <p className="text-[9px] text-muted-foreground uppercase font-medium">
+                                        {item.quantity} {item.unit} · {formatCurrencySoles(item.price)}
+                                      </p>
+                                      <span className="text-[11px] font-black text-primary">
+                                        {formatCurrencySoles(item.price * item.quantity - (item.discount || 0))}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Actions Row */}
+                                <div className="flex items-center justify-between mt-2.5 pt-2.5 border-t border-dashed border-muted/20">
+                                  <div className="flex items-center bg-background rounded-md border h-7 shadow-sm">
+                                    <button
+                                      type="button"
+                                      className="w-7 h-full flex items-center justify-center hover:bg-muted/50 text-muted-foreground transition-colors"
+                                      onClick={() => updateQuantity(index, -1)}
+                                    >
+                                      <Minus className="h-3 w-3" />
+                                    </button>
+                                    <span className="text-[11px] font-bold w-6 text-center border-x h-full flex items-center justify-center">
+                                      {item.quantity}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      className="w-7 h-full flex items-center justify-center hover:bg-muted/50 text-muted-foreground transition-colors"
+                                      onClick={() => updateQuantity(index, 1)}
+                                    >
+                                      <Plus className="h-3 w-3" />
+                                    </button>
+                                  </div>
+
+                                  <div className="flex items-center gap-1">
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7 rounded-md hover:bg-primary/10 hover:text-primary transition-all border border-transparent hover:border-primary/20"
+                                      onClick={() => handleEditItem(index)}
+                                    >
+                                      <Pencil className="h-3 w-3" />
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7 rounded-md hover:bg-destructive/10 hover:text-destructive transition-all border border-transparent hover:border-destructive/20"
+                                      onClick={() => removeItem(index)}
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center h-[180px] text-center text-muted-foreground/40 p-6">
+                            <ShoppingCart className="h-10 w-10 mb-2 opacity-10" />
+                            <p className="text-[10px] font-black uppercase tracking-widest">Carrito vacío</p>
+                          </div>
+                        )}
+                      </ScrollArea>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2 shrink-0 border-t pt-4">
                   <div className="flex justify-between items-center text-xs font-medium">
-                    <span className="text-muted-foreground">Subtotal</span>
-                    <span>{formatCurrencySoles(subtotal)}</span>
+                    <span className="text-muted-foreground uppercase text-[9px] font-black">Subtotal Base</span>
+                    <span className="font-bold">{formatCurrencySoles(subtotal)}</span>
                   </div>
 
                   <div className="flex justify-between items-center gap-4">
-                    <span className="text-[10px] font-black uppercase text-destructive whitespace-nowrap">Dcto. Global</span>
-                    <Input
-                      type="number"
-                      value={watchedDiscount}
-                      onChange={(e) => form.setValue('discount', Number(e.target.value))}
-                      className="h-8 py-0 text-right font-bold text-destructive w-20 bg-destructive/5 text-xs"
-                    />
+                    <span className="text-[9px] font-black uppercase text-destructive whitespace-nowrap">Dcto. Global</span>
+                    <div className="relative">
+                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] text-destructive/50">S/</span>
+                      <Input
+                        type="number"
+                        value={watchedDiscount}
+                        onChange={(e) => form.setValue('discount', Number(e.target.value))}
+                        className="h-7 py-0 text-right font-bold text-destructive w-20 bg-destructive/5 text-xs pl-5 border-destructive/20"
+                      />
+                    </div>
                   </div>
 
                   <div className="flex items-center justify-between gap-2">
@@ -608,15 +729,16 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                         id="tax-toggle"
                         checked={watchedTaxRate > 0}
                         onCheckedChange={(checked) => form.setValue('tax_rate', checked ? 18 : 0)}
+                        className="h-3.5 w-3.5"
                       />
-                      <label htmlFor="tax-toggle" className="text-[11px] font-medium cursor-pointer">IGV 18%</label>
+                      <label htmlFor="tax-toggle" className="text-[10px] font-black uppercase text-muted-foreground cursor-pointer">IGV 18%</label>
                     </div>
-                    {watchedTaxRate > 0 && <span className="text-xs font-bold">{formatCurrencySoles(taxAmount)}</span>}
+                    {watchedTaxRate > 0 && <span className="text-xs font-bold text-primary">{formatCurrencySoles(taxAmount)}</span>}
                   </div>
 
-                  <div className="pt-4 mt-2 border-t flex justify-between items-center">
-                    <span className="text-sm font-bold uppercase">Total</span>
-                    <span className="text-2xl font-black text-primary">{formatCurrencySoles(total)}</span>
+                  <div className="pt-3 mt-1 border-t border-primary/10 flex justify-between items-center">
+                    <span className="text-xs font-black uppercase">Total Neto</span>
+                    <span className="text-2xl font-black text-primary tracking-tighter">{formatCurrencySoles(total)}</span>
                   </div>
                 </div>
 
@@ -663,6 +785,13 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
           </div>
         </form>
       </Form>
+
+      <EditPurchaseItemModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        item={editingItem.item}
+        onUpdate={handleUpdateItem}
+      />
     </div>
   )
 }
