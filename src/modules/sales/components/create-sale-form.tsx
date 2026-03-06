@@ -222,6 +222,7 @@ export default function CreateSaleForm() {
   }
 
   const confirmSale = async () => {
+    if (!isReviewing) return
     const isValid = await form.trigger()
     if (!isValid) return
 
@@ -400,7 +401,13 @@ export default function CreateSaleForm() {
 
         {/* Sale Form Wrapping the Aside content */}
         <Form {...form}>
-          <form className="flex-1 flex flex-col overflow-hidden" onSubmit={(e) => { e.preventDefault(); confirmSale(); }}>
+          <form
+            className="flex-1 flex flex-col overflow-hidden"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (isReviewing) confirmSale();
+            }}
+          >
 
             {!isReviewing ? (
               /* NORMAL MODE: ASIDE - Cart & Payment Config */
