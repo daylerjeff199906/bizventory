@@ -10,8 +10,6 @@ export default async function Page(props: Props) {
   const uuid = params.uuid
 
   return (
-    <div className="py-6">
-      <NewPurchasePage businessId={uuid?.toString()} />
-    </div>
+    <NewPurchasePage businessId={uuid?.toString()} />
   )
 }
