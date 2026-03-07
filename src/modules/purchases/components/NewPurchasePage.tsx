@@ -613,7 +613,21 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                           <ShoppingCart className="h-3.5 w-3.5 text-primary" />
                           <span className="text-[10px] font-black uppercase text-muted-foreground">Carrito</span>
                         </div>
-                        <Badge variant="secondary" className="text-[9px] font-bold px-1.5 h-4 bg-primary/10 text-primary border-none">{watchedItems.length} ítems</Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="secondary" className="text-[9px] font-bold px-1.5 h-4 bg-primary/10 text-primary border-none">{watchedItems.length} ítems</Badge>
+                          {watchedItems.length > 0 && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              type="button"
+                              className="h-6 w-6 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                              onClick={() => form.setValue('items', [], { shouldValidate: true })}
+                              title="Quitar todos los items"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
 
                       <ScrollArea className="h-[calc(100vh-530px)]" type="always">

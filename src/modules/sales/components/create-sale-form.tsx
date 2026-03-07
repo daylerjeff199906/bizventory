@@ -80,7 +80,8 @@ export default function CreateSaleForm() {
       tax_rate: 0,
       date: new Date().toISOString().split('T')[0],
       items: [],
-      customer_id: ''
+      customer_id: '',
+      global_discount: 0
     }
   })
 
@@ -130,7 +131,7 @@ export default function CreateSaleForm() {
     productsResponse?.data || []
   )
 
-  // Totals calculations
+  const watchedGlobalDiscount = watch('global_discount') || 0
   const { subtotal, totalDiscount, taxAmount, total } = useMemo(() => {
     const subtotal =
       watchedItems?.reduce(
@@ -138,12 +139,12 @@ export default function CreateSaleForm() {
         0
       ) ?? 0
     const totalDiscount =
-      watchedItems?.reduce((sum, item) => sum + (item?.discount ?? 0), 0) ?? 0
+      (watchedItems?.reduce((sum, item) => sum + (item?.discount ?? 0), 0) ?? 0) + watchedGlobalDiscount
     const taxAmount = (subtotal - totalDiscount) * watchedTaxRate
     const total = subtotal - totalDiscount + taxAmount
 
     return { subtotal, totalDiscount, taxAmount, total }
-  }, [watchedItems, watchedTaxRate])
+  }, [watchedItems, watchedTaxRate, watchedGlobalDiscount])
 
   const removeItem = (tempId: string) => {
     const currentItems = getValues('items')
@@ -415,8 +416,22 @@ export default function CreateSaleForm() {
                 <div className="p-4 border-b bg-muted/5 flex flex-col gap-3">
                   <div className="flex items-center justify-between pb-2">
                     <h2 className="font-semibold text-lg tracking-tight">Detalles de Venta</h2>
-                    <div className="text-xs font-medium px-2 py-1 bg-primary/10 text-primary rounded-full">
-                      {watchedItems?.length || 0} items
+                    <div className="flex items-center gap-2">
+                      <div className="text-xs font-medium px-2 py-1 bg-primary/10 text-primary rounded-full">
+                        {watchedItems?.length || 0} items
+                      </div>
+                      {watchedItems && watchedItems.length > 0 && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          type="button"
+                          className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => setValue('items', [], { shouldValidate: true })}
+                          title="Quitar todos los items"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </div>
 
@@ -691,6 +706,18 @@ export default function CreateSaleForm() {
                   <div className="flex justify-between font-medium text-muted-foreground">
                     <span>Subtotal</span>
                     <span>{currencySymbol}{subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-red-500 font-medium h-8">
+                    <span className="text-sm">Descuento Global</span>
+                    <div className="relative">
+                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs opacity-50">{currencySymbol}</span>
+                      <Input
+                        type="number"
+                        {...form.register('global_discount', { valueAsNumber: true })}
+                        className="h-8 w-24 pl-5 text-right font-bold border-red-200 bg-red-50/30 focus-visible:ring-red-500/20"
+                        placeholder="0.00"
+                      />
+                    </div>
                   </div>
                   {totalDiscount > 0 && (
                     <div className="flex justify-between font-medium text-red-500">

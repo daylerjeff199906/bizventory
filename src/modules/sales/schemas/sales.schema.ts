@@ -38,7 +38,8 @@ export const saleFormSchema = z.object({
   date: z.string().min(1, 'La fecha es requerida'),
   items: z.array(saleItemSchema).optional(),
   status: z.string().optional(),
-  customer_id: z.string().optional()
+  customer_id: z.string().optional(),
+  global_discount: z.number().min(0)
 })
 
 // Schema for validation
