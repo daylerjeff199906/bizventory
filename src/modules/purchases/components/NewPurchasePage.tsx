@@ -273,12 +273,12 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
   )
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 p-4 bg-muted/10 lg:h-[calc(100vh-80px)] lg:overflow-hidden relative">
+    <div className="flex flex-col lg:flex-row gap-6 p-4 bg-muted/10 lg:overflow-hidden relative h-fit">
       <Form {...form}>
         <form onSubmit={(e) => e.preventDefault()} className="contents">
 
           {/* COLUMNA IZQUIERDA: Selección de Productos o Revisión */}
-          <div className="flex-1 flex flex-col bg-background rounded-xl border shadow-sm lg:overflow-hidden min-w-0">
+          <div className="flex-1 flex flex-col bg-background rounded-xl border shadow-sm lg:overflow-hidden min-w-0 h-fit">
             {!isReviewing ? (
               <>
                 {/* Cabecera de búsqueda */}
@@ -301,13 +301,13 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                 </div>
 
                 <div className="flex-1 relative min-h-0">
-                  <ScrollArea className="lg:h-[calc(100vh-250px)]" type="always">
+                  <ScrollArea className="lg:h-[calc(100vh-40px)]" type="always">
                     {productsLoading ? (
                       <div className="flex items-center justify-center py-20 h-full">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                       </div>
                     ) : listGeneralProducts.length > 0 ? (
-                      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-12 mr-4">
+                      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-12 m-4">
                         {listGeneralProducts.map((product, index) => {
                           const isSelected = watchedItems?.some(i => i._temp_id === product._temp_id)
                           const addedItem = watchedItems?.find(i => i._temp_id === product._temp_id)
@@ -364,7 +364,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                 </div>
 
                 <div className="flex-1 flex flex-col min-h-0">
-                  <ScrollArea className="lg:h-[calc(100vh-250px)]">
+                  <ScrollArea className="lg:h-[calc(100vh-200px)]">
                     <div className="p-6 space-y-4 text-left">
                       {watchedItems.map((item, index) => (
                         <Card key={`${item._temp_id}-${index}`} className="p-4 shadow-none border-muted-foreground/10 hover:border-primary/30 transition-all group text-left">
@@ -380,7 +380,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                             <div className="flex-1 min-w-0">
                               <div className="flex justify-between items-start">
                                 <div>
-                                  <h3 className="font-bold text-lg leading-tight uppercase truncate">{item.name}</h3>
+                                  <h3 className="font-bold text-sm leading-tight uppercase line-clamp-2">{item.name}</h3>
                                   <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">{item.brand?.name} · {item.unit}</p>
                                 </div>
                                 <div className="text-right">
@@ -464,7 +464,6 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
 
                     </div>
                   </ScrollArea>
-
                   {/* Resumen de costos visual (FUERA del ScrollArea para que sea fijo) */}
                   <div className="bg-primary/5 border-t border-primary/10 p-5 shrink-0">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -497,7 +496,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                 </h2>
               </div>
 
-              <div className="px-5 py-5 space-y-4 flex-1 flex flex-col min-h-0">
+              <div className="px-5 py-0 pb-4 space-y-4 flex-1 flex flex-col min-h-0">
                 <FormField
                   control={form.control}
                   name="supplier_id"
@@ -614,10 +613,24 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                           <ShoppingCart className="h-3.5 w-3.5 text-primary" />
                           <span className="text-[10px] font-black uppercase text-muted-foreground">Carrito</span>
                         </div>
-                        <Badge variant="secondary" className="text-[9px] font-bold px-1.5 h-4 bg-primary/10 text-primary border-none">{watchedItems.length} ítems</Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="secondary" className="text-[9px] font-bold px-1.5 h-4 bg-primary/10 text-primary border-none">{watchedItems.length} ítems</Badge>
+                          {watchedItems.length > 0 && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              type="button"
+                              className="h-6 w-6 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                              onClick={() => form.setValue('items', [], { shouldValidate: true })}
+                              title="Quitar todos los items"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
 
-                      <ScrollArea className="h-[300px]" type="always">
+                      <ScrollArea className="h-[calc(100vh-530px)]" type="always">
                         {watchedItems.length > 0 ? (
                           <div className="divide-y divide-muted/10">
                             {watchedItems.map((item, index) => (

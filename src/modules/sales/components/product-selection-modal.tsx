@@ -322,7 +322,7 @@ export function ProductItem({
         )}
       </div>
 
-      <div className="p-3">
+      <div className="p-3 pt-0">
         <div className="mb-2">
           <h4 className="font-semibold text-sm line-clamp-2 min-h-[2.5rem]" title={`${product.brand?.name || ''} ${product.product_name}`}>
             {product.brand?.name ? <span className="text-muted-foreground text-xs block">{product.brand.name}</span> : null}

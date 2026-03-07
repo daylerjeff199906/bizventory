@@ -1,4 +1,5 @@
 'use client'
+import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -19,6 +20,7 @@ import {
 } from '@/components/ui/form'
 import { SupabaseUser } from '@/types'
 import { createClient } from '@/utils/supabase/client'
+import { Eye, EyeOff } from 'lucide-react'
 
 const formSchema = z.object({
   email: z.string().email('Debe ser un email válido'),
@@ -30,6 +32,7 @@ export function LoginForm({
   ...props
 }: React.ComponentProps<'div'>) {
   const router = useRouter()
+  const [showPassword, setShowPassword] = useState(false)
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -142,11 +145,25 @@ export function LoginForm({
                         </a>
                       </div>
                       <FormControl>
-                        <Input
-                          placeholder="********"
-                          type="password"
-                          {...field}
-                        />
+                        <div className="relative">
+                          <Input
+                            placeholder="********"
+                            type={showPassword ? 'text' : 'password'}
+                            {...field}
+                            className="pr-10"
+                          />
+                          <button
+                            type="button"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </button>
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
