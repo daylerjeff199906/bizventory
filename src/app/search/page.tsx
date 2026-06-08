@@ -1,9 +1,7 @@
 import { getAllStorefrontProducts, getStorefrontFilters } from '@/apis/app/business'
 import { createClient } from '@/utils/supabase/server'
-import Link from 'next/link'
-import { ShoppingBag, LayoutDashboard, LogIn, ArrowLeft } from 'lucide-react'
 import SearchPageContent from '@/components/storefront/search-page-content'
-import { Button } from '@/components/ui/button'
+import StorefrontNavbar from '@/components/storefront/navbar'
 
 interface Props {
   searchParams: Promise<{
@@ -47,48 +45,11 @@ export default async function SearchResultsPage({ searchParams }: Props) {
 
   return (
     <div className="min-h-screen bg-slate-50/50 flex flex-col font-sans">
-      {/* Navbar */}
-      <header className="sticky top-0 z-50 bg-background/85 backdrop-blur-md border-b border-slate-100/80 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Link href="/" className="flex items-center gap-2 group transition-opacity">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-md shadow-indigo-600/10">
-                <ShoppingBag className="h-5 w-5" />
-              </div>
-              <span className="text-lg font-bold text-slate-900 tracking-tight">
-                Bizventory
-              </span>
-            </Link>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Button asChild variant="ghost" className="rounded-xl text-xs font-semibold gap-1.5 hover:bg-slate-100/60">
-              <Link href="/">
-                <ArrowLeft className="w-4 h-4 text-slate-500" />
-                Volver al Inicio
-              </Link>
-            </Button>
-            {user ? (
-              <Button asChild variant="outline" className="rounded-xl border-slate-200 text-xs font-semibold gap-1.5 shadow-xs bg-background hover:bg-slate-50/60">
-                <Link href="/dashboard">
-                  <LayoutDashboard className="w-4 h-4 text-indigo-600" />
-                  Ir al Panel
-                </Link>
-              </Button>
-            ) : (
-              <Button asChild variant="default" className="rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold gap-1.5 shadow-md shadow-indigo-600/10">
-                <Link href="/login">
-                  <LogIn className="w-4 h-4" />
-                  Iniciar Sesión
-                </Link>
-              </Button>
-            )}
-          </div>
-        </div>
-      </header>
+      {/* Reusable Navbar */}
+      <StorefrontNavbar user={user} />
 
       {/* Main Container */}
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 w-full flex-1 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-1 py-8">
         <SearchPageContent
           products={products}
           totalPages={totalPages}
