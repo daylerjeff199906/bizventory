@@ -384,7 +384,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                                   <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">{item.brand?.name} · {item.unit}</p>
                                 </div>
                                 <div className="text-right">
-                                  <p className="text-lg font-black text-primary">
+                                  <p className="text-lg font-bold text-primary">
                                     {formatCurrencySoles(item.price * item.quantity - (item.discount || 0))}
                                   </p>
                                   <p className="text-[10px] text-muted-foreground font-bold uppercase">Total Item</p>
@@ -403,7 +403,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                                     >
                                       <Minus className="h-3 w-3" />
                                     </Button>
-                                    <span className="text-sm font-black w-6 text-center">{item.quantity}</span>
+                                    <span className="text-sm font-bold w-6 text-center">{item.quantity}</span>
                                     <Button
                                       type="button"
                                       variant="ghost"
@@ -416,20 +416,20 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                                   </div>
 
                                   <div className="flex flex-col">
-                                    <span className="text-[10px] font-black uppercase text-muted-foreground">Costo</span>
+                                    <span className="text-[10px] font-semibold uppercase text-muted-foreground">Costo</span>
                                     <span className="text-sm font-bold">{formatCurrencySoles(item.price)}</span>
                                   </div>
 
                                   {item?.discount && item?.discount?.toString() !== "0" && (
                                     <div className="flex flex-col">
-                                      <span className="text-[10px] font-black uppercase text-destructive">Descuento</span>
+                                      <span className="text-[10px] font-semibold uppercase text-destructive">Descuento</span>
                                       <span className="text-sm font-bold text-destructive">-{formatCurrencySoles(item.discount)}</span>
                                     </div>
                                   )}
 
                                   {item.bar_code && (
                                     <div className="flex flex-col">
-                                      <span className="text-[10px] font-black uppercase text-muted-foreground">EAN/UPC</span>
+                                      <span className="text-[10px] font-semibold uppercase text-muted-foreground">EAN/UPC</span>
                                       <span className="text-sm font-mono">{item.bar_code}</span>
                                     </div>
                                   )}
@@ -468,16 +468,16 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                   <div className="bg-primary/5 border-t border-primary/10 p-5 shrink-0">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="p-3 bg-background rounded-lg border shadow-sm">
-                        <span className="text-[10px] font-black uppercase text-muted-foreground block mb-1">Subtotal</span>
+                        <span className="text-[10px] font-bold uppercase text-muted-foreground block mb-1">Subtotal</span>
                         <span className="text-base font-bold">{formatCurrencySoles(subtotal)}</span>
                       </div>
                       <div className="p-3 bg-background rounded-lg border shadow-sm">
-                        <span className="text-[10px] font-black uppercase text-destructive block mb-1">Dcto. Global</span>
+                        <span className="text-[10px] font-bold uppercase text-destructive block mb-1">Dcto. Global</span>
                         <span className="text-base font-bold text-destructive">-{formatCurrencySoles(watchedDiscount)}</span>
                       </div>
                       <div className="p-3 bg-primary text-primary-foreground rounded-lg border shadow-sm flex flex-col justify-center">
-                        <span className="text-[10px] font-black uppercase opacity-80 block mb-1">Total Compra</span>
-                        <span className="text-xl font-black">{formatCurrencySoles(total)}</span>
+                        <span className="text-[10px] font-bold uppercase opacity-80 block mb-1">Total Compra</span>
+                        <span className="text-xl font-bold">{formatCurrencySoles(total)}</span>
                       </div>
                     </div>
                   </div>
@@ -611,7 +611,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                       <div className="p-2.5 border-b bg-background/50 backdrop-blur-sm flex items-center justify-between shrink-0">
                         <div className="flex items-center gap-2 flex-1 justify-start">
                           <ShoppingCart className="h-3.5 w-3.5 text-primary" />
-                          <span className="text-[10px] font-black uppercase text-muted-foreground">Carrito</span>
+                          <span className="text-[10px] font-bold uppercase text-muted-foreground">Carrito</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Badge variant="secondary" className="text-[9px] font-bold px-1.5 h-4 bg-primary/10 text-primary border-none">{watchedItems.length} ítems</Badge>
@@ -653,7 +653,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                                       <p className="text-[9px] text-muted-foreground uppercase font-medium">
                                         {item.quantity} {item.unit} · {formatCurrencySoles(item.price)}
                                       </p>
-                                      <span className="text-[11px] font-black text-primary">
+                                      <span className="text-[11px] font-bold text-primary">
                                         {formatCurrencySoles(item.price * item.quantity - (item.discount || 0))}
                                       </span>
                                     </div>
@@ -709,7 +709,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                         ) : (
                           <div className="flex flex-col items-center justify-center h-[180px] text-center text-muted-foreground/40 p-6">
                             <ShoppingCart className="h-10 w-10 mb-2 opacity-10" />
-                            <p className="text-[10px] font-black uppercase tracking-widest">Carrito vacío</p>
+                            <p className="text-[10px] font-bold uppercase tracking-widest">Carrito vacío</p>
                           </div>
                         )}
                       </ScrollArea>
@@ -719,12 +719,12 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
 
                 <div className="space-y-2 shrink-0 border-t pt-4">
                   <div className="flex justify-between items-center text-xs font-medium">
-                    <span className="text-muted-foreground uppercase text-[9px] font-black">Subtotal Base</span>
+                    <span className="text-muted-foreground uppercase text-[9px] font-bold">Subtotal Base</span>
                     <span className="font-bold">{formatCurrencySoles(subtotal)}</span>
                   </div>
 
                   <div className="flex justify-between items-center gap-4">
-                    <span className="text-[9px] font-black uppercase text-destructive whitespace-nowrap">Dcto. Global</span>
+                    <span className="text-[9px] font-bold uppercase text-destructive whitespace-nowrap">Dcto. Global</span>
                     <div className="relative">
                       <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] text-destructive/50">S/</span>
                       <Input
@@ -744,14 +744,14 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                         onCheckedChange={(checked) => form.setValue('tax_rate', checked ? 18 : 0)}
                         className="h-3.5 w-3.5"
                       />
-                      <label htmlFor="tax-toggle" className="text-[10px] font-black uppercase text-muted-foreground cursor-pointer">IGV 18%</label>
+                      <label htmlFor="tax-toggle" className="text-[10px] font-bold uppercase text-muted-foreground cursor-pointer">IGV 18%</label>
                     </div>
                     {watchedTaxRate > 0 && <span className="text-xs font-bold text-primary">{formatCurrencySoles(taxAmount)}</span>}
                   </div>
 
                   <div className="pt-3 mt-1 border-t border-primary/10 flex justify-between items-center">
-                    <span className="text-xs font-black uppercase">Total Neto</span>
-                    <span className="text-2xl font-black text-primary tracking-tighter">{formatCurrencySoles(total)}</span>
+                    <span className="text-xs font-bold uppercase">Total Neto</span>
+                    <span className="text-2xl font-bold text-primary tracking-tighter">{formatCurrencySoles(total)}</span>
                   </div>
                 </div>
 
@@ -761,7 +761,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
                     type="button"
                     onClick={isReviewing ? confirmPurchase : onSubmitReview}
                     disabled={isLoading || watchedItems.length === 0}
-                    className={`w-full h-14 text-base font-black shadow-xl rounded-xl transition-all active:scale-[0.98] ${isReviewing
+                    className={`w-full h-14 text-base font-bold shadow-xl rounded-xl transition-all active:scale-[0.98] ${isReviewing
                       ? 'bg-green-600 hover:bg-green-700 text-white'
                       : 'bg-primary hover:bg-primary/90'
                       }`}
@@ -788,7 +788,7 @@ export const NewPurchasePage = (props: NewPurchasePageProps) => {
             </Card>
 
             <div className="bg-primary/5 rounded-xl border border-primary/10 p-4">
-              <h3 className="text-[10px] font-black uppercase text-primary mb-2 flex items-center gap-1">
+              <h3 className="text-[10px] font-bold uppercase text-primary mb-2 flex items-center gap-1">
                 <BadgeInfo className="h-3 w-3" /> Info
               </h3>
               <p className="text-[10px] text-muted-foreground leading-relaxed">

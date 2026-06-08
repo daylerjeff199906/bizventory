@@ -46,7 +46,7 @@ export const adminNavMain: (uuid: string) => NavItem[] = (uuid: string) => [
     items: []
   },
   {
-    title: 'Salidas',
+    title: 'Ventas',
     url: APP_URLS.ORGANIZATION.SALES.LIST(uuid),
     icon: 'SquareArrowUpRight',
     items: []

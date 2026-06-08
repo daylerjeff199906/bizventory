@@ -85,7 +85,7 @@ function SidebarContent({
       ]
     },
     {
-      title: 'Salidas (Ventas)',
+      title: 'Ventas',
       url: '#',
       icon: FileUp,
       items: [
