@@ -46,24 +46,12 @@ export default async function Home({ searchParams }: Props) {
                 <Percent className="w-3.5 h-3.5 text-rose-450" />
                 Mega Promo de Temporada
               </span>
-              <h1 className="text-6xl sm:text-7xl lg:text-8xl font-bold tracking-tight leading-none text-white">
+              <h1 className="text-6xl font-bold tracking-tight leading-none text-white">
                 Encuentra productos de <span className="bg-gradient-to-r from-red-400 to-rose-350 bg-clip-text text-transparent">tiendas locales</span>
               </h1>
               <p className="text-slate-200 text-sm sm:text-base leading-relaxed max-w-xl">
                 Explora catálogos, revisa variaciones en tiempo real y compra directamente con los vendedores de forma segura a través de WhatsApp.
               </p>
-
-              {/* Value Badges */}
-              <div className="flex flex-wrap gap-3 pt-1 text-xs font-semibold text-slate-350">
-                <span className="flex items-center gap-1.5 bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl">
-                  <ShieldCheck className="w-4 h-4 text-rose-400" />
-                  Compra Directa
-                </span>
-                <span className="flex items-center gap-1.5 bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl">
-                  <Sparkles className="w-4 h-4 text-rose-350" />
-                  Variantes en Vivo
-                </span>
-              </div>
             </div>
 
             {/* Banner Promotional Card */}
