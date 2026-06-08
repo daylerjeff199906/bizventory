@@ -49,7 +49,7 @@ export default async function SearchResultsPage({ searchParams }: Props) {
       <StorefrontNavbar user={user} />
 
       {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-1 py-8">
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 w-full flex-1 py-8">
         <SearchPageContent
           products={products}
           totalPages={totalPages}

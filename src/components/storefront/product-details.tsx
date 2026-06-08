@@ -40,7 +40,7 @@ export default function ProductDetails({ product, business, relatedProducts }: P
           if (Array.isArray(parsed)) {
             return parsed.filter((img): img is string => typeof img === 'string' && img.trim() !== '')
           }
-        } catch (e) {}
+        } catch (e) { }
       }
       return trimmed.split(',').map(img => img.trim()).filter(img => img !== '')
     }
@@ -49,7 +49,7 @@ export default function ProductDetails({ product, business, relatedProducts }: P
 
   // Gather all unique images
   const allImages: string[] = []
-  
+
   parseImages(product.images).forEach((img) => {
     if (img && !allImages.includes(img)) allImages.push(img)
   })
@@ -84,7 +84,7 @@ export default function ProductDetails({ product, business, relatedProducts }: P
     <div className="min-h-screen bg-slate-50/50 pb-16 font-sans">
       {/* Top Navbar */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-slate-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Button variant="ghost" className="gap-1.5 text-xs font-semibold rounded-xl" onClick={() => router.back()}>
             <ArrowLeft className="w-4 h-4" />
             Volver
@@ -97,7 +97,7 @@ export default function ProductDetails({ product, business, relatedProducts }: P
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-12">
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-12">
         {/* Main Product Panel (AliExpress style) */}
         <div className="bg-background rounded-3xl border border-slate-100 shadow-xl p-6 md:p-8 flex flex-col md:flex-row gap-8 lg:gap-12">
           {/* Left Column: Image Area */}
@@ -142,11 +142,10 @@ export default function ProductDetails({ product, business, relatedProducts }: P
                   <button
                     key={idx}
                     onClick={() => setActiveImageIndex(idx)}
-                    className={`w-16 h-16 rounded-xl overflow-hidden border-2 shrink-0 transition-all ${
-                      activeImageIndex === idx 
-                        ? 'border-indigo-600 shadow-sm' 
-                        : 'border-slate-100 hover:border-slate-300'
-                    }`}
+                    className={`w-16 h-16 rounded-xl overflow-hidden border-2 shrink-0 transition-all ${activeImageIndex === idx
+                      ? 'border-indigo-600 shadow-sm'
+                      : 'border-slate-100 hover:border-slate-300'
+                      }`}
                   >
                     <img src={img} alt="" className="w-full h-full object-cover" />
                   </button>
@@ -184,11 +183,10 @@ export default function ProductDetails({ product, business, relatedProducts }: P
                   </span>
                 </div>
                 <div className="mt-2 pt-2 border-t border-slate-200/40 flex items-center">
-                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg ${
-                    isOutOfStock 
-                      ? 'bg-red-50 text-red-600 border border-red-100/50' 
-                      : 'bg-emerald-50 text-emerald-700 border border-emerald-100/50'
-                  }`}>
+                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg ${isOutOfStock
+                    ? 'bg-red-50 text-red-600 border border-red-100/50'
+                    : 'bg-emerald-50 text-emerald-700 border border-emerald-100/50'
+                    }`}>
                     {isOutOfStock ? 'Agotado' : `Stock disponible: ${currentStock} unidades`}
                   </span>
                 </div>
@@ -223,10 +221,10 @@ export default function ProductDetails({ product, business, relatedProducts }: P
                           onClick={() => handleVariantSelect(v)}
                           className={`
                             text-xs px-4 py-3 rounded-2xl border transition-all text-left flex flex-col min-w-[130px]
-                            ${isSelected 
-                              ? 'border-indigo-600 bg-indigo-50/50 text-indigo-700 font-bold shadow-sm' 
-                              : variantOutOfStock 
-                                ? 'border-slate-100 bg-slate-50/30 text-slate-350 cursor-not-allowed opacity-40' 
+                            ${isSelected
+                              ? 'border-indigo-600 bg-indigo-50/50 text-indigo-700 font-bold shadow-sm'
+                              : variantOutOfStock
+                                ? 'border-slate-100 bg-slate-50/30 text-slate-350 cursor-not-allowed opacity-40'
                                 : 'border-slate-200 bg-background hover:border-slate-350 hover:bg-slate-50/30 text-slate-700 font-medium'
                             }
                           `}
@@ -251,15 +249,12 @@ export default function ProductDetails({ product, business, relatedProducts }: P
                   className="w-full rounded-2xl py-6 font-bold bg-emerald-600 hover:bg-emerald-700 text-white gap-2 text-sm shadow-lg shadow-emerald-600/15 hover:shadow-emerald-600/25 transition-all duration-300 hover:scale-[1.01] active:scale-[0.99]"
                 >
                   <a
-                    href={`https://wa.me/${
-                      (business.contact_phone || '999999999').replace(/[^0-9]/g, '')
-                    }?text=Hola,%20me%20interesa%20comprar%20el%20producto:%20*${
-                      encodeURIComponent(product.name)
-                    }*${
-                      selectedVariant 
-                        ? `%20en%20la%20opción%20*${encodeURIComponent(selectedVariant.name)}*` 
+                    href={`https://wa.me/${(business.contact_phone || '999999999').replace(/[^0-9]/g, '')
+                      }?text=Hola,%20me%20interesa%20comprar%20el%20producto:%20*${encodeURIComponent(product.name)
+                      }*${selectedVariant
+                        ? `%20en%20la%20opción%20*${encodeURIComponent(selectedVariant.name)}*`
                         : ''
-                    }.`}
+                      }.`}
                     target="_blank"
                     rel="noreferrer"
                   >
@@ -286,7 +281,7 @@ export default function ProductDetails({ product, business, relatedProducts }: P
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {relatedProducts.map((p) => {
                 const pHasVariants = p.variants && p.variants.length > 0
-                const pPrice = pHasVariants 
+                const pPrice = pHasVariants
                   ? Math.min(...p.variants.map((v: any) => v.price_unit || 0))
                   : (p.price || 0)
 

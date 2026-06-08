@@ -15,6 +15,7 @@ interface CatalogProps {
   currentSearch: string
   isGeneralMarketplace?: boolean
   storeSlug?: string
+  showSearch?: boolean
 }
 
 export default function Catalog({
@@ -23,7 +24,8 @@ export default function Catalog({
   currentPage,
   currentSearch,
   isGeneralMarketplace = false,
-  storeSlug
+  storeSlug,
+  showSearch = true
 }: CatalogProps) {
   const router = useRouter()
   const pathname = usePathname()
@@ -86,22 +88,32 @@ export default function Catalog({
 
   return (
     <div className="space-y-6">
-      {/* Search Bar */}
-      <div className="relative max-w-md mx-auto w-full mb-8">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Buscar productos por nombre o descripción..."
-            value={searchInput}
-            onChange={(e) => {
-              setSearchInput(e.target.value)
-              debouncedSearch(e.target.value)
-            }}
-            className="w-full pl-10 pr-4 py-2 bg-background border border-slate-200 rounded-xl shadow-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
-          />
+      {showSearch && (
+        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between mb-8">
+          <div className="relative max-w-md w-full">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Buscar productos por nombre o descripción..."
+              value={searchInput}
+              onChange={(e) => {
+                setSearchInput(e.target.value)
+                debouncedSearch(e.target.value)
+              }}
+              className="w-full pl-10 pr-4 py-2 bg-background border border-slate-200 rounded-xl shadow-xs focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all text-sm"
+            />
+          </div>
+          {isGeneralMarketplace && (
+            <Button 
+              onClick={() => router.push('/search')}
+              variant="outline" 
+              className="rounded-xl border-slate-250 text-xs font-semibold hover:bg-slate-50 shrink-0 w-full sm:w-auto text-slate-700 bg-background"
+            >
+              Ver todos los productos
+            </Button>
+          )}
         </div>
-      </div>
+      )}
 
       {/* Grid */}
       {products.length === 0 ? (
