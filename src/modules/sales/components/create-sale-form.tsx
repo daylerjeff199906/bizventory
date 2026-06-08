@@ -284,10 +284,10 @@ export default function CreateSaleForm() {
   }
 
   return (
-    <div className="h-[calc(100vh-80px)] flex flex-col lg:flex-row gap-6 p-4 -m-4 bg-muted/10 overflow-hidden relative">
+    <div className="h-fit flex flex-col lg:flex-row gap-6 p-4 -m-4 bg-muted/10 relative">
 
       {/* LEFT COLUMN: Main Area */}
-      <div className="flex-1 flex flex-col bg-background rounded-xl border shadow-sm overflow-hidden min-w-0">
+      <div className="flex-1 flex flex-col bg-background rounded-xl border shadow-sm min-w-0 h-fit">
         {!isReviewing ? (
           <>
             <div className="p-4 border-b flex items-center justify-between gap-4">
@@ -308,7 +308,7 @@ export default function CreateSaleForm() {
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4">
+            <div className="p-4 h-fit">
               {productsLoading ? (
                 <div className="flex items-center justify-center py-20 h-full">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -347,10 +347,10 @@ export default function CreateSaleForm() {
           </>
         ) : (
           /* REVIEW MODE: LEFT AREA - Selected Items List (Matches Left Part of Image) */
-          <div className="flex flex-col h-full bg-background">
+          <div className="flex flex-col h-fit bg-background">
             <div className="p-6 border-b flex items-center justify-between">
               <div className="space-y-1">
-                <h2 className="text-2xl font-bold tracking-tight">Revisar Productos</h2>
+                <h2 className="text-xl font-bold tracking-tight">Revisar Productos</h2>
                 <p className="text-muted-foreground text-sm">Confirma los productos seleccionados antes de finalizar</p>
               </div>
               <Button variant="ghost" className="gap-2" onClick={() => setIsReviewing(false)}>
@@ -358,7 +358,7 @@ export default function CreateSaleForm() {
                 Seguir seleccionando productos
               </Button>
             </div>
-            <div className="flex-1 overflow-y-auto p-6">
+            <div className="p-6 h-fit">
               <div className="max-w-4xl mx-auto space-y-4">
                 {watchedItems?.map((item) => (
                   <div key={item._temp_id} className="flex gap-6 p-4 bg-muted/30 rounded-xl border border-muted-foreground/10 items-center">
@@ -371,20 +371,20 @@ export default function CreateSaleForm() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-start mb-1">
-                        <h3 className="font-semibold text-lg leading-tight truncate">{item.product_name}</h3>
-                        <span className="font-bold text-lg">{currencySymbol}{item.subtotal?.toFixed(2)}</span>
+                        <h3 className="font-semibold text-sm leading-tight truncate">{item.product_name}</h3>
+                        <span className="font-bold text-sm">{currencySymbol}{item.subtotal?.toFixed(2)}</span>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-3 font-medium">
+                      <p className="text-xs text-muted-foreground mb-3 font-medium">
                         {item.variant_name || item.brand?.name} {item.attributes?.map(a => a.attribute_value).join(' ')}
                       </p>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4 bg-background/50 px-3 py-1.5 rounded-full border border-muted-foreground/10">
                           <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Cantidad</span>
-                          <span className="font-bold text-sm bg-primary text-primary-foreground h-6 w-6 flex items-center justify-center rounded-full">
+                          <span className="font-bold text-xs bg-primary text-primary-foreground h-6 w-6 flex items-center justify-center rounded-full">
                             {item.quantity}
                           </span>
                         </div>
-                        <p className="text-sm font-medium">
+                        <p className="text-xs font-medium">
                           Precio Unitario: <span className="text-muted-foreground ml-1">{currencySymbol}{item.price_unit?.toFixed(2)}</span>
                         </p>
                       </div>
@@ -398,12 +398,12 @@ export default function CreateSaleForm() {
       </div>
 
       {/* RIGHT COLUMN: Sale Form / Summary (Aside) */}
-      <div className="w-full lg:w-[420px] xl:w-[480px] flex-shrink-0 flex flex-col bg-background rounded-xl border shadow-sm overflow-hidden">
+      <div className="w-full lg:w-[420px] xl:w-[480px] flex-shrink-0 flex flex-col bg-background rounded-xl border shadow-sm h-fit">
 
         {/* Sale Form Wrapping the Aside content */}
         <Form {...form}>
           <form
-            className="flex-1 flex flex-col overflow-hidden"
+            className="flex-1 flex flex-col h-fit"
             onSubmit={(e) => {
               e.preventDefault();
               if (isReviewing) confirmSale();
@@ -415,7 +415,7 @@ export default function CreateSaleForm() {
               <>
                 <div className="p-4 border-b bg-muted/5 flex flex-col gap-3">
                   <div className="flex items-center justify-between pb-2">
-                    <h2 className="font-semibold text-lg tracking-tight">Detalles de Venta</h2>
+                    <h2 className="font-semibold text-sm tracking-tight">Detalles de Venta</h2>
                     <div className="flex items-center gap-2">
                       <div className="text-xs font-medium px-2 py-1 bg-primary/10 text-primary rounded-full">
                         {watchedItems?.length || 0} items
@@ -528,7 +528,7 @@ export default function CreateSaleForm() {
                   )}
                 </div>
 
-                <div className="flex-1 overflow-y-auto bg-background relative">
+                <div className="bg-background relative h-fit">
                   {watchedItems && watchedItems.length > 0 ? (
                     <div className="flex flex-col">
                       {watchedItems.map((item, index) => (
@@ -614,9 +614,9 @@ export default function CreateSaleForm() {
               </>
             ) : (
               /* REVIEW MODE: ASIDE - Price Details Summary (Matching Design of Image) */
-              <div className="flex-1 flex flex-col p-6 space-y-8 bg-muted/5">
+              <div className="flex flex-col p-6 space-y-8 bg-muted/5 h-fit">
                 <div className="space-y-4">
-                  <h3 className="text-lg font-bold tracking-tight">Información de Venta</h3>
+                  <h3 className="text-sm font-bold tracking-tight">Información de Venta</h3>
                   <div className="grid gap-3 p-4 bg-background rounded-xl border border-muted-foreground/10 shadow-sm">
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-muted-foreground">Cliente:</span>
@@ -640,8 +640,8 @@ export default function CreateSaleForm() {
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="text-lg font-bold tracking-tight">Detalles de Costos</h3>
-                  <div className="p-5 bg-background rounded-xl border border-muted-foreground/10 shadow-sm space-y-4">
+                  <h3 className="text-sm font-bold tracking-tight">Detalles de Costos</h3>
+                  <div className="p-5 bg-background rounded-xl border border-muted-foreground/10 shadow-sm space-y-4 h-fit">
                     <div className="flex items-center justify-between text-sm font-medium text-muted-foreground">
                       {/* Displays item count like the image */}
                       <span>{watchedItems?.length} items</span>
@@ -682,8 +682,8 @@ export default function CreateSaleForm() {
                     <Separator className="h-0.5 bg-primary/20" />
 
                     <div className="flex justify-between items-center pt-2">
-                      <span className="text-base font-bold">Monto Total</span>
-                      <span className="text-2xl font-black text-primary tracking-tight">
+                      <span className="text-sm font-bold">Monto Total</span>
+                      <span className="text-sm font-bold text-primary tracking-tight">
                         {currencySymbol}{total.toFixed(2)}
                       </span>
                     </div>
@@ -733,7 +733,7 @@ export default function CreateSaleForm() {
                     <span className="font-medium">{currencySymbol}{taxAmount.toFixed(2)}</span>
                   </div>
                   <Separator className="my-1.5" />
-                  <div className="flex justify-between font-bold text-lg md:text-xl text-foreground items-center">
+                  <div className="flex justify-between font-bold text-sm text-foreground items-center">
                     <span>Total</span>
                     <span>{currencySymbol}{total.toFixed(2)}</span>
                   </div>
@@ -752,7 +752,7 @@ export default function CreateSaleForm() {
                       }
                       setIsReviewing(true)
                     }}
-                    className={`w-full h-12 text-sm md:text-base font-bold rounded-full transition-all`}
+                    className={`w-full h-10 text-sm font-bold rounded-full transition-all`}
                     disabled={(!watchedItems || watchedItems.length === 0) || form.formState.isSubmitting}
                   >
                     {form.formState.isSubmitting
@@ -764,7 +764,7 @@ export default function CreateSaleForm() {
                     key="submit-button"
                     type="button"
                     onClick={() => confirmSale()}
-                    className={`w-full h-12 text-sm md:text-base font-bold shadow-md rounded-full transition-all bg-primary hover:bg-primary/90 scale-100`}
+                    className={`w-full h-10 text-sm font-bold shadow-md rounded-full transition-all bg-primary hover:bg-primary/90 scale-100`}
                     disabled={(!watchedItems || watchedItems.length === 0) || form.formState.isSubmitting}
                   >
                     {form.formState.isSubmitting

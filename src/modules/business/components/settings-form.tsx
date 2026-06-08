@@ -112,7 +112,7 @@ export function SettingsForm({ initialData, businessId }: SettingsFormProps) {
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 max-w-4xl mx-auto">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 mx-auto">
                 {/* Perfil Público */}
                 <div className="bg-muted/30 rounded-lg p-6 border">
                     <h2 className="text-lg font-semibold mb-2">Perfil Público</h2>
