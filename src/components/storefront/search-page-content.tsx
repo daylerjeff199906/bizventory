@@ -127,7 +127,7 @@ export default function SearchPageContent({
           </h2>
           <Button 
             variant="ghost" 
-            size="xs" 
+            size="sm" 
             onClick={handleClearFilters}
             className="text-[10px] text-slate-500 hover:text-indigo-600 gap-1 px-2 py-1 h-fit"
           >
