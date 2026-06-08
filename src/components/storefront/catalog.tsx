@@ -89,7 +89,7 @@ export default function Catalog({
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {products.map((product) => {
             const hasVariants = product.variants && product.variants.length > 0
-            const displayPrice = hasVariants 
+            const displayPrice = hasVariants
               ? Math.min(...product.variants.map((v: any) => v.price_unit || 0))
               : (product.price || 0)
             const isOutOfStock = !hasVariants && (!product.stock || product.stock <= 0)
@@ -98,7 +98,7 @@ export default function Catalog({
               <Card
                 key={product.id}
                 onClick={() => router.push(getProductDetailUrl(product))}
-                className="overflow-hidden border border-slate-100 hover:shadow-xl hover:border-slate-200/80 transition-all flex flex-col group h-full cursor-pointer"
+                className="overflow-hidden border border-slate-100 hover:shadow-xl hover:border-slate-200/80 transition-all flex flex-col group h-full cursor-pointer py-0"
               >
                 {/* Image Area */}
                 <div className="h-48 w-full bg-slate-100 flex items-center justify-center relative overflow-hidden shrink-0">
