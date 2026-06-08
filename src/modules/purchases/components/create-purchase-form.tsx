@@ -448,7 +448,7 @@ export default function CreatePurchaseForm() {
                                                 </div>
                                                 <div className="flex justify-between items-center p-3 bg-primary text-primary-foreground rounded-lg border shadow-sm">
                                                     <span className="text-xs font-medium opacity-90">Total Final</span>
-                                                    <span className="text-xl font-black">{formatCurrencySoles(total)}</span>
+                                                    <span className="text-xl font-bold">{formatCurrencySoles(total)}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -619,7 +619,7 @@ export default function CreatePurchaseForm() {
 
                                     <div className="pt-4 mt-2 border-t flex justify-between items-center">
                                         <span className="text-base font-bold">Total</span>
-                                        <span className="text-2xl font-black text-primary">{formatCurrencySoles(total)}</span>
+                                        <span className="text-2xl font-bold text-primary">{formatCurrencySoles(total)}</span>
                                     </div>
                                 </div>
 

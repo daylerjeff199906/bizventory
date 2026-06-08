@@ -672,7 +672,7 @@ export const InvoiceDetailPrint = ({ company: propCompany, sale }: InvoiceDetail
 
                     <div className="space-y-2">
                         <p className="text-sm text-muted-foreground">Total del pedido:</p>
-                        <p className="text-4xl font-black text-foreground">{formatCurrency(sale.total_amount)}</p>
+                        <p className="text-4xl font-bold text-foreground">{formatCurrency(sale.total_amount)}</p>
                     </div>
 
                     <div className="space-y-3 pt-4 border-t border-dashed">

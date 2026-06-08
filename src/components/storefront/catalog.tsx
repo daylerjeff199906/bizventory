@@ -54,6 +54,26 @@ export default function Catalog({
     router.push(`${pathname}?${params.toString()}`)
   }
 
+  const parseImages = (imagesField: any): string[] => {
+    if (!imagesField) return []
+    if (Array.isArray(imagesField)) {
+      return imagesField.filter((img): img is string => typeof img === 'string' && img.trim() !== '')
+    }
+    if (typeof imagesField === 'string') {
+      const trimmed = imagesField.trim()
+      if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+        try {
+          const parsed = JSON.parse(trimmed)
+          if (Array.isArray(parsed)) {
+            return parsed.filter((img): img is string => typeof img === 'string' && img.trim() !== '')
+          }
+        } catch (e) {}
+      }
+      return trimmed.split(',').map(img => img.trim()).filter(img => img !== '')
+    }
+    return []
+  }
+
   const getProductDetailUrl = (product: any) => {
     const slug = storeSlug || product.business?.slug || product.brand?.business?.slug || 'unknown'
     return `/store/${slug}/product/${product.id}`
@@ -93,28 +113,32 @@ export default function Catalog({
               ? Math.min(...product.variants.map((v: any) => v.price_unit || 0))
               : (product.price || 0)
             const isOutOfStock = !hasVariants && (!product.stock || product.stock <= 0)
+            const productImages = parseImages(product.images)
 
             return (
               <Card
                 key={product.id}
                 onClick={() => router.push(getProductDetailUrl(product))}
-                className="overflow-hidden border border-slate-100 hover:shadow-xl hover:border-slate-200/80 transition-all flex flex-col group h-full cursor-pointer py-0"
+                className="overflow-hidden border border-slate-100 hover:shadow-xl hover:border-indigo-100 transition-all duration-300 flex flex-col group h-full cursor-pointer rounded-2xl bg-card hover:-translate-y-1 py-0"
               >
                 {/* Image Area */}
-                <div className="h-48 w-full bg-slate-100 flex items-center justify-center relative overflow-hidden shrink-0">
-                  {product.images && product.images.length > 0 ? (
+                <div className="h-52 w-full bg-slate-50 flex items-center justify-center relative overflow-hidden shrink-0 border-b border-slate-100/60">
+                  {productImages.length > 0 ? (
                     <img
-                      src={product.images[0]}
+                      src={productImages[0]}
                       alt={product.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
                     />
                   ) : (
-                    <Package className="h-12 w-12 text-slate-300" />
+                    <div className="flex flex-col items-center gap-2 text-slate-300">
+                      <Package className="h-10 w-10 stroke-[1.5]" />
+                      <span className="text-[10px] uppercase font-semibold tracking-wider text-slate-400">Sin imagen</span>
+                    </div>
                   )}
 
                   {isOutOfStock && (
-                    <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-[1px] flex items-center justify-center">
-                      <span className="bg-red-600 text-white text-[10px] font-bold tracking-wider px-2.5 py-1 rounded-full uppercase shadow-md">
+                    <div className="absolute inset-0 bg-slate-950/45 backdrop-blur-[1.5px] flex items-center justify-center">
+                      <span className="bg-red-500 text-white text-[10px] font-bold tracking-wider px-3 py-1 rounded-full uppercase shadow-md animate-pulse">
                         Agotado
                       </span>
                     </div>
@@ -122,26 +146,26 @@ export default function Catalog({
                 </div>
 
                 {/* Info Area */}
-                <div className="p-4 flex-1 flex flex-col justify-between">
-                  <div>
+                <div className="p-4 flex-1 flex flex-col justify-between space-y-4">
+                  <div className="space-y-1.5">
                     {product.brand?.name && (
-                      <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest block mb-1">
+                      <span className="text-[9px] font-bold text-indigo-600 uppercase tracking-widest block">
                         {product.brand.name}
                       </span>
                     )}
-                    <h3 className="font-bold text-sm text-slate-800 line-clamp-1 mb-1">
+                    <h3 className="font-bold text-sm text-slate-800 line-clamp-1 group-hover:text-indigo-600 transition-colors">
                       {product.name}
                     </h3>
                     {product.description && (
-                      <p className="text-slate-500 text-xs line-clamp-2 leading-relaxed mb-3">
+                      <p className="text-slate-500 text-xs line-clamp-2 leading-relaxed">
                         {product.description}
                       </p>
                     )}
                   </div>
 
-                  <div className="pt-2 border-t border-slate-50 flex items-end justify-between">
+                  <div className="pt-3 border-t border-slate-100/80 flex items-end justify-between">
                     <div>
-                      <span className="text-[9px] text-slate-400 uppercase tracking-wider block">
+                      <span className="text-[9px] text-slate-400 uppercase tracking-wider block font-semibold">
                         {hasVariants ? 'Desde' : 'Precio'}
                       </span>
                       <span className="font-bold text-base text-slate-900">
@@ -149,7 +173,7 @@ export default function Catalog({
                       </span>
                     </div>
                     {isGeneralMarketplace && product.business && (
-                      <Badge variant="secondary" className="bg-slate-100 text-slate-700 text-[9px] px-2 py-0.5 font-medium max-w-[100px] truncate">
+                      <Badge variant="secondary" className="bg-slate-50 hover:bg-slate-100 text-slate-600 text-[10px] px-2.5 py-1 font-semibold border border-slate-100 max-w-[120px] truncate rounded-lg">
                         {product.business.business_name}
                       </Badge>
                     )}

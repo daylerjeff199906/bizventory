@@ -683,7 +683,7 @@ export default function CreateSaleForm() {
 
                     <div className="flex justify-between items-center pt-2">
                       <span className="text-sm font-bold">Monto Total</span>
-                      <span className="text-sm font-black text-primary tracking-tight">
+                      <span className="text-sm font-bold text-primary tracking-tight">
                         {currencySymbol}{total.toFixed(2)}
                       </span>
                     </div>
