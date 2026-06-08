@@ -129,8 +129,20 @@ export async function getBusinessBySlug(slug: string): Promise<BusinessForm | nu
     return data
 }
 
-export async function getStorefrontProducts(businessId: string) {
+export async function getStorefrontProducts({
+    businessId,
+    page = 1,
+    pageSize = 12,
+    search = ''
+}: {
+    businessId: string
+    page?: number
+    pageSize?: number
+    search?: string
+}) {
     const supabase = await getSupabase()
+    const from = (page - 1) * pageSize
+    const to = from + pageSize - 1
     try {
         const { data: brands, error: brandsError } = await supabase
             .from('brands')
@@ -139,16 +151,24 @@ export async function getStorefrontProducts(businessId: string) {
 
         if (brandsError) throw brandsError
         const brandIds = brands?.map((b) => b.id) || []
-        if (brandIds.length === 0) return []
+        if (brandIds.length === 0) return { data: [], total: 0, totalPages: 0 }
 
-        const { data: products, error: productsError } = await supabase
+        let query = supabase
             .from('products')
-            .select('*, brand:brands!inner(*)')
+            .select('*, brand:brands!inner(*)', { count: 'exact' })
             .in('brand_id', brandIds)
             .eq('is_active', true)
 
+        if (search) {
+            query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`)
+        }
+
+        const { data: products, count, error: productsError } = await query
+            .range(from, to)
+            .order('created_at', { ascending: false })
+
         if (productsError) throw productsError
-        if (!products || products.length === 0) return []
+        if (!products || products.length === 0) return { data: [], total: 0, totalPages: 0 }
 
         const productIds = products.map((p) => p.id)
 
@@ -239,9 +259,168 @@ export async function getStorefrontProducts(businessId: string) {
             }
         })
 
-        return processedProducts
+        const total = count || 0
+        return {
+            data: processedProducts,
+            total,
+            totalPages: Math.ceil(total / pageSize)
+        }
     } catch (error) {
         console.error('Error in getStorefrontProducts:', error)
-        return []
+        return { data: [], total: 0, totalPages: 0 }
+    }
+}
+
+export async function getAllStorefrontProducts({
+    page = 1,
+    pageSize = 12,
+    search = ''
+}: {
+    page?: number
+    pageSize?: number
+    search?: string
+} = {}) {
+    const supabase = await getSupabase()
+    const from = (page - 1) * pageSize
+    const to = from + pageSize - 1
+    try {
+        const { data: businesses, error: busError } = await supabase
+            .from('business')
+            .select('id, business_name, slug, brand')
+            .eq('is_public', true)
+
+        if (busError) throw busError
+        if (!businesses || businesses.length === 0) return { data: [], total: 0, totalPages: 0 }
+
+        const businessIds = businesses.map((b) => b.id)
+
+        const { data: brands, error: brandsError } = await supabase
+            .from('brands')
+            .select('id, business_id')
+            .in('business_id', businessIds)
+
+        if (brandsError) throw brandsError
+        const brandIds = brands?.map((b) => b.id) || []
+        if (brandIds.length === 0) return { data: [], total: 0, totalPages: 0 }
+
+        const brandToBusinessMap = new Map<string, any>()
+        brands.forEach((br) => {
+            const bus = businesses.find((b) => b.id === br.business_id)
+            if (br.id && bus) {
+                brandToBusinessMap.set(br.id, bus)
+            }
+        })
+
+        let query = supabase
+            .from('products')
+            .select('*, brand:brands!inner(*)', { count: 'exact' })
+            .in('brand_id', brandIds)
+            .eq('is_active', true)
+
+        if (search) {
+            query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`)
+        }
+
+        const { data: products, count, error: productsError } = await query
+            .range(from, to)
+            .order('created_at', { ascending: false })
+
+        if (productsError) throw productsError
+        if (!products || products.length === 0) return { data: [], total: 0, totalPages: 0 }
+
+        const productIds = products.map((p) => p.id)
+
+        const { data: variants, error: variantsError } = await supabase
+            .from('product_variants')
+            .select('*')
+            .in('product_id', productIds)
+            .eq('is_active', true)
+
+        if (variantsError) throw variantsError
+
+        const variantIds = variants?.map((v) => v.id) || []
+        let variantAttributes: any[] = []
+        if (variantIds.length > 0) {
+            const { data: attrs, error: attrsError } = await supabase
+                .from('product_variant_attributes')
+                .select('*')
+                .in('variant_id', variantIds)
+            if (attrsError) throw attrsError
+            variantAttributes = attrs || []
+        }
+
+        let orQuery = ''
+        if (productIds.length > 0) {
+            orQuery += `product_id.in.(${productIds.join(',')})`
+        }
+        if (variantIds.length > 0) {
+            if (orQuery) orQuery += ','
+            orQuery += `product_variant_id.in.(${variantIds.join(',')})`
+        }
+
+        let movements: any[] = []
+        if (orQuery) {
+            const { data, error: movementsError } = await supabase
+                .from('inventory_movements')
+                .select('product_id, product_variant_id, quantity, movement_type, movement_status')
+                .or(orQuery)
+                .eq('movement_status', 'completed')
+
+            if (movementsError) throw movementsError
+            movements = data || []
+        }
+
+        const stockMap = new Map<string, number>()
+        movements.forEach((movement) => {
+            const key = movement.product_variant_id
+                ? `variant:${movement.product_variant_id}`
+                : `product:${movement.product_id}`
+            const adjustment = movement.movement_type === 'entry' ? movement.quantity : -movement.quantity
+            stockMap.set(key, (stockMap.get(key) || 0) + adjustment)
+        })
+
+        const combined = products.map((product) => {
+            const businessInfo = brandToBusinessMap.get(product.brand_id)
+            const productVariants = variants?.filter((v) => v.product_id === product.id) || []
+
+            let variantsWithStockAndAttributes: any[] = []
+            if (productVariants.length > 0) {
+                variantsWithStockAndAttributes = productVariants.map((variant) => {
+                    const attributes = variantAttributes
+                        ?.filter((attr) => attr.variant_id === variant.id)
+                        .map((attr) => ({
+                            attribute_type: attr.attribute_type,
+                            attribute_value: attr.attribute_value
+                        }))
+                    const variantStock = stockMap.get(`variant:${variant.id}`) || 0
+                    const variantPrice = (variant.price && variant.price > 0) ? variant.price : (product.price || 0)
+
+                    return {
+                        ...variant,
+                        stock: variantStock,
+                        attributes: attributes || [],
+                        price_unit: variantPrice
+                    }
+                })
+            }
+
+            return {
+                ...product,
+                business: businessInfo,
+                variants: productVariants.length > 0 ? variantsWithStockAndAttributes : undefined,
+                stock: productVariants.length > 0 ? 0 : (stockMap.get(`product:${product.id}`) || 0),
+                price_unit: product.price || 0
+            }
+        })
+
+        const total = count || 0
+        return {
+            data: combined,
+            total,
+            totalPages: Math.ceil(total / pageSize)
+        }
+    } catch (e) {
+        console.error(e)
+        return { data: [], total: 0, totalPages: 0 }
     }
 }
