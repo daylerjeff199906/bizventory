@@ -274,11 +274,21 @@ export async function getStorefrontProducts({
 export async function getAllStorefrontProducts({
     page = 1,
     pageSize = 12,
-    search = ''
+    search = '',
+    brandId = '',
+    businessId = '',
+    minPrice = 0,
+    maxPrice = 0,
+    sort = 'newest'
 }: {
     page?: number
     pageSize?: number
     search?: string
+    brandId?: string
+    businessId?: string
+    minPrice?: number
+    maxPrice?: number
+    sort?: string
 } = {}) {
     const supabase = await getSupabase()
     const from = (page - 1) * pageSize
@@ -292,12 +302,22 @@ export async function getAllStorefrontProducts({
         if (busError) throw busError
         if (!businesses || businesses.length === 0) return { data: [], total: 0, totalPages: 0 }
 
-        const businessIds = businesses.map((b) => b.id)
+        let activeBusinessIds = businesses.map((b) => b.id)
+        if (businessId) {
+            activeBusinessIds = activeBusinessIds.filter(id => id === businessId)
+        }
+        if (activeBusinessIds.length === 0) return { data: [], total: 0, totalPages: 0 }
 
-        const { data: brands, error: brandsError } = await supabase
+        let brandQuery = supabase
             .from('brands')
             .select('id, business_id')
-            .in('business_id', businessIds)
+            .in('business_id', activeBusinessIds)
+
+        if (brandId) {
+            brandQuery = brandQuery.eq('id', brandId)
+        }
+
+        const { data: brands, error: brandsError } = await brandQuery
 
         if (brandsError) throw brandsError
         const brandIds = brands?.map((b) => b.id) || []
@@ -321,9 +341,23 @@ export async function getAllStorefrontProducts({
             query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`)
         }
 
+        if (minPrice > 0) {
+            query = query.gte('price', minPrice)
+        }
+        if (maxPrice > 0) {
+            query = query.lte('price', maxPrice)
+        }
+
+        if (sort === 'price_asc') {
+            query = query.order('price', { ascending: true })
+        } else if (sort === 'price_desc') {
+            query = query.order('price', { ascending: false })
+        } else {
+            query = query.order('created_at', { ascending: false })
+        }
+
         const { data: products, count, error: productsError } = await query
             .range(from, to)
-            .order('created_at', { ascending: false })
 
         if (productsError) throw productsError
         if (!products || products.length === 0) return { data: [], total: 0, totalPages: 0 }
@@ -422,5 +456,24 @@ export async function getAllStorefrontProducts({
     } catch (e) {
         console.error(e)
         return { data: [], total: 0, totalPages: 0 }
+    }
+}
+
+export async function getStorefrontFilters() {
+    const supabase = await getSupabase()
+    
+    const { data: businesses } = await supabase
+        .from('business')
+        .select('id, business_name, slug')
+        .eq('is_public', true)
+        
+    const { data: brands } = await supabase
+        .from('brands')
+        .select('id, name, business_id')
+        .order('name', { ascending: true })
+
+    return {
+        businesses: businesses || [],
+        brands: brands || []
     }
 }

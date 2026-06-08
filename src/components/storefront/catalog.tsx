@@ -45,7 +45,12 @@ export default function Catalog({
       params.delete('q')
     }
     params.set('page', '1')
-    router.push(`${pathname}?${params.toString()}`)
+    
+    if (pathname === '/') {
+      router.push(`/search?${params.toString()}`)
+    } else {
+      router.push(`${pathname}?${params.toString()}`)
+    }
   }, 400)
 
   const handlePageChange = (page: number) => {
